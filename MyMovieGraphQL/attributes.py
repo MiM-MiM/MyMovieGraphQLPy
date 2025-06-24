@@ -1,16 +1,19 @@
 """Notes:
 Names starting with "_" are private and require authencation.
-Names starting with "*" are `edges { node { data }}`
+Names starting with "*" fragments `... on TypeHere {{ selectiosn }}`
 
 Some entries will cause circular references, using pre-defined minimal data instead.
+These can be updated later for more information.
 i.e.
- - Name: { id nameText { text }}
- - Title: { id titleType { id } releaseYear { year } titleText { text isOriginalTitle language { text } } originalTitleText { text isOriginalTitle language { text } } }
+ - Name: NameLimited
+ - Title: TitleLimited
 """
 
 EngagementStatistics = {}
 KnownForV2 = {}
 ProductionStatusHistoryRestriction = {}
+TitleMetaRestrictions = {}
+TitleFullCredits = {}
 
 Title = {
     "id": str,  # tt____
@@ -87,9 +90,6 @@ Title = {
 }
 
 TitleMeta = {"restrictions": "TitleMetaRestrictions"}
-TitleMetaRestrictions = {}
-
-TitleFullCredits = {}
 
 TitleConnection = {"text": str}
 

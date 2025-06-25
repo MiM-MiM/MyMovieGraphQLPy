@@ -15,10 +15,12 @@ MyMovieGraphQL is configured as a python module. It is suggested to create a [ve
 # Activate venv first if used.
 # Navigate to cloned folder, `cd MyMovieGraphQLPy`
 python3 -m pip install .
+# You may need to use development mode
+python -m pip install -e
 ```
 
 # Notes
-The API alothough works publicly, is not documented for the public. The listed fields and arguments may not be complete. If you find one that should be listed please raise an issue with what it belongs to, even if you do not yet know any of the attributes or required arguments.
+The API although works publicly, is not documented for the public. The listed fields and arguments may not be complete. If you find one that should be listed please raise an issue with what it belongs to, even if you do not yet know any of the attributes or required arguments.
 
 The types are typically named well to hint at what they may be/return.
 - Pluarl names typically return a list in some way.

@@ -5,7 +5,6 @@ from MyMovieGraphQL import arguments
 def query_builder(
     data: dict[str, type | str],
     keys: list[str] = [],
-    allowSub: bool = True,
     allowPrivate: bool = False,
     keyArgs: dict[str, dict] = {},
     manual: bool = False,
@@ -25,8 +24,6 @@ def query_builder(
         raise TypeError(
             f"`allowPrivate` must be a boolean value, {type(allowPrivate)} given"
         )
-    if not isinstance(allowSub, bool):
-        raise TypeError(f"`allowSub` must be a boolean value, {type(allowSub)} given")
     if not isinstance(keyArgs, dict):
         raise TypeError(f"`keyArgs` must be a boolean value, {type(keyArgs)} given")
     if not keys:
@@ -72,25 +69,19 @@ def query_builder(
                 args = ", ".join(
                     [f"{argKey}: {queyrArgs[argKey]}" for argKey in queyrArgs.keys()]
                 )
-            if is_edge and (allowSub or all_edges or k == "creditedRoles"):
-                # When there is only the edges being selected you must still make it a node.
-                # Bypass check for credits, gathers info of who they played and such.
+            if is_edge:
                 sub_query = query_builder(
                     sub_attributes,
                     keys=list(sub_attributes.keys()),
                     allowPrivate=allowPrivate,
-                    allowSub=False,
                     keyArgs=keyArgs,
                 )
                 query = f"{query} {k}({args}) {{ edges {{ node {{ {sub_query} }} }}}}"
-            elif is_edge:
-                continue
             else:
                 sub_query = query_builder(
                     sub_attributes,
                     keys=list(sub_attributes.keys()),
                     allowPrivate=allowPrivate,
-                    allowSub=False,
                     keyArgs=keyArgs,
                 )
                 queyrArgs = keyArgs.get(k, {})

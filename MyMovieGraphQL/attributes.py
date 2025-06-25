@@ -14,6 +14,7 @@ EngagementStatistics = {}
 ProductionStatusHistoryRestriction = {}
 TitleMetaRestrictions = {}
 TitleFullCredits = {}
+AggregateRatingsBreakdown = {}
 
 Title = {
     "id": str,  # tt____
@@ -82,15 +83,19 @@ Title = {
     "meta": "TitleMeta",
     ##################################################
     # disabled until I can figure out a required argument
-    # "plotContributionLink": "ContributionLink",
-    # "plotContributionLink": "ContributionLink",
-    # "imageUploadLink": "ContributionLink",
+    # "plotContributionLink": "ContributionLink", # contributionContext
+    # "plotContributionLink": "ContributionLink", # contributionContext
+    # "imageUploadLink": "ContributionLink", # contributionContext
+    # "cinemaShowtimesByScreeningType": "TitleCinemaShowtimesByScreeningType.edges" # TitleCinemaShowtimesFilter
     ##################################################
     # disabled until I can figure out some attributes
     # "engagementStatistics": "EngagementStatistics",
     # "fullCredits": "TitleFullCredits",
+    # "aggregateRatingsBreakdown": "AggregateRatingsBreakdown",
     ##################################################
 }
+
+TitleCinemaShowtimesByScreeningType = {}
 
 TitleMeta = {
     "canonicalId": str,  # Same as id

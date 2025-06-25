@@ -5,18 +5,19 @@ Names starting with "*" fragments `... on TypeHere {{ selectiosn }}`
 Some entries will cause circular references, using pre-defined minimal data instead.
 These can be updated later for more information.
 i.e.
- - Name: NameLimited
- - Title: TitleLimited
+ - Name: NameLimited # Remove most, keeping basic info
+ - Title: TitleLimited # Remove most, keeping basic info
+ - Image: ImageLimited # Remove names, can be updated later
 """
 
 EngagementStatistics = {}
-KnownForV2 = {}
 ProductionStatusHistoryRestriction = {}
 TitleMetaRestrictions = {}
 TitleFullCredits = {}
 
 Title = {
     "id": str,  # tt____
+    "canonicalUrl": str,  # The URL
     "titleText": "TitleText",
     "titleType": "TitleType",
     "originalTitleText": "TitleText",
@@ -32,7 +33,7 @@ Title = {
     "certificates": "Certificate.edges",
     "ratingsSummary": "RatingsSummary",
     "images": "Image.edges",
-    "primaryImage": "Image",
+    "primaryImage": "ImageLimited",
     "videos": "TitleRelatedVideos",
     "primaryVideos": "Video.edges",
     "externalLinks": "ExternalLink.edges",
@@ -41,7 +42,9 @@ Title = {
     "keywords": "TitleKeyword.edges",
     "genres": "Genres",
     "plot": "Plot",
+    "plots": "Plot.edges",
     "credits": "Credit.edges",
+    "episodeCredits": "CreditV2.edges",
     "meterRanking": "TitleMeterRanking",
     "principalCredits": "PrincipalCreditsForCategory",
     "principalCreditsV2": "PrincipalCreditsForGrouping",
@@ -76,6 +79,7 @@ Title = {
     "alexaTopQuestions": "AlexaQuestion.edges",
     "spokenLanguages": "SpokenLanguages",
     "contributionQuestions": "Question",
+    "meta": "TitleMeta",
     ##################################################
     # disabled until I can figure out a required argument
     # "plotContributionLink": "ContributionLink",
@@ -84,12 +88,18 @@ Title = {
     ##################################################
     # disabled until I can figure out some attributes
     # "engagementStatistics": "EngagementStatistics",
-    # "meta": "TitleMeta",
     # "fullCredits": "TitleFullCredits",
     ##################################################
 }
 
-TitleMeta = {"restrictions": "TitleMetaRestrictions"}
+TitleMeta = {
+    "canonicalId": str,  # Same as id
+    # "restrictions": "TitleMetaRestrictions",
+}
+
+NameMeta = {
+    "canonicalId": str,  # Same as id
+}
 
 TitleConnection = {"text": str}
 
@@ -167,6 +177,7 @@ Series = {"series": "TitleLimited"}
 TitleLimited = (
     {  # define a limited scope Title to be used to avoid circlular generation
         "id": str,  # tt____
+        "canonicalUrl": str,  # The URL
         "titleType": "TitleType",
         "releaseYear": "ReleaseYear",
         "titleText": "TitleText",
@@ -182,6 +193,7 @@ TitleType = {
 
 Name = {
     "id": str,  # nm____
+    "canonicalUrl": str,  # The URL
     "creditCategories": "NameCreditCategoryWithCredits",
     "credits": "CreditAttribute.edges",
     "trademarks": "Trademark.edges",
@@ -191,7 +203,7 @@ Name = {
     "images": "Image.edges",
     "age": "AgeDetails",
     "_isClaimed": bool,
-    "knownForV2": "KnownForV2.edges",
+    "knownForV2": "KnownForV2",
     "knownFor": "NameKnownFor",
     "spouses": "NameSpouse",
     "height": "NameHeight",
@@ -203,10 +215,12 @@ Name = {
     "deathStatus": str,
     "deathLocation": "DisplayableLocation",
     "death": "NameDeath",
+    "meta": "NameMeta",
 }
 
 NameLimited = {
     "id": str,  # nm____
+    "canonicalUrl": str,  # The URL
     "bio": "NameBio",
     "akas": "NameAka.edges",
     "height": "NameHeight",
@@ -246,6 +260,15 @@ NominationEvent = {
     "akas": "NominationEventAka",
 }
 
+ImageLimited = {
+    "id": str,  # rm____
+    "type": str,
+    "width": int,
+    "height": int,
+    "url": str,
+    "languages": "DisplayableLanguage",
+}
+
 Image = {
     "id": str,  # rm____
     "names": "NameLimited",
@@ -264,7 +287,7 @@ NameRelations = {
 News = {
     "id": str,  # ni____
     "date": str,  # yyyy-mm-dd'T'hh:mm:ssZ
-    "image": "Image",
+    "image": "ImageLimited",
 }
 
 NominationAward = {
@@ -290,6 +313,7 @@ Soundtrack = {
 Video = {
     "id": str,  # vi____
     "name": "LocalizedString",
+    "description": "LocalizedString",
 }
 
 Coloration = {"id": str, "text": str, "attributes": "DisplayableAttribute"}
@@ -467,6 +491,8 @@ Credit = {
     "name": "NameLimited",
 }
 
+KnownForV2 = {"credits": "CreditV2"}
+
 CreditV2 = {
     "title": "TitleLimited",
     "name": "NameLimited",
@@ -526,6 +552,7 @@ LocalizedText = {
 
 LocalizedString = {
     "language": str,
+    "value": str,
 }
 
 Location = {
@@ -616,6 +643,7 @@ ParentsGuideItem = {"isSpoiler": bool, "text": "Markdown"}
 Plot = {
     "plotText": "Markdown",
     "language": "DisplayableLanguage",
+    "plotType": str,
 }
 
 PrestigiousAwardSummary = {
@@ -697,10 +725,17 @@ ReviewHelpfulness = {
     "downVotes": int,
 }
 
+User = {
+    "fullName": str,
+    "profile": "UserProfile",
+}
+
 UserProfile = {
     "bio": "UserProfileBio",
-    "username": str,
+    "username": "UserProfileUsername",
 }
+
+UserProfileUsername = {"text": str}
 
 UserProfileBio = {"text": "Markdown"}
 

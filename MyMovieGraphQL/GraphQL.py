@@ -33,7 +33,7 @@ def query_builder(
     all_edges = True
     for k in keys:
         if isinstance(data.get(k), str):
-            if not data.get(k, "").endswith(".edges"):  # type: ignore
+            if not data.get(k, "").endswith("Connection"):  # type: ignore
                 all_edges = False
     for k in keys:
         if isinstance(data.get(k), str):
@@ -45,6 +45,7 @@ def query_builder(
         k_as_on = f"*{k}"
         k_as_private = f"_{k}"
         if k not in data and k_as_on not in data and k_as_private not in data:
+            print(data)
             raise ValueError(f"Key `{k}` is not found in the requested data supplied.")
         if k_as_on in data:
             query = f"{query} ... on"
@@ -56,8 +57,8 @@ def query_builder(
         if isinstance(data[k], str):
             sub_attribute_name = str(data[k])
             k = k.removeprefix("*").removeprefix("_")
-            is_edge = sub_attribute_name.endswith(".edges")
-            sub_attribute_name = sub_attribute_name.removesuffix(".edges")
+            is_edge = sub_attribute_name.endswith("Connection")
+            sub_attribute_name = sub_attribute_name.removesuffix("Connection")
             sub_attributes = getattr(attributes, sub_attribute_name)
             if not isinstance(sub_attributes, dict):
                 raise TypeError(f"The attribute selected is not a dict, {k}")
@@ -76,7 +77,7 @@ def query_builder(
                     allowPrivate=allowPrivate,
                     keyArgs=keyArgs,
                 )
-                query = f"{query} {k}({args}) {{ edges {{ node {{ {sub_query} }} }}}}"
+                query = f"{query} {k}({args}) {{ pageInfo {{ endCursor hasNextPage }} edges {{ node {{ {sub_query} }} }}}}"
             else:
                 sub_query = query_builder(
                     sub_attributes,

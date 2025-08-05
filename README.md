@@ -50,15 +50,6 @@ The types are typically named well to hint at what they may be/return.
   - Missing requlred argument of type `ContributionContext`
   - Notes
     - I assume this requires authencation and will be considered private.
-### Missing all attributes
-#### Title
-- `engagementStatistics`
-  - Return `EngagementStatistics`
-  - Unknown attributes on `EngagementStatistics`
-- `meta`
-  - Return `TitleMeta`
-    - Has `restrictions` of type `TitleMetaRestrictions`
-      - Unknown attributes for `TitleMetaRestrictions`
 
 # Atrributions
 

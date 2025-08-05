@@ -190,6 +190,16 @@ class AdditionalResumeInfo:
             self.title = LocalizedString(**kwargs.get('title', {}))
         else:
             self.title = None
+    def __str__(self):
+        if self.title and self.details:
+            return f"{self.title}: {self.details}"
+        elif self.title:
+            return str(self.title)
+        elif self.details:
+            return str(self.details)
+        return ""
+    def __repr__(self):
+        return f"AdditionalResumeInfo(details={self.details}, id={self.id}, title={self.title})"
     def __eq__(self, other):
         if not isinstance(other, AdditionalResumeInfo):
             return False
@@ -211,6 +221,10 @@ class AdvancedNameSearchResult:
             self.name = Name(**kwargs.get('name', {}))
         else:
             self.name = None
+    def __str__(self):
+        return str(self.name) if self.name else ""
+    def __repr__(self):
+        return self.name.__repr__() if self.name else "AdvancedNameSearchResult(name=None)"
     def __eq__(self, other):
         if not isinstance(other, AdvancedNameSearchResult):
             return False
@@ -222,6 +236,10 @@ class AdvancedTitleSearchResult:
             self.title = Title(**kwargs.get('title', {}))
         else:
             self.title = None
+    def __str__(self):
+        return str(self.title) if self.title else ""
+    def __repr__(self):
+        return self.title.__repr__() if self.title else "AdvancedTitleSearchResult(title=None)"
     def __eq__(self, other):
         if not isinstance(other, AdvancedTitleSearchResult):
             return False
@@ -327,6 +345,21 @@ class Agent:
             self.relationshipType = RepresentationRelationshipType(**kwargs.get('relationshipType', {}))
         else:
             self.relationshipType = None
+    def __str__(self):
+        string = ""
+        if self.name and self.employeeContact:
+            string = f"{self.name} ({self.employeeContact})"
+        if self.jobTitle and self.occupation:
+            string = f"{string}\n{self.jobTitle}: {self.occupation}" if string else f"{self.jobTitle}: {self.occupation}"
+        elif self.jobTitle:
+            string = f"{string}\n{self.jobTitle}" if string else f"{self.jobTitle}"
+        if self.company and self.branch:
+            string = f"{string}\n{self.company} ({self.branch})" if string else f"{self.company} ({self.branch})"
+        elif self.company:
+            string = f"{string}\n{self.company}" if string else str(self.company)
+        return string
+    def __repr__(self):
+        return f"Agent(branch={self.branch}, company={self.company}, employeeContact={self.employeeContact}, id={self.id}, isPrimaryAgent={self.isPrimaryAgent}, jobTitle={self.jobTitle}, name={self.name}, occupation={self.occupation}, relationshipType={self.relationshipType})"
     def __eq__(self, other):
         if not isinstance(other, Agent):
             return False
@@ -347,6 +380,10 @@ class AggregateRatingsBreakdown:
             self.ratingsSummaryByDemographics = DemographicRatings(**kwargs.get('ratingsSummaryByDemographics', {}))
         else:
             self.ratingsSummaryByDemographics = None
+    def __str__(self):
+        return str(self.histogram) if self.histogram else ""
+    def __repr__(self):
+        return f"AggregateRatingsBreakdown(histogram={self.histogram}, isCollapsed={self.isCollapsed}, ratingsSummaryByCountry={self.ratingsSummaryByCountry}, ratingsSummaryByDemographics={self.ratingsSummaryByDemographics})"
     def __eq__(self, other):
         if not isinstance(other, AggregateRatingsBreakdown):
             return False
@@ -371,6 +408,10 @@ class Aka:
         else:
             self.language = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return str(self.text)
+    def __repr__(self):
+        return f"Aka(attributes={self.attributes}, country={self.country}, displayableProperty={self.displayableProperty}, language={self.language}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, Aka):
             return False
@@ -397,6 +438,14 @@ class AlexaQuestion:
             self.question = Markdown(**kwargs.get('question', {}))
         else:
             self.question = None
+    def __str__(self):
+        if self.question and self.answer:
+            return f"Q: {self.question}\nA: {self.answer}"
+        if self.question:
+            return f"Q: {self.question}\nA: No answer provided."
+        return ""
+    def __repr__(self):
+        return f"AlexaQuestion(answer={self.answer}, attributeId={self.attributeId}, question={self.question})"
     def __eq__(self, other):
         if not isinstance(other, AlexaQuestion):
             return False
@@ -422,6 +471,10 @@ class AlternateVersion:
             self.text = Markdown(**kwargs.get('text', {}))
         else:
             self.text = None
+    def __str__(self):
+        return str(self.text) if self.text else ""
+    def __repr__(self):
+        return f"AlternateVersion(displayableArticle={self.displayableArticle}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, AlternateVersion):
             return False
@@ -459,10 +512,24 @@ class AmazonMusicProduct:
             self.productTitle = AmazonMusicProductTitle(**kwargs.get('productTitle', {}))
         else:
             self.productTitle = None
+    def __str__(self):
+        if self.productTitle and self.artists and self.format:
+            return f"{self.productTitle} by {self.artists.artistName} ({self.format})"
+        if self.productTitle and self.format:
+            return f"{self.productTitle} ({self.format})"
+        if self.productTitle and self.artists:
+            return f"{self.productTitle} by {self.artists.artistName}"
+        if self.artists and self.format:
+            return f"`Missing Title` by {self.artists.artistName} ({self.format})"
+        if self.format:
+            return f"`Missing Title` by `Missing Artist` ({self.format})"
+        return ""
+    def __repr__(self):
+        return f"<--- AmazonMusicProduct( {self.amazonId}: {self.productTitle} by {self.artists} ({self.format}) --->"
     def __eq__(self, other):
         if not isinstance(other, AmazonMusicProduct):
             return False
-        return (self.amazonId == other.amazonId and self.artists == other.artists and self.format == other.format and self.image == other.image and self.productTitle == other.productTitle)
+        return self.amazonId == other.amazonId
 
 class AmazonMusicProductArtist:
     def __init__(self, **kwargs):
@@ -470,6 +537,10 @@ class AmazonMusicProductArtist:
             self.artistName = AmazonMusicProductArtistName(**kwargs.get('artistName', {}))
         else:
             self.artistName = None
+    def __str__(self):
+        return str(self.artistName) if self.artistName else ""
+    def __repr__(self):
+        return f"AmazonMusicProductArtist(artistName={self.artistName})"
     def __eq__(self, other):
         if not isinstance(other, AmazonMusicProductArtist):
             return False
@@ -483,6 +554,10 @@ class AmazonMusicProductArtistName:
         else:
             self.language = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return str(self.text)
+    def __repr__(self):
+        return f"AmazonMusicProductArtistName(id={self.id}, language={self.language}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, AmazonMusicProductArtistName):
             return False
@@ -496,6 +571,10 @@ class AmazonMusicProductFormat:
         else:
             self.language = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return str(self.text) if self.text else ""
+    def __repr__(self):
+        return f"AmazonMusicProductFormat(id={self.id}, language={self.language}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, AmazonMusicProductFormat):
             return False
@@ -509,6 +588,10 @@ class AmazonMusicProductTitle:
         else:
             self.language = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return str(self.text)
+    def __repr__(self):
+        return f"AmazonMusicProductTitle(id={self.id}, language={self.language}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, AmazonMusicProductTitle):
             return False
@@ -519,10 +602,14 @@ class AmazonStandardId:
         self.asin = kwargs.get('asin', "")
         self.obfuscatedMarketplaceId = kwargs.get('obfuscatedMarketplaceId', "")
         self.region = kwargs.get('region', "")
+    def __str__(self):
+        return str(self.asin)
+    def __repr__(self):
+        return f"AmazonStandardId(asin={self.asin}, obfuscatedMarketplaceId={self.obfuscatedMarketplaceId}, region={self.region})"
     def __eq__(self, other):
         if not isinstance(other, AmazonStandardId):
             return False
-        return (self.asin == other.asin and self.obfuscatedMarketplaceId == other.obfuscatedMarketplaceId and self.region == other.region)
+        return self.asin == other.asin
 
 class AnswerOption:
     def __init__(self, **kwargs):
@@ -532,6 +619,10 @@ class AnswerOption:
         else:
             self.language = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return self.text
+    def __repr__(self):
+        return f"AnswerOption(id={self.id}, language={self.language}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, AnswerOption):
             return False
@@ -544,6 +635,10 @@ class AppAdsInfoOutput:
         else:
             self.adLayoutSlotConfig = None
         self.thirdPartyAdsEligibility = kwargs.get('thirdPartyAdsEligibility', False)
+    def __str__(self):
+        return str(self.adLayoutSlotConfig) if self.adLayoutSlotConfig else ""
+    def __repr__(self):
+        return f"AppAdsInfoOutput(adLayoutSlotConfig={self.adLayoutSlotConfig}, thirdPartyAdsEligibility={self.thirdPartyAdsEligibility})"
     def __eq__(self, other):
         if not isinstance(other, AppAdsInfoOutput):
             return False
@@ -559,6 +654,10 @@ class ApsConfiguration:
             self.apsSlotAdRefresh = ApsSlot(**kwargs.get('apsSlotAdRefresh', {}))
         else:
             self.apsSlotAdRefresh = None
+    def __str__(self):
+        return str(self.apsSlot) if self.apsSlot else ""
+    def __repr__(self):
+        return f"ApsConfiguration(apsSlot={self.apsSlot}, apsSlotAdRefresh={self.apsSlotAdRefresh})"
     def __eq__(self, other):
         if not isinstance(other, ApsConfiguration):
             return False
@@ -568,10 +667,14 @@ class ApsSlot:
     def __init__(self, **kwargs):
         self.apsSlotId = kwargs.get('apsSlotId', "")
         self.apsSlotName = kwargs.get('apsSlotName', "")
+    def __str__(self):
+        return self.apsSlotName
+    def __repr__(self):
+        return f"ApsSlot(apsSlotId={self.apsSlotId}, apsSlotName={self.apsSlotName})"
     def __eq__(self, other):
         if not isinstance(other, ApsSlot):
             return False
-        return (self.apsSlotId == other.apsSlotId and self.apsSlotName == other.apsSlotName)
+        return self.apsSlotId == other.apsSlotId
 
 class AspectRatio:
     def __init__(self, **kwargs):
@@ -584,6 +687,10 @@ class AspectRatio:
             self.displayableProperty = DisplayableTechnicalSpecificationProperty(**kwargs.get('displayableProperty', {}))
         else:
             self.displayableProperty = None
+    def __str__(self):
+        return str(self.displayableProperty) if self.displayableProperty else ""
+    def __repr__(self):
+        return f"AspectRatio(aspectRatio={self.aspectRatio}, attributes={self.attributes}, displayableProperty={self.displayableProperty})"
     def __eq__(self, other):
         if not isinstance(other, AspectRatio):
             return False
@@ -591,15 +698,20 @@ class AspectRatio:
 
 class AspectRatios:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = AspectRatio(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [AspectRatio(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"AspectRatios(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, AspectRatios):
             return False
@@ -657,6 +769,10 @@ class AuthProviderStatus:
 class AwardCategory:
     def __init__(self, **kwargs):
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return self.text
+    def __repr__(self):
+        return f"AwardCategory(text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, AwardCategory):
             return False
@@ -670,6 +786,12 @@ class AwardDetails:
             self.eventEdition = None
         self.id = kwargs.get('id', "")
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        if self.eventEdition and self.text:
+            return f"{self.text} ({self.eventEdition})"
+        return self.text
+    def __repr__(self):
+        return f"AwardDetails(eventEdition={self.eventEdition}, id={self.id}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, AwardDetails):
             return False
@@ -757,10 +879,17 @@ class AwardsEvent:
             self.trivia = Markdown(**kwargs.get('trivia', {}))
         else:
             self.trivia = None
-        if kwargs.get('urls'):
-            self.urls = EventUrl(**kwargs.get('urls', {}))
-        else:
-            self.urls = None
+        self.urls = [EventUrl(**url) for url in kwargs.get('urls', [])]
+    def __str__(self):
+        if self.location and self.editions:
+            return f"{self.text} at {self.location} ({self.editions})"
+        if self.location:
+            return f"{self.text} at {self.location}"
+        if self.editions:
+            return f"{self.text} ({self.editions})"
+        return self.text
+    def __repr__(self):
+        return f"AwardsEvent(id={self.id}, editions={self.editions}), location={self.location}, text={self.text}, trivia={self.trivia}, urls={self.urls}"
     def __eq__(self, other):
         if not isinstance(other, AwardsEvent):
             return False
@@ -842,6 +971,10 @@ class BirthName:
         else:
             self.displayableProperty = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return self.text
+    def __repr__(self):
+        return f"BirthName(displayableProperty={self.displayableProperty}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, BirthName):
             return False
@@ -851,6 +984,10 @@ class BlogLink:
     def __init__(self, **kwargs):
         self.label = kwargs.get('label', "")
         self.url = kwargs.get('url', "")
+    def __str__(self):
+        return self.url
+    def __repr__(self):
+        return f"BlogLink(label={self.label}, url={self.url})"
     def __eq__(self, other):
         if not isinstance(other, BlogLink):
             return False
@@ -865,6 +1002,10 @@ class BoxOfficeAreaType:
         else:
             self.language = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return self.text
+    def __repr__(self):
+        return f"BoxOfficeAreaType(id={self.id}, code={self.code}, language={self.language}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, BoxOfficeAreaType):
             return False
@@ -876,6 +1017,16 @@ class BoxOfficeGross:
             self.total = Money(**kwargs.get('total', {}))
         else:
             self.total = None
+    def __str__(self):
+        if self.total:
+            return str(self.total)
+        return ""
+    def __repr__(self):
+        return f"BoxOfficeGross(total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, BoxOfficeGross):
             return False
@@ -883,10 +1034,7 @@ class BoxOfficeGross:
 
 class BoxOfficeRelease:
     def __init__(self, **kwargs):
-        if kwargs.get('titles'):
-            self.titles = Title(**kwargs.get('titles', {}))
-        else:
-            self.titles = None
+        self.titles = [Title(**title) for title in kwargs.get('titles', [])]
         self.weeksRunning = kwargs.get('weeksRunning', 0)
     def __eq__(self, other):
         if not isinstance(other, BoxOfficeRelease):
@@ -994,15 +1142,20 @@ class Camera:
 
 class Cameras:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = Camera(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [Camera(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"Cameras(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, Cameras):
             return False
@@ -1246,15 +1399,20 @@ class Coloration:
 
 class Colorations:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = Coloration(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [Coloration(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"Colorations(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, Colorations):
             return False
@@ -2481,10 +2639,7 @@ class CustomKnownFor:
         self.isReset = kwargs.get('isReset', False)
         self.lastEdited = kwargs.get('lastEdited', "")
         self.lastEditedByAdmin = kwargs.get('lastEditedByAdmin', "")
-        if kwargs.get('titles'):
-            self.titles = Title(**kwargs.get('titles', {}))
-        else:
-            self.titles = None
+        self.titles = [Title(**title) for title in kwargs.get('titles', [])]
     def __eq__(self, other):
         if not isinstance(other, CustomKnownFor):
             return False
@@ -4790,15 +4945,20 @@ class FilmLength:
 
 class FilmLengths:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = FilmLength(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [FilmLength(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"FilmLengths(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, FilmLengths):
             return False
@@ -4943,6 +5103,10 @@ class GenreItem:
         else:
             self.language = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return self.text
+    def __repr__(self):
+        return f"GenreItem(id={self.id}, genreId={self.genreId}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, GenreItem):
             return False
@@ -4955,6 +5119,14 @@ class GenreSummary:
         else:
             self.genre = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.genre)
+    def __repr__(self):
+        return f"GenreSummary(genre={self.genre}, total={self.total})"
+    def __int__(self):
+        return int(self.total)
+    def __float__(self):
+        return float(self.total)
     def __eq__(self, other):
         if not isinstance(other, GenreSummary):
             return False
@@ -4962,10 +5134,11 @@ class GenreSummary:
 
 class Genres:
     def __init__(self, **kwargs):
-        if kwargs.get('genres'):
-            self.genres = [Genre(**genre) for genre in kwargs.get('genres', [])]
-        else:
-            self.genres = None
+        self.genres = [Genre(**genre) for genre in kwargs.get('genres', [])]
+    def __str__(self):
+        return str(self.genres)
+    def __repr__(self):
+        return f"Genres(genres={self.genres})"
     def __eq__(self, other):
         if not isinstance(other, Genres):
             return False
@@ -4977,6 +5150,10 @@ class GetLatestUIWorkflowOutput:
             self.workflow = UIWorkflow(**kwargs.get('workflow', {}))
         else:
             self.workflow = None
+    def __str__(self):
+        return str(self.workflow) if self.workflow else ""
+    def __repr__(self):
+        return f"GetLatestUIWorkflowOutput(workflow={self.workflow})"
     def __eq__(self, other):
         if not isinstance(other, GetLatestUIWorkflowOutput):
             return False
@@ -5002,6 +5179,10 @@ class Goof:
             self.text = Markdown(**kwargs.get('text', {}))
         else:
             self.text = None
+    def __str__(self):
+        return str(self.text)
+    def __repr__(self):
+        return f"Goof(id={self.id}, category={self.category}, displayableArticle={self.displayableArticle}, interestScore={self.interestScore}, isSpoiler={self.isSpoiler}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, Goof):
             return False
@@ -5011,6 +5192,10 @@ class GoofCategory:
     def __init__(self, **kwargs):
         self.id = kwargs.get('id', "")
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        return self.text
+    def __repr__(self):
+        return f"GoofCategory(id={self.id}, text={self.text})"
     def __eq__(self, other):
         if not isinstance(other, GoofCategory):
             return False
@@ -5026,6 +5211,14 @@ class GoofCategoryWithGoofs:
             self.goofs = GoofConnection(**kwargs.get('goofs', {}))
         else:
             self.goofs = None
+    def __str__(self):
+        if self.goofs and self.category:
+            return f"{self.category}: {self.goofs}"
+        elif self.category:
+            return f"{self.category}: []"
+        return ""
+    def __repr__(self):
+        return f"GoofCategoryWithGoofs(category={self.category}, goofs={self.goofs})"
     def __eq__(self, other):
         if not isinstance(other, GoofCategoryWithGoofs):
             return False
@@ -5123,6 +5316,10 @@ class HelpLink:
         else:
             self.label = None
         self.url = kwargs.get('url', "")
+    def __str__(self):
+        return str(self.url)
+    def __repr__(self):
+        return f"HelpLink(label={self.label}, url={self.url})"
     def __eq__(self, other):
         if not isinstance(other, HelpLink):
             return False
@@ -5138,6 +5335,14 @@ class Histogram:
             self.histogramValues = HistogramValues(**kwargs.get('histogramValues', {}))
         else:
             self.histogramValues = None
+    def __str__(self):
+        return str(self.histogramValues)
+    def __repr__(self):
+        return f"Histogram(demographic={self.demographic}, histogramValues={self.histogramValues})"
+    def __int__(self):
+        return int(self.histogramValues) if self.histogramValues else 0
+    def __float__(self):
+        return float(self.histogramValues) if self.histogramValues else 0.0
     def __eq__(self, other):
         if not isinstance(other, Histogram):
             return False
@@ -5147,6 +5352,20 @@ class HistogramValues:
     def __init__(self, **kwargs):
         self.rating = kwargs.get('rating', 0)
         self.voteCount = kwargs.get('voteCount', 0)
+    def __str__(self):
+        if self.rating and self.voteCount:
+            return f"{self.rating} ({self.voteCount} votes)"
+        if self.rating:
+            return f"{self.rating} (votes missing)"
+        if self.voteCount:
+            return f"Unknown ({self.voteCount})"
+        return ""
+    def __repr__(self):
+        return f"HistogramValues(rating={self.rating}, voteCount={self.voteCount})"
+    def __int__(self):
+        return int(self.rating) if self.rating else 0
+    def __float__(self):
+        return float(self.rating) if self.rating else 0.0
     def __eq__(self, other):
         if not isinstance(other, HistogramValues):
             return False
@@ -5178,10 +5397,7 @@ class Image:
             self.languages = [DisplayableLanguage(**lang) for lang in kwargs.get('languages', [])]
         else:
             self.languages = None
-        if kwargs.get('names'):
-            self.names = Name(**kwargs.get('names', {}))
-        else:
-            self.names = None
+        self.names = [Name(**name) for name in kwargs.get('names', [])]
         if kwargs.get('_reportingLink'):
             self._reportingLink = ContributionLink(**kwargs.get('_reportingLink', {}))
         else:
@@ -5190,13 +5406,14 @@ class Image:
             self.source = Source(**kwargs.get('source', {}))
         else:
             self.source = None
-        if kwargs.get('titles'):
-            self.titles = Title(**kwargs.get('titles', {}))
-        else:
-            self.titles = None
+        self.titles = [Title(**title) for title in kwargs.get('titles', [])]
         self.type = kwargs.get('type', "")
         self.url = kwargs.get('url', "")
         self.width = kwargs.get('width', 0)
+    def __str__(self):
+        return self.url
+    def __repr__(self):
+        return f"<-- Image({self.id}: url={self.url}, width={self.width}, height={self.height}, caption={self.caption}, type={self.type}) -->"
     def __eq__(self, other):
         if not isinstance(other, Image):
             return False
@@ -5249,11 +5466,11 @@ class ImageFacets:
         if kwargs.get('names'):
             self.names = NameConnection(**kwargs.get('names', {}))
         else:
-            self.names = None
+            self.names = NameConnection()
         if kwargs.get('titles'):
             self.titles = TitleConnection(**kwargs.get('titles', {}))
         else:
-            self.titles = None
+            self.titles = TitleConnection()
         if kwargs.get('types'):
             self.types = ImageTypeFacet(**kwargs.get('types', {}))
         else:
@@ -5267,10 +5484,11 @@ class ImageGallery:
     def __init__(self, **kwargs):
         self.galleryText = kwargs.get('galleryText', "")
         self.id = kwargs.get('id', "")
-        if kwargs.get('images'):
-            self.images = ImageConnection(**kwargs.get('images', {}))
-        else:
-            self.images = None
+        self.images = [ImageConnection(**image) for image in kwargs.get('images', [])]
+    def __str__(self):
+        return self.galleryText
+    def __repr__(self):
+        return f"ImageGallery(id={self.id}, galleryText={self.galleryText}, images={self.images})"
     def __eq__(self, other):
         if not isinstance(other, ImageGallery):
             return False
@@ -5528,15 +5746,20 @@ class KnownForV2:
 
 class Laboratories:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = Laboratory(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [Laboratory(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"Laboratories(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, Laboratories):
             return False
@@ -5619,10 +5842,7 @@ class List:
         self.id = kwargs.get('id', "")
         self.isElementInList = kwargs.get('isElementInList', False)
         self.isPredefined = kwargs.get('isPredefined', False)
-        if kwargs.get('items'):
-            self.items = ListConnection(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [ListConnection(**item) for item in kwargs.get('items', [])]
         self.lastModifiedDate = kwargs.get('lastModifiedDate', "")
         if kwargs.get('listClass'):
             self.listClass = ListClass(**kwargs.get('listClass', {}))
@@ -5656,6 +5876,10 @@ class List:
             self.visibility = ListVisibility(**kwargs.get('visibility', {}))
         else:
             self.visibility = None
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"List(areElementsInList={self.areElementsInList}, author={self.author}, createdDate={self.createdDate}, description={self.description}, id={self.id}, isElementInList={self.isElementInList}, isPredefined={self.isPredefined}, items={self.items}, lastModifiedDate={self.lastModifiedDate}, listClass={self.listClass}, listInteractionCounts={self.listInteractionCounts}, listType={self.listType}, name={self.name}, nameListItemSearch={self.nameListItemSearch}, primaryImage={self.primaryImage}, titleListItemSearch={self.titleListItemSearch}, visibility={self.visibility})"
     def __eq__(self, other):
         if not isinstance(other, List):
             return False
@@ -6446,6 +6670,10 @@ class MigrationTestOutput:
 class ModifiedBy:
     def __init__(self, **kwargs):
         self.role = kwargs.get('role', "")
+    def __str__(self):
+        return self.role
+    def __repr__(self):
+        return f"ModifiedBy(role={self.role})"
     def __eq__(self, other):
         if not isinstance(other, ModifiedBy):
             return False
@@ -7347,10 +7575,7 @@ class NameRecommendationConnection(Edge):
 
 class NameRecommendations:
     def __init__(self, **kwargs):
-        if kwargs.get('names'):
-            self.names = NameRecommendationConnection(**kwargs.get('names', {}))
-        else:
-            self.names = None
+        self.names = [NameRecommendationConnection(**name) for name in kwargs.get('names', [])]
         self.refTag = kwargs.get('refTag', "")
     def __eq__(self, other):
         if not isinstance(other, NameRecommendations):
@@ -7575,15 +7800,20 @@ class NegativeFormat:
 
 class NegativeFormats:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = NegativeFormat(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [NegativeFormat(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"NegativeFormats(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, NegativeFormats):
             return False
@@ -7957,10 +8187,7 @@ class PageInfo:
 class PaginatedTitles:
     def __init__(self, **kwargs):
         self.paginationToken = kwargs.get('paginationToken', "")
-        if kwargs.get('titles'):
-            self.titles = Title(**kwargs.get('titles', {}))
-        else:
-            self.titles = None
+        self.titles = [Title(**title) for title in kwargs.get('titles', [])]
     def __eq__(self, other):
         if not isinstance(other, PaginatedTitles):
             return False
@@ -8425,15 +8652,20 @@ class PrintedFormat:
 
 class PrintedFormats:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = PrintedFormat(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [PrintedFormat(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"PrintedFormats(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, PrintedFormats):
             return False
@@ -8547,15 +8779,20 @@ class Process:
 
 class Processes:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = Process(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [Process(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"Processes(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, Processes):
             return False
@@ -9100,10 +9337,15 @@ class RefTag:
 
 class RelatedNews:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = News(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [News(**item) for item in kwargs.get('items', [])]
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"RelatedNews(items={self.items})"
+    def __int__(self):
+        return int(len(self.items)) if self.items else 0
+    def __float__(self):
+        return float(len(self.items)) if self.items else 0.0
     def __eq__(self, other):
         if not isinstance(other, RelatedNews):
             return False
@@ -10555,15 +10797,20 @@ class SoundMix:
 
 class SoundMixes:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = SoundMix(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [SoundMix(**item) for item in kwargs.get('items', [])]
         if kwargs.get('restriction'):
             self.restriction = TechnicalSpecificationsRestriction(**kwargs.get('restriction', {}))
         else:
             self.restriction = None
         self.total = kwargs.get('total', 0)
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"SoundMixes(items={self.items}, restriction={self.restriction}, total={self.total})"
+    def __int__(self):
+        return int(self.total) if self.total else 0
+    def __float__(self):
+        return float(self.total) if self.total else 0.0
     def __eq__(self, other):
         if not isinstance(other, SoundMixes):
             return False
@@ -11495,10 +11742,11 @@ class TitleGenre:
         else:
             self.genre = None
         self.relevanceRanking = kwargs.get('relevanceRanking', 0)
-        if kwargs.get('subGenres'):
-            self.subGenres = [TitleKeyword(**subgenre) for subgenre in kwargs.get('subGenres', [])]
-        else:
-            self.subGenres = None
+        self.subGenres = [TitleKeyword(**subgenre) for subgenre in kwargs.get('subGenres', [])]
+    def __str__(self):
+        return str(self.genre)
+    def __repr__(self):
+        return f"TitleGenre(genre={self.genre}, relevanceRanking={self.relevanceRanking}, subGenres={self.subGenres})"
     def __eq__(self, other):
         if not isinstance(other, TitleGenre):
             return False
@@ -11515,10 +11763,7 @@ class TitleGenreRecommendation:
         else:
             self.label = None
         self.refTag = kwargs.get('refTag', "")
-        if kwargs.get('titles'):
-            self.titles = TitleGenreRecommendationConnection(**kwargs.get('titles', {}))
-        else:
-            self.titles = None
+        self.titles = TitleGenreRecommendationConnection(**kwargs.get('titles', {}))
     def __eq__(self, other):
         if not isinstance(other, TitleGenreRecommendation):
             return False
@@ -11536,10 +11781,11 @@ class TitleGenreRecommendationConnection(Edge):
 
 class TitleGenres:
     def __init__(self, **kwargs):
-        if kwargs.get('genres'):
-            self.genres = TitleGenre(**kwargs.get('genres', {}))
-        else:
-            self.genres = None
+        self.genres = [TitleGenre(**genre) for genre in kwargs.get('genres', [])]
+    def __str__(self):
+        return str(self.genres)
+    def __repr__(self):
+        return f"TitleGenres(genres={self.genres})"
     def __eq__(self, other):
         if not isinstance(other, TitleGenres):
             return False
@@ -12197,14 +12443,19 @@ class TrendingCollectionOption:
 
 class TrendingNameCollection:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = TrendingNameNodeConnection(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [TrendingNameNodeConnection(**item) for item in kwargs.get('items', [])]
         if kwargs.get('option'):
             self.option = TrendingCollectionOption(**kwargs.get('option', {}))
         else:
             self.option = None
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"TrendingNameCollection(items={self.items}, option={self.option})"
+    def __int__(self):
+        return int(len(self.items)) if self.items else 0
+    def __float__(self):
+        return float(len(self.items)) if self.items else 0.0
     def __eq__(self, other):
         if not isinstance(other, TrendingNameCollection):
             return False
@@ -12250,14 +12501,19 @@ class TrendingNameNodeConnection(Edge):
 
 class TrendingTitleCollection:
     def __init__(self, **kwargs):
-        if kwargs.get('items'):
-            self.items = TrendingTitleNodeConnection(**kwargs.get('items', {}))
-        else:
-            self.items = None
+        self.items = [TrendingTitleNodeConnection(**item) for item in kwargs.get('items', [])]
         if kwargs.get('option'):
             self.option = TrendingCollectionOption(**kwargs.get('option', {}))
         else:
             self.option = None
+    def __str__(self):
+        return str(self.items)
+    def __repr__(self):
+        return f"TrendingTitleCollection(items={self.items}, option={self.option})"
+    def __int__(self):
+        return int(len(self.items)) if self.items else 0
+    def __float__(self):
+        return float(len(self.items)) if self.items else 0.0
     def __eq__(self, other):
         if not isinstance(other, TrendingTitleCollection):
             return False
@@ -12385,6 +12641,10 @@ class UIWorkflow:
         else:
             self.workflowState = None
         self.workflowType = kwargs.get('workflowType', "")
+    def __str__(self):
+        return str(self.contentHeader) if self.contentHeader else ""
+    def __repr__(self):
+        return f"UIWorkflow(actionTray={self.actionTray}, contentHeader={self.contentHeader}, contextHeader={self.contextHeader}, workflowState={self.workflowState}, workflowType={self.workflowType})"
     def __eq__(self, other):
         if not isinstance(other, UIWorkflow):
             return False
@@ -12434,6 +12694,10 @@ class UIWorkflowContentHeader:
             self.helpLink = HelpLink(**kwargs.get('helpLink', {}))
         else:
             self.helpLink = None
+    def __str__(self):
+        return str(self.heading) if self.heading else ""
+    def __repr__(self):
+        return f"UIWorkflowContentHeader(heading={self.heading}, helpLink={self.helpLink})"
     def __eq__(self, other):
         if not isinstance(other, UIWorkflowContentHeader):
             return False
@@ -12853,14 +13117,8 @@ class VideoDimensions:
 
 class VideoFacets:
     def __init__(self, **kwargs):
-        if kwargs.get('names'):
-            self.names = VideoNameFacet(**kwargs.get('names', {}))
-        else:
-            self.names = None
-        if kwargs.get('titles'):
-            self.titles = VideoTitleFacet(**kwargs.get('titles', {}))
-        else:
-            self.titles = None
+        self.names = [VideoNameFacet(**name) for name in kwargs.get('names', [])]
+        self.titles = [VideoTitleFacet(**title) for title in kwargs.get('titles', [])]
         if kwargs.get('types'):
             self.types = VideoTypeFacet(**kwargs.get('types', {}))
         else:

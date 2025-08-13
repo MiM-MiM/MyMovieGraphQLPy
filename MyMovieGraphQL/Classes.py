@@ -9,6 +9,8 @@ class Edge:
         return ", ".join(str(edge) for edge in self.edges)
     def __repr__(self):
         return f"Edge(pageInfo={self.pageInfo}, edges={self.edges})"
+    def __iter__(self):
+        return iter(self.edges)
 
 class AccountDataDialogOutput:
     def __init__(self, **kwargs):

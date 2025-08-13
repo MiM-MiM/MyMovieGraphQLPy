@@ -21,6 +21,6 @@ if __name__ == "__main__":
 
     episode_data = getByID(episode_id)
     try:
-        print(f"{episode_data.series} - {episode_data}") # Prints "House (2004) - S01E01 - Pilot (2004)"
+        print(f"{episode_data.series} - {episode_data}") # type: ignore
     except AttributeError:
         print(episode_data)

@@ -5350,6 +5350,14 @@ class Genre:
         else:
             self.subgenres = None
         self.text = kwargs.get('text', "")
+    def __str__(self):
+        if self.displayableProperty:
+            return str(self.displayableProperty)
+        return self.text if self.text else ""
+    def __int__(self):
+        return int(self.relevanceRanking) if self.relevanceRanking else 0
+    def __repr__(self):
+        return f"Genre(id={self.id}, text={self.text}, relevanceRanking={self.relevanceRanking})"
     def __eq__(self, other):
         if not isinstance(other, Genre):
             return False
@@ -5401,9 +5409,17 @@ class Genres:
     def __init__(self, **kwargs):
         self.genres = [Genre(**genre) for genre in kwargs.get('genres', [])]
     def __str__(self):
-        return str(self.genres)
+        return ", ".join(str(genre) for genre in self.genres) if self.genres else ""
     def __repr__(self):
         return f"Genres(genres={self.genres})"
+    def __int__(self):
+        return len(self.genres) if self.genres else 0
+    def __float__(self):
+        return float(len(self.genres)) if self.genres else 0.0
+    def __len__(self):
+        return len(self.genres) if self.genres else 0
+    def __iter__(self):
+        return iter(self.genres) if self.genres else iter([])
     def __eq__(self, other):
         if not isinstance(other, Genres):
             return False
@@ -5445,6 +5461,8 @@ class Goof:
         else:
             self.text = None
     def __str__(self):
+        if self.displayableArticle:
+            return str(self.displayableArticle)
         return str(self.text)
     def __repr__(self):
         return f"Goof(id={self.id}, category={self.category}, displayableArticle={self.displayableArticle}, interestScore={self.interestScore}, isSpoiler={self.isSpoiler}, text={self.text})"

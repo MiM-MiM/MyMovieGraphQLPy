@@ -9,6 +9,10 @@ if __name__ == "__main__":
     
     movie_data = getByID(movie_id)
     print(movie_data)
+    try:
+        print(movie_data.genres) # type: ignore
+    except AttributeError:
+        print("No genres available")
 
     show_data = getByID(show_id)
     print(show_data)

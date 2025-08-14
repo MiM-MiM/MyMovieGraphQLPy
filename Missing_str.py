@@ -1,3 +1,5 @@
+import random
+
 def has_custom_str(obj):
     if hasattr(obj, '__str__'):
         # Check if the __str__ method is not the one from the base 'object' class
@@ -13,7 +15,7 @@ for cls in all_classess:
         continue
     missing_str.append(cls)
 print(f"classes missing __str__ method: {len(missing_str)}")
-print(missing_str[0:10])
+print(random.sample(missing_str, 10))
 """
     def __str__(self):
         pass

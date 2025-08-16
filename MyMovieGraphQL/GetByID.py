@@ -24,12 +24,10 @@ def getByID(id: str) -> object:
     match regex_in(id):
         case r'tt\d{7,}':
             # Movie ID
-            data = query('title', {'id': id}, True)
-            obj = Title(**data)
+            obj = query('title', {'id': id})
         case r'nm\d{7,}':
             # Name ID
-            data = query('name', {'id': id}, True)
-            obj = Name(**data)
+            obj = query('name', {'id': id})
         case _:
             raise ValueError(f"Unknown ID format: {id}")
     return obj

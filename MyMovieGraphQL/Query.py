@@ -1,4 +1,4 @@
-from MyMovieGraphQL import GraphQL, attributes
+from MyMovieGraphQL import GraphQL, attributes, Classes
 import requests
 import importlib.resources as resources
 import json
@@ -145,7 +145,10 @@ def query(name: str, variables: dict, as_dict: bool = False) -> object | dict:
         print(errors)
         error_messages = f'\n'.join([str(e) for e in errors])
         raise ValueError(f"Query failed to execute ({len(errors)} errors):\n{'-'*40}\n{error_messages}\n{'-'*40}")
+    result_dict = r['data'][name]
     if as_dict:
-        return r['data'][name]
+        return result_dict
     # TODO: Create the actual object.
-    raise NotImplementedError("Object generation is not yet completed, use as_dict=True")
+    output_type = QUERIES[name]['output']
+    class_object = getattr(Classes, output_type)
+    return class_object(**result_dict)

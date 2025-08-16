@@ -249,6 +249,15 @@ class AdvancedNameSearchResult:
             return False
         return (self.name == other.name)
 
+class AdvancedTitleSearchConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(AdvancedTitleSearchResult(**node.get("node", {})))
+
 class AdvancedTitleSearchResult:
     def __init__(self, **kwargs):
         if kwargs.get('title'):
@@ -1012,6 +1021,15 @@ class Badge:
             return False
         return self.id == other.id
 
+class BadgeConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(Badge(**node.get("node", {})))
+
 class BadgeGuideEntry:
     def __init__(self, **kwargs):
         if kwargs.get('description'):
@@ -1034,6 +1052,15 @@ class BadgeGuideEntry:
         if not isinstance(other, BadgeGuideEntry):
             return False
         return (self.description == other.description and self.image == other.image and self.subtitle == other.subtitle and self.title == other.title)
+
+class BadgeGuideEntryConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(BadgeGuideEntry(**node.get("node", {})))
 
 class Banner:
     def __init__(self, **kwargs):
@@ -1446,6 +1473,15 @@ class Cinema:
         if not isinstance(other, Cinema):
             return False
         return self.id == other.id
+
+class CinemaConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(Cinema(**node.get("node", {})))
 
 class CinemaAccessibility:
     def __init__(self, **kwargs):
@@ -2482,6 +2518,15 @@ class ContributorLeaderboardRank:
         if not isinstance(other, ContributorLeaderboardRank):
             return False
         return (self.leaderboard == other.leaderboard and self.ranking == other.ranking)
+
+class ContributorLeaderboardRankConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(ContributorLeaderboardRank(**node.get("node", {})))
 
 class ContributorLeaderboards:
     def __init__(self, **kwargs):
@@ -6069,6 +6114,14 @@ class InterestCategory:
             return False
         return self.id == other.id
 
+class InterestCategoryConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(InterestCategory(**node.get("node", {})))
 
 class InterestConnection(Edge):
     def __init__(self, **kwargs):
@@ -6086,6 +6139,8 @@ class InterestImportanceScore:
         if not isinstance(other, InterestImportanceScore):
             return False
         return (self.currentScore == other.currentScore)
+
+InterestSearchConnection = InterestConnection
 
 class InterestScore:
     def __init__(self, **kwargs):
@@ -8223,6 +8278,15 @@ class NameRepresentationConnection(Edge):
                 raise TypeError(f"Expected dict for node, got {type(node)}")
             self.edges.append(NameRepresentation(**node.get("node", {})))
 
+class NameSearchConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(AdvancedNameSearchResult(**node.get("node", {})))
+
 class NameSearchIndexing:
     def __init__(self, **kwargs):
         self.disableIndexing = kwargs.get('disableIndexing', False)
@@ -8300,6 +8364,15 @@ class NameToTitleAttachment:
         if not isinstance(other, NameToTitleAttachment):
             return False
         return self.id == other.id
+
+class NameToTitleAttachmentConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(NameToTitleAttachment(**node.get("node", {})))
 
 class NameTrivia:
     def __init__(self, **kwargs):
@@ -9092,6 +9165,15 @@ class PollAdminActivity:
         if not isinstance(other, PollAdminActivity):
             return False
         return (self.action == other.action and self.actionTime == other.actionTime and self.admin == other.admin and self.poll == other.poll)
+
+class PollAdminActivityConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(PollAdminActivity(**node.get("node", {})))
 
 class PollAnswer:
     def __init__(self, **kwargs):
@@ -12510,6 +12592,15 @@ class Title:
             return False
         return self.id == other.id
 
+class TitleSearchConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(AdvancedTitleSearchResult(**node.get("node", {})))
+
 class TitleChartMetadata:
     def __init__(self, **kwargs):
         if kwargs.get('chartDescription'):
@@ -12912,6 +13003,15 @@ class TitleRecommendation:
             return False
         return (self.explanations == other.explanations and self.refTag == other.refTag and self.title == other.title)
 
+class TitleRecommendationConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(TitleRecommendation(**node.get("node", {})))
+
 class TitleRelatedVideos:
     def __init__(self, **kwargs):
         self.total = kwargs.get('total', 0)
@@ -13180,6 +13280,15 @@ class TitleWatchlistRecommendation:
         if not isinstance(other, TitleWatchlistRecommendation):
             return False
         return (self.explanation == other.explanation and self.title == other.title)
+
+class TitleWatchlistRecommendationConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(TitleWatchlistRecommendation(**node.get("node", {})))
 
 class TopGrossingReleasesNode:
     def __init__(self, **kwargs):
@@ -13734,6 +13843,15 @@ class UserNotification:
         if not isinstance(other, UserNotification):
             return False
         return self.id == other.id
+
+class UserNotificationConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(UserNotification(**node.get("node", {})))
 
 class UserPreferredStreamingProvidersOutput:
     def __init__(self, **kwargs):

@@ -80,19 +80,16 @@ def generate_query(name: str = 'title'):
             case "AdvancedTitleSearchConnection":
                 output_type = "AdvancedTitleSearchResult"
         output_type = output_type.replace("Connection", "").removesuffix("Search")
-        try:
-            # Ensure the main object is used for the data, keep keys of limited version.
-            possible_data = getattr(attributes, output_type.removesuffix('Limited'))
-            possible_data_keys = list(getattr(attributes, output_type).keys())
-            if output_type in ['Title', 'TitleLimited'] and 'series' not in possible_data_keys:
-                possible_data_keys.append('series')
-            sub_query = GraphQL.query_builder(
-                data=possible_data,
-                keys=possible_data_keys,
-                allowPrivate=False,
-            )
-        except:
-            raise AttributeError(f"Query, '{name}', has a value error for output type: { query['output']}")
+        # Ensure the main object is used for the data, keep keys of limited version.
+        possible_data = getattr(attributes, output_type.removesuffix('Limited'))
+        possible_data_keys = list(getattr(attributes, output_type).keys())
+        if output_type in ['Title', 'TitleLimited'] and 'series' not in possible_data_keys:
+            possible_data_keys.append('series')
+        sub_query = GraphQL.query_builder(
+            data=possible_data,
+            keys=possible_data_keys,
+            allowPrivate=False,
+        )
     if query['output'].endswith("Connection"):
         # Connections should get the pagnation.
         pageInfo_data = attributes.PageInfo

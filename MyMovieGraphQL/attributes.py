@@ -1,40 +1,54 @@
 TitleLimited = {
-    "id": str,  # tt____
-    "canonicalUrl": str,  # The URL
-    "titleType": "TitleType",
-    "releaseYear": "ReleaseYear",
-    "titleText": "TitleText",
-    "originalTitleText": "TitleText",
+   "id": str,  # tt____
+   "canonicalUrl": str,  # The URL
+   "titleType": "TitleType",
+   "releaseYear": "ReleaseYear",
+   "titleText": "TitleText",
+   "originalTitleText": "TitleText",
 }
 
 NameLimited = {
-    "id": str,  # nm____
-    "canonicalUrl": str,  # The URL
-    "bio": "NameBio",
-    "akas": "NameAkaConnection",
-    "height": "NameHeight",
-    "birthDate": "DisplayableDate",  # yyyy-mm-dd
-    "nameText": "NameText",
-    "birthName": "BirthName",
-    "birth": "NameBirth",
-    "death": "NameDeath",  # (Not Null)
+   "id": str,  # nm____
+   "canonicalUrl": str,  # The URL
+   "bio": "NameBio",
+   "akas": "NameAkaConnection",
+   "height": "NameHeight",
+   "birthDate": "DisplayableDate",  # yyyy-mm-dd
+   "nameText": "NameText",
+   "bio": "NameBio",
+   "birthDate": "DisplayableDate",
+   "birthLocation": "DisplayableLocation",
+   "birthName": "BirthName",
+   "death": "NameDeath",  # (Not Null)
    "deathCause": "DisplayableNameDeathCause",
    "deathDate": "DisplayableDate",
    "deathLocation": "DisplayableLocation",
    "deathStatus": str, # (ENUM)
 }
 
+NewsLimited = {
+   "articleTitle": "Markdown",  # (Not Null)
+   "byline": str,
+   "date": str,  # (Not Null)
+   "externalUrl": str,
+   "id": str,  # (Not Null)
+   "image": "ImageLimited",
+   "language": "DisplayableLanguage",
+   "source": "NewsSource",  # (Not Null)
+   "text": "Markdown",  # (Not Null)
+}
+
 ImageLimited = {
-    "id": str,  # rm____
-    "type": str,
-    "width": int,
-    "height": int,
-    "url": str,
-    "languages": "DisplayableLanguage",
+   "id": str,  # rm____
+   "type": str,
+   "width": int,
+   "height": int,
+   "url": str,
+   "languages": "DisplayableLanguage",
 }
 
 VideoLimited = {
-    "contentType": "VideoContentType",
+   "contentType": "VideoContentType",
    "createdDate": str,
    "description": "LocalizedString",
    "id": str,  # (Not Null)
@@ -3937,23 +3951,6 @@ News = {
    "image": "ImageLimited",
    "language": "DisplayableLanguage",
    "similarNewsItems": "NewsLimited",  # (Not Null)
-   "source": "NewsSource",  # (Not Null)
-   "text": "Markdown",  # (Not Null)
-}
-
-"""
---------------------------- News ---------------------------
-News details, limited to remove the recursive field
-------------------------------------------------------------
-"""
-NewsLimited = {
-   "articleTitle": "Markdown",  # (Not Null)
-   "byline": str,
-   "date": str,  # (Not Null)
-   "externalUrl": str,
-   "id": str,  # (Not Null)
-   "image": "ImageLimited",
-   "language": "DisplayableLanguage",
    "source": "NewsSource",  # (Not Null)
    "text": "Markdown",  # (Not Null)
 }

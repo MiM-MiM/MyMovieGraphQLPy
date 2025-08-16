@@ -1,4 +1,4 @@
-TitleLimited ={
+TitleLimited = {
     "id": str,  # tt____
     "canonicalUrl": str,  # The URL
     "titleType": "TitleType",
@@ -3936,7 +3936,24 @@ News = {
    "id": str,  # (Not Null)
    "image": "ImageLimited",
    "language": "DisplayableLanguage",
-   "similarNewsItems": "News",  # (Not Null)
+   "similarNewsItems": "NewsLimited",  # (Not Null)
+   "source": "NewsSource",  # (Not Null)
+   "text": "Markdown",  # (Not Null)
+}
+
+"""
+--------------------------- News ---------------------------
+News details, limited to remove the recursive field
+------------------------------------------------------------
+"""
+NewsLimited = {
+   "articleTitle": "Markdown",  # (Not Null)
+   "byline": str,
+   "date": str,  # (Not Null)
+   "externalUrl": str,
+   "id": str,  # (Not Null)
+   "image": "ImageLimited",
+   "language": "DisplayableLanguage",
    "source": "NewsSource",  # (Not Null)
    "text": "Markdown",  # (Not Null)
 }
@@ -5542,7 +5559,7 @@ Title = {
    "canHaveEpisodes": bool,
    "canRate": "CanRate",
    "certificate": "Certificate",
-   "certificates": "CertificatesConnection",
+   "certificates": "CertificateConnection",
    "cinemaShowtimesByScreeningType": "TitleCinemaShowtimesByScreeningTypeConnection",
    "companyCreditCategories": "CompanyCreditCategoryWithCompanyCredits",  # (Not Null)
    "companyCredits": "CompanyCreditConnection",

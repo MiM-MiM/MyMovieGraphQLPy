@@ -225,6 +225,15 @@ class AdditionalResumeInfoConnection(Edge):
                 raise TypeError(f"Expected dict for node, got {type(node)}")
             self.edges.append(AdditionalResumeInfo(**node.get("node", {})))
 
+class AdvancedNameSearchConnection(Edge):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.edges = []
+        for node in kwargs.get("edges", []):
+            if not isinstance(node, dict):
+                raise TypeError(f"Expected dict for node, got {type(node)}")
+            self.edges.append(AdvancedNameSearchResult(**node.get("node", {})))
+
 class AdvancedNameSearchResult:
     def __init__(self, **kwargs):
         if kwargs.get('name'):
@@ -13499,6 +13508,10 @@ class TwitterLink:
         self.label = kwargs.get('label', "")
         self.url = kwargs.get('url', "")
         self.username = kwargs.get('username', "")
+    def __str__(self):
+        return self.username
+    def __repr__(self):
+        return f"TwitterLink(label={self.label}, url={self.url}, username={self.username})"
     def __eq__(self, other):
         if not isinstance(other, TwitterLink):
             return False

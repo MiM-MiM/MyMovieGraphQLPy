@@ -77,7 +77,16 @@ def query_builder(
                     allowPrivate=allowPrivate,
                     keyArgs=keyArgs,
                 )
-                query = f"{query} {k}({args}) {{ pageInfo {{ endCursor hasNextPage }} edges {{ node {{ {sub_query} }} }}}}"
+                # Connections should get the pagnation.
+                pageInfo_data = attributes.PageInfo
+                pageInfo_data_keys = list(pageInfo_data.keys())
+                pageInfo_sub_query = query_builder(
+                    data=pageInfo_data,
+                    keys=pageInfo_data_keys,
+                    allowPrivate=False,
+                )
+                # TODO: Find out which fail with `total` added and put it for all except those.
+                query = f"{query} {k}({args}) {{ total pageInfo {{ {pageInfo_sub_query} }} edges {{ node {{ {sub_query} }} }} }}"
             else:
                 sub_query = query_builder(
                     sub_attributes,

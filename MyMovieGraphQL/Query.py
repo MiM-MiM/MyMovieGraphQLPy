@@ -41,13 +41,26 @@ def generate_argument_dict(name: str):
     def recursive_get_types(type_dict: dict):
         arg_type_dict = {}
         for k, v in type_dict.items():
-            if v in base_types or v in SCALARS:
+            v_type = v['type']
+            if v_type in base_types or v_type in SCALARS or v_type in ENUMS:
                 arg_type_dict[k] = None
                 continue
-            arg_type = None
-            arg_type_dict[k] = recursive_get_types(v)
+            arg_type_dict[k] = recursive_get_types(INPUTS[v_type])
+        return arg_type_dict
     for arg in args:
-        arg_dict[arg['name']] = {}
+        isRequired = not arg['nullable']
+        defaultValue = arg['defaultValue']
+        arg_type = arg['type']
+        if defaultValue:
+            arg_dict[arg['name']] = defaultValue
+        elif arg_type in base_types or arg_type in SCALARS or arg_type in ENUMS:
+            arg_dict[arg['name']] = None
+        elif arg_type in INPUTS:
+            arg_dict[arg['name']] = recursive_get_types(INPUTS[arg_type])
+        else:
+            raise NotImplementedError(f"Type, `{arg_type}`, is not implemented, please report.")
+    return arg_dict
+
 
 def generate_input_args(query: dict):
     input_variables_types = []

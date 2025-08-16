@@ -3,12 +3,11 @@ import json
 with open('introspection.json', 'r') as file:
     data = json.load(file)
 
-constraints = {}
 sort_by = {}
-sorts = {}
 queries = {}
 enums = {}
 scalars = {}
+inputs = {}
 
 for obj, val in data.items():
     if not (val['args'] or val['enumValues'] or val['fields'] or val['inputFields']):
@@ -19,21 +18,6 @@ for obj, val in data.items():
         }
     if val['enumValues'] and not (val['args'] or val['fields'] or val['inputFields']):
         enums[obj] = val['enumValues']
-    if obj.endswith('Constraints') or obj.endswith('Constraint'):
-        constraints[obj] = {}
-        for constraint in val['inputFields']:
-            constraint_type = constraint['type']
-            constraint_name = constraint['name']
-            constraint_nullable = constraint['nullable']
-            constraint_list = constraint['list']
-            constraint_defaultValue = constraint['defaultValue'] or ''
-            constraints[obj][constraint_name] = {
-                'type': constraint_type,
-                'name': constraint_name,
-                'nullable': constraint_nullable,
-                'list': constraint_list,
-                'defaultValue': constraint_defaultValue,
-            }
     if obj.endswith('SortBy'):
         sort_by[obj] = {}
         # These are ENUMs
@@ -44,20 +28,20 @@ for obj, val in data.items():
                 'description': sort_by_description,
                 'name': sort_by_name,
             }
-    if obj.endswith('Sort'):
-        sorts[obj] = {}
-        for sort in val['inputFields']:
-            sort_type = sort['type']
-            sort_name = sort['name']
-            sort_nullable = sort['nullable']
-            sort_list = sort['list']
-            sort_defaultValue = sort['defaultValue'] or ''
-            sorts[obj][sort_name] = {
-                'type': sort_type,
-                'name': sort_name,
-                'nullable': sort_nullable,
-                'list': sort_list,
-                'defaultValue': sort_defaultValue,
+    if val['inputFields']:
+        inputs[obj] = {}
+        for input_val in val['inputFields']:
+            input_type = input_val['type']
+            input_name = input_val['name']
+            input_nullable = input_val['nullable']
+            input_list = input_val['list']
+            input_defaultValue = input_val['defaultValue'] or ''
+            inputs[obj][input_name] = {
+                'type': input_type,
+                'name': input_name,
+                'nullable': input_nullable,
+                'list': input_list,
+                'defaultValue': input_defaultValue,
             }
 
 for query in data['Query']['fields']:
@@ -78,15 +62,13 @@ for query in data['Query']['fields']:
         }
 
 # Dump the data to json files.
-with open('CONSTRAINTS.json', 'w', encoding="utf-8", newline='\n') as f:
-    json.dump(constraints, f, indent=2, sort_keys=True)
 with open('ENUMS.json', 'w', encoding="utf-8", newline='\n') as f:
     json.dump(enums, f, indent=2, sort_keys=True)
+with open('INPUTS.json', 'w', encoding="utf-8", newline='\n') as f:
+    json.dump(inputs, f, indent=2, sort_keys=True)
 with open('SCALARS.json', 'w', encoding="utf-8", newline='\n') as f:
     json.dump(scalars, f, indent=2, sort_keys=True)
 with open('SORT_BY.json', 'w', encoding="utf-8", newline='\n') as f:
     json.dump(sort_by, f, indent=2, sort_keys=True)
-with open('SORTS.json', 'w', encoding="utf-8", newline='\n') as f:
-    json.dump(sorts, f, indent=2, sort_keys=True)
 with open('QUERIES.json', 'w', encoding="utf-8", newline='\n') as f:
     json.dump(queries, f, indent=2, sort_keys=True)

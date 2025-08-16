@@ -11,23 +11,43 @@ MISSING_TYPES = ['TitleTrackRecommendationsConnection', 'TitleChartRankingsConne
 MISSING_QUERIES = ['fanPicksTitles', 'professionNameTrackRecommendations', 'savedSearchFilters', 'showtimesTitlesByCinemas', 'topGrossingReleases', 'lists', 'userVotedPolls', 'webAdsConfig', 'titleChartRankings', 'trackedNames', 'chartNames', 'emailPreferences', 'professionTitleTrackRecommendations', 'polls', 'userRatings', 'similarNameTrackRecommendations', 'userListSearch', 'userReviews', 'trackedTitles', 'showtimesTitles', 'topPicksTitles', 'chartTitles', 'followedEntities', 'topListsForItem', 'topTrendingSetsPredefined', 'nameChartRankings', 'suggestionSearch', 'mainSearch', 'topTrendingVideos', 'topTrendingNames', 'getExports', 'topTrendingTitles', 'webAds', 'userWatchedTitles', 'invalidAuthProviderInterstitial', 'unreleasedTitleTrackRecommendations', 'recentlyViewedItems', 'similarTitleTrackRecommendations', 'videoRecommendations']
 
 
-CONSTRAINTS, ENUMS, QUERIES, SCALARS, SORTS, SORT_BY = {}, {}, {}, {}, {}, {}
+ENUMS, INPUTS, QUERIES, SCALARS, SORT_BY = {}, {}, {}, {}, {}
 def load_config_json():
-    global CONSTRAINTS, ENUMS, QUERIES, SCALARS, SORTS, SORT_BY
+    global ENUMS, INPUTS, QUERIES, SCALARS, SORT_BY
     # Only load it once
-    if not (CONSTRAINTS and ENUMS and QUERIES and SORTS and SORT_BY):
-        with resources.open_text('MyMovieGraphQL.data', 'CONSTRAINTS.json') as f:
-            CONSTRAINTS = json.load(f)
+    if not (ENUMS and INPUTS and QUERIES and SCALARS and SORT_BY):
         with resources.open_text('MyMovieGraphQL.data', 'ENUMS.json') as f:
             ENUMS = json.load(f)
+        with resources.open_text('MyMovieGraphQL.data', 'INPUTS.json') as f:
+            INPUTS = json.load(f)
         with resources.open_text('MyMovieGraphQL.data', 'QUERIES.json') as f:
             QUERIES = json.load(f)
         with resources.open_text('MyMovieGraphQL.data', 'SCALARS.json') as f:
             SCALARS = json.load(f)
-        with resources.open_text('MyMovieGraphQL.data', 'SORTS.json') as f:
-            SORTS = json.load(f)
         with resources.open_text('MyMovieGraphQL.data', 'SORT_BY.json') as f:
             SORT_BY = json.load(f)
+
+def generate_argument_dict(name: str):
+    # Ensure the config files are loaded.
+    load_config_json()
+    if name not in QUERIES:
+        raise ValueError(f"Query, '{name}', was not found.")
+    if name in MISSING_QUERIES:
+        raise NotImplementedError(f"Query, '{name}', is not yet implemented.")
+    query = QUERIES[name]
+    args = query['args']
+    arg_dict = {}
+    base_types = ['String', 'Int', 'Float', 'ID', 'Boolean']
+    def recursive_get_types(type_dict: dict):
+        arg_type_dict = {}
+        for k, v in type_dict.items():
+            if v in base_types or v in SCALARS:
+                arg_type_dict[k] = None
+                continue
+            arg_type = None
+            arg_type_dict[k] = recursive_get_types(v)
+    for arg in args:
+        arg_dict[arg['name']] = {}
 
 def generate_input_args(query: dict):
     input_variables_types = []
@@ -64,7 +84,7 @@ def generate_query(name: str = 'title'):
     query = QUERIES[name]
     input_variables_types, input_variables = generate_input_args(query)
     output_type = query['output']
-    static_types = ['Boolean', 'String', 'Int', 'Float'] + list(ENUMS.keys()) + list(SCALARS.keys())
+    static_types = ['Boolean', 'String', 'Int', 'Float', 'ID'] + list(ENUMS.keys()) + list(SCALARS.keys())
     if output_type in static_types:
         sub_query = f" {output_type} "
     else:

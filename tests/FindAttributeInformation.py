@@ -1,3 +1,4 @@
+from unicodedata import name
 import requests
 import pprint
 
@@ -8,28 +9,9 @@ query = {
     {{
         __type(name: "{type_name}") {{
             name
-            description
-            kind
-            fields {{
-                name
                 description
-                type {{
-                    name
-                    kind
-                    ofType {{
-                        name
-                        kind
-                        ofType {{
-                            name
-                            kind
-                            ofType {{
-                                name
-                                kind
-                            }}
-                        }}
-                    }}
-                }}
-                args {{
+                kind
+                fields {{
                     name
                     description
                     type {{
@@ -38,13 +20,57 @@ query = {
                         ofType {{
                             name
                             kind
+                            ofType {{
+                                name
+                                kind
+                                ofType {{
+                                    name
+                                    kind
+                                }}
+                            }}
+                        }}
+                    }}
+                    args {{
+                        name
+                        description
+                        type {{
+                            name
+                            kind
+                            ofType {{
+                                name
+                                kind
+                                ofType {{
+                                    name
+                                    kind
+                                }}
+                            }}
+                        }}
+                        defaultValue
+                    }}
+                }}
+                inputFields {{
+                    name
+                    description
+                    type {{
+                        name
+                        kind
+                        ofType {{
+                            name
+                            kind
+                            ofType {{
+                                name
+                                kind
+                                ofType {{
+                                    name
+                                    kind
+                                }}
+                            }}
                         }}
                     }}
                     defaultValue
                 }}
             }}
         }}
-    }}
     """
 }
 

@@ -2,7 +2,7 @@ import re
 import requests
 from dataclasses import dataclass
 
-from MyMovieGraphQL import GraphQL, attributes
+from MyMovieGraphQL.Query import query
 from MyMovieGraphQL.Classes import Title, Name
 
 API_URL = "https://api.graphql.imdb.com/"
@@ -20,47 +20,16 @@ class regex_in:
 
 def getByID(id: str) -> object:
     obj = None
+    # TODO: Change the case to not use the dict type and use the object generated. Requires `Query.py` update.
     match regex_in(id):
         case r'tt\d{7,}':
             # Movie ID
-            obj = getTitleByID(id)
+            data = query('title', {'id': id}, True)
+            obj = Title(**data)
         case r'nm\d{7,}':
             # Name ID
-            obj = getNameByID(id)
+            data = query('name', {'id': id}, True)
+            obj = Name(**data)
         case _:
             raise ValueError(f"Unknown ID format: {id}")
     return obj
-
-def getTitleByID(id: str) -> Title:
-    # fmt: off
-    title_possible = attributes.Title
-    query_keys = [
-        "id", "titleText", "titleType", "originalTitleText", "releaseYear",
-        "releaseDate", "countriesOfOrigin", "runtime", "productionStatus",
-        "canHaveEpisodes", "certificate", "primaryImage", "series",
-        "keywords", "genres", "plot"
-    ]
-    # fmt: on
-    sub_query = GraphQL.query_builder(
-        data=title_possible,
-        keys=query_keys,
-        allowPrivate=False,
-    )
-    query = f'query {{title(id: "{id}") {{ {sub_query} }}}}'
-    query_arg = {"query": query}
-    r = requests.post(url=API_URL, json=query_arg, headers=HEADERS)
-    data = r.json().get("data", {}).get("title", {})
-    return Title(**data)
-
-def getNameByID(id: str) -> Name:
-    title_possible = attributes.NameLimited
-    sub_query = GraphQL.query_builder(
-        data=title_possible,
-        keys=list(title_possible.keys()),
-        allowPrivate=False,
-    )
-    query = f'query {{name(id: "{id}") {{ {sub_query} }}}}'
-    query_arg = {"query": query}
-    r = requests.post(url=API_URL, json=query_arg, headers=HEADERS)
-    data = r.json().get("data", {}).get("name", {})
-    return Name(**data)

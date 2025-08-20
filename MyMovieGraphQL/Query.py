@@ -27,6 +27,22 @@ def load_config_json():
         with resources.open_text('MyMovieGraphQL.data', 'SORT_BY.json') as f:
             SORT_BY = json.load(f)
 
+def sanatizeArgumentDict(args: dict, base: bool = True):
+    """ Recursively sets the arguments to None if the child objects
+    are also empty. The base argument object keeps
+    """
+    allMissing = True
+    for arg in args:
+        if isinstance(args[arg], dict):
+            args[arg] = sanatizeArgumentDict(args[arg], base=False)
+            if args[arg]:
+                allMissing = False
+        elif args[arg] is not None:
+            allMissing = False
+    if base:
+        return args
+    return args if not allMissing else None
+
 def generate_argument_dict(name: str):
     # Ensure the config files are loaded.
     load_config_json()

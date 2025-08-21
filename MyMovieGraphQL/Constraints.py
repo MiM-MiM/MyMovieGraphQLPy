@@ -45,6 +45,43 @@ def awardConstraint(
         constraint[constraintName] = awardFilter
     return constraint or None
 
+def biographyConstraint(
+        biographyAuthor: str | list = "",
+        biographyText: str = "",
+) -> dict | None:
+    constraint = {}
+    if biographyText:
+        constraint["searchText"] = biographyText
+    if biographyAuthor:
+        if isinstance(biographyAuthor, str):
+            biographyAuthor = [biographyAuthor]
+        constraint["anyBiographyAuthors"] = biographyAuthor
+    return constraint or None
+
+def birthDateConstraint(
+        birthdayRangeStart: str = "",
+        birthdayRangeEnd: str = "",
+        birthday: str = "", # MonthDay ISO-8601 format '--06-19'
+) -> dict | None:
+    constraint = {}
+    birthday = '--' + birthday.removeprefix('--')
+    if birthday and len(birthday) == 7:
+        constraint["birthday"] = birthday
+    if (birthdayRangeStart or birthdayRangeEnd):
+        constraint["birthDateRange"] = {
+            "start": birthdayRangeStart or None,
+            "end": birthdayRangeEnd or None,
+        }
+    return constraint or None
+
+def birthPlaceConstraint(
+        birthPlace: str = "",
+) -> dict | None:
+    constraint = {}
+    if birthPlace:
+        constraint["birthPlace"] = birthPlace
+    return constraint or None
+
 def certificateConstraint(
         certificate: dict | list = "",  # {rating: xxx, region: xxx}
         certificateIncludeType: str = "any", # any/exclude
@@ -150,6 +187,26 @@ def currentProductionStatusStageConstraint(
         constraint[constraintName] = productionStageID
     return constraint or None
 
+def deathDateConstraint(
+        deathDate: str = "", # The start day or exact day.
+        deathDateEnd: str = "", # If both given it is a range.
+) -> dict | None:
+    constraint = {}
+    if deathDate or deathDateEnd:
+        constraint["deathDateRange"] = {
+            "start": deathDate or None,
+            "end": deathDateEnd or deathDate or None,
+        }
+    return constraint or None
+
+def deathPlaceConstraint(
+        deathPlace: str = "",
+) -> dict | None:
+    constraint = {}
+    if deathPlace:
+        constraint["deathPlace"] = deathPlace
+    return constraint or None
+
 def episodicConstraint(
         seriesID: str | list = "", # Ther ID of the series to use
         seriesIDType: str = "any", # any/exclude # Limit to them matching.
@@ -202,6 +259,40 @@ def filmingLocationConstraint(
                 filmingLocation = [filmingLocation]
         constraintName = f"{filmingLocationType}Locations"
         constraint[constraintName] = filmingLocation
+    return constraint or None
+
+def filmographyConstraint(
+        filmographyTitleID: str | list = "",
+        filmographyTitleIDType: str = "all", # all/any/exclude
+        filmographyTitleIDExclude: str | list = "", # If type is also exclude it will use this one.
+) -> dict | None:
+    constraint = {}
+    allowedTypes = ["any", "all", "exclude"]
+    filmographyTitleIDType = filmographyTitleIDType.lower()
+    if filmographyTitleID and filmographyTitleIDType in allowedTypes:
+        if isinstance(filmographyTitleID, str):
+            filmographyTitleID = [filmographyTitleID]
+        constraintName = f"{filmographyTitleIDType}TitleIds"
+        constraint[constraintName] = filmographyTitleID
+    if filmographyTitleIDExclude:
+        if isinstance(filmographyTitleIDExclude, str):
+            filmographyTitleIDExclude = [filmographyTitleIDExclude]
+        constraint["excludeTitleIds"] = filmographyTitleIDExclude
+    return constraint or None
+
+def genderIdentityConstraint(
+        gender: str | list = "",
+        genderType: str = "any",
+) -> dict | None:
+    constraint = {}
+    genderType = genderType.lower()
+    allowedTypes = ["any", "exclude"]
+    if gender and genderType in allowedTypes:
+        if isinstance(gender, str):
+            gender = [gender]
+        gender = [g.upper() for g in gender]
+        constraintName = f"{genderType}Gender"
+        constraint[constraintName] = gender
     return constraint or None
 
 def genreConstraint(
@@ -416,6 +507,44 @@ def plotMatchingConstraint(
         constraint["anyPlotAuthors"] = plotAuthor
     return constraint or None
 
+def professionConstraint(
+        profession: str | list = "",
+        professionType: str = "any",
+        professionExclude: str | list = "", # If type is set to exclude this overrids the above.
+) -> dict | None:
+    constraint = {}
+    allowedTypes = ["all", "any", "exclude"]
+    professionType = professionType.lower()
+    if profession and professionType in allowedTypes:
+        if isinstance(profession, str):
+            profession = [profession]
+        constraintName = f"{professionType}ProfessionIds"
+        constraint[constraintName] = profession
+    if professionExclude:
+        if isinstance(professionExclude, str):
+            profession = [professionExclude]
+        constraint["excludeProfessionIds"] = professionExclude
+    return constraint or None
+
+def professionCategoryConstraint(
+        professionCategory: str | list = "",
+        professionCategoryType: str = "any",
+        professionCategoryExclude: str | list = "", # If type is set to exclude this overrids the above.
+) -> dict | None:
+    constraint = {}
+    allowedTypes = ["all", "any", "exclude"]
+    professionCategoryType = professionCategoryType.lower()
+    if professionCategory and professionCategoryType in allowedTypes:
+        if isinstance(professionCategory, str):
+            professionCategory = [professionCategory]
+        constraintName = f"{professionCategoryType}ProfessionCategoryIds"
+        constraint[constraintName] = professionCategory
+    if professionCategoryExclude:
+        if isinstance(professionCategoryExclude, str):
+            professionCategoryExclude = [professionCategoryExclude]
+        constraint["excludeProfessionCategoryIds"] = professionCategoryExclude
+    return constraint or None
+
 def quoteMatchingConstraint(
         quote: str | list = "",
         quoteType: str = "all", # all/any
@@ -538,6 +667,16 @@ def soundtrackMatchingConstraint(
         constraint[constraintName] = soundtrackTerms
     return constraint or None
 
+def textSearchConstraint(
+        search: str = "",
+) -> dict | None:
+    constraint = {}
+    if search:
+        constraint = {
+            'searchTerm': search
+        }
+    return constraint or None
+
 def titleCreditsConstraint(
         creditCharacter: str | list = "",
         creditCategory: str | list = "",
@@ -616,16 +755,6 @@ def titleMeterConstraint(
                 'max': meterMax or None,
             },
             'titleMeterType': meterType
-        }
-    return constraint or None
-
-def titleTextConstraint(
-        title: str = "",
-) -> dict | None:
-    constraint = {}
-    if title:
-        constraint = {
-            'searchTerm': title
         }
     return constraint or None
 
@@ -712,25 +841,25 @@ def watchOptionsConstraint(
         constraint["hasWatchOptionTypes"] = watchType
     return constraint or None
 
-def withTitleDataConstraint(
-        titleData: str | list = "",  # TitleDataType ENUMs
-        titleDataMissing: str | list = "",
-        titleDataAny: str | list = "",
+def withDataConstraint(
+        withData: str | list = "",  # respective (DataType)DataType ENUMs
+        withDataMissing: str | list = "",
+        withDataAny: str | list = "",
 ) -> dict | None:
     constraint = {}
-    if titleData:
+    if withData:
         if isinstance(titleData, str):
-            titleData = [titleData]
-        titleData = [td.upper() for td in titleData]
-        constraint["allDataAvailable"] = titleData
-    if titleDataMissing:
-        if isinstance(titleDataMissing, str):
-            titleDataMissing = [titleDataMissing]
-        titleDataMissing = [td.upper() for td in titleDataMissing]
-        constraint["noDataAvailable"] = titleDataMissing
-    if titleDataAny:
-        if isinstance(titleDataAny, str):
-            titleDataAny = [titleDataAny]
-        titleDataAny = [td.upper() for td in titleDataAny]
-        constraint["anyDataAvailable"] = titleDataAny
+            withData = [withData]
+        withData = [td.upper() for td in withData]
+        constraint["allDataAvailable"] = withData
+    if withDataMissing:
+        if isinstance(withDataMissing, str):
+            withDataMissing = [withDataMissing]
+        withDataMissing = [td.upper() for td in withDataMissing]
+        constraint["noDataAvailable"] = withDataMissing
+    if withDataAny:
+        if isinstance(withDataAny, str):
+            withDataAny = [withDataAny]
+        withDataAny = [td.upper() for td in withDataAny]
+        constraint["anyDataAvailable"] = withDataAny
     return constraint or None

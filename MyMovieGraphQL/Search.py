@@ -1,5 +1,5 @@
 from MyMovieGraphQL import Query
-from MyMovieGraphQL.Classes import AdvancedTitleSearchConnection
+from MyMovieGraphQL.Classes import AdvancedNameSearchConnection, AdvancedTitleSearchConnection
 from MyMovieGraphQL import Constraints
 
 def sort(
@@ -130,9 +130,9 @@ def searchTitle(
         watchProviderIDExclude: str | list = "",
         watchRegionExclude: str | list = "",
         watchType: str | list = "", # SearchWatchOptionType ENUM
-        titleData: str | list = "",  # TitleDataType ENUMs
-        titleDataMissing: str | list = "",
-        titleDataAny: str | list = "",
+        withData: str | list = "",  # TitleDataType ENUMs
+        withDataMissing: str | list = "",
+        withDataAny: str | list = "",
 ) -> AdvancedTitleSearchConnection:
     if not isinstance(limit, int):
         raise TypeError(f"Limit must be an int, `{type(limit)}` given.")
@@ -188,12 +188,98 @@ def searchTitle(
             "soundtrackMatchingConstraint": Constraints.soundtrackMatchingConstraint(soundtrackTerms, soundtrackTermsType),
             "titleCreditsConstraint": Constraints.titleCreditsConstraint(creditCharacter, creditCategory, creditJobCategory, creditNameID, creditType, creditAdvanced),
             "titleMeterConstraint": Constraints.titleMeterConstraint(meterMin, meterMax, meterType),
-            "titleTextConstraint": Constraints.titleTextConstraint(title),
+            "titleTextConstraint": Constraints.textSearchConstraint(title),
             "titleTypeConstraint": Constraints.titleTypeConstraint(titleType, titleTypeExclude),
             "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(triviaTerm, triviaTermType),
             "userRatingsConstraint": Constraints.userRatingsConstraint(ratingMin, ratingMax, ratingCountMin, ratingCountMax),
             "watchOptionsConstraint": Constraints.watchOptionsConstraint(watchProviderID, watchRegion, watchProviderIDExclude, watchRegionExclude, watchType),
-            "withTitleDataConstraint": Constraints.withTitleDataConstraint(titleData, titleDataMissing, titleDataAny),
+            "withTitleDataConstraint": Constraints.withTitleDataConstraint(withData, withDataMissing, withDataAny),
         }
     }
     return Query.query('advancedTitleSearch', args)
+
+def searchName(
+        name: str = "",
+        sortBy: str = "BIRTH_DATE", # AdvancedNameSearchSortBy ENUM
+        sortOrder: str = "DESC",
+        limit: int = 25,
+        offset: int = 0,
+        pagnation: str = "",
+        award: str | list = "",  # The award ID
+        awardIncludeType: str = "any", # any/all/exclude
+        biographyAuthor: str | list = "",
+        biographyText: str = "",
+        birthdayRangeStart: str = "",
+        birthdayRangeEnd: str = "",
+        birthday: str = "", # MonthDay ISO-8601 format '--06-19'
+        birthPlace: str = "",
+        deathDate: str = "", # If this is the only one provided it is exact day
+        deathDateEnd: str = "",
+        deathPlace: str = "",
+        explicit: str = "INCLUDE_ADULT", # ExplicitContentFilter ENUM
+        filmographyTitleID: str | list = "",
+        filmographyTitleIDType: str = "all", # all/any/exclude
+        filmographyTitleIDExclude: str | list = "", # If type is also exclude it will use this one.
+        gender: str | list = "",
+        genderType: str = "any", # any/exclude
+        inList: str | list = "",
+        inPredefinedList: str | list = "", # ListClassId ENUM
+        notInList: str | list = "", # always an any
+        notInPredefinedList: str | list = "", # always an any
+        inListType: str = "any", # all/any
+        inPredefinedListType: str = "any", # all/any
+        # professionCategory example: amzn1.imdb.concept.profession_category.db674385-f70e-42b1-b4ef-910b8c64afa5
+        # Seems to not work correctly, exclude returns results, even the one the ID came from.
+        # Above example is one listed in nm0000115's
+        professionCategory: str | list = "",
+        professionCategoryType: str = "any",
+        professionCategoryExclude: str | list = "", # If type is set to exclude this overrids the above.
+        # profession example: amzn1.imdb.concept.profession.38160716-b702-4b4e-a737-1052cba53548
+        # Seems to not work correctly, exclude returns results, even the one the ID came from.
+        # Above example is one listed in nm0000115's
+        profession: str | list = "",
+        professionType: str = "any",
+        professionExclude: str | list = "",
+        quote: str | list = "",
+        quoteType: str = "all", # all/any
+        triviaTerm: str | list = "",
+        triviaTermType: str = "all", # all/any
+        withData: str | list = "",  # NameDataType ENUMs
+        withDataMissing: str | list = "",
+        withDataAny: str | list = "",
+) -> AdvancedNameSearchConnection:
+    if not isinstance(limit, int):
+        raise TypeError(f"Limit must be an int, `{type(limit)}` given.")
+    if not isinstance(offset, int):
+        raise TypeError(f"Offset must be an int, `{type(offset)}` given.")
+    if not isinstance(pagnation, str):
+        raise TypeError(f"pagnation must be a string, `{type(pagnation)}` given.")
+    if limit < 0:
+        raise ValueError(f"Limit must be >= 0, `{limit}` passed")
+    if offset < 0:
+        raise ValueError(f"Offset must be >= 1, `{offset}` passed")
+    args = {
+        "first": limit,
+        "after": pagnation or None,
+        "jumpToPosition": offset or None,
+        "sort": sort(sortBy, sortOrder),
+        "constraints": {
+                "awardConstraint": Constraints.awardConstraint(award, awardIncludeType),
+                "biographyConstraint": Constraints.biographyConstraint(biographyAuthor, biographyText),
+                "birthDateConstraint": Constraints.birthDateConstraint(birthdayRangeStart, birthdayRangeEnd, birthday),
+                "birthPlaceConstraint": Constraints.birthPlaceConstraint(birthPlace),
+                "deathDateConstraint": Constraints.deathDateConstraint(deathDate, deathDateEnd),
+                "deathPlaceConstraint": Constraints.deathPlaceConstraint(deathPlace),
+                "explicitContentConstraint": Constraints.explicitContentConstraint(explicit),
+                "filmographyConstraint": Constraints.filmographyConstraint(filmographyTitleID, filmographyTitleIDType, filmographyTitleIDExclude),
+                "genderIdentityConstraint": Constraints.genderIdentityConstraint(gender, genderType),
+                "listConstraint": Constraints.listConstraint(inList, inPredefinedList, notInList, notInPredefinedList, inListType, inPredefinedListType),
+                "nameTextConstraint": Constraints.textSearchConstraint(name),
+                "professionCategoryConstraint": Constraints.professionCategoryConstraint(professionCategory, professionCategoryType, professionCategoryExclude),
+                "professionConstraint": Constraints.professionConstraint(profession, professionType, professionExclude),
+                "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(quote, quoteType),
+                "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(triviaTerm, triviaTermType),
+                "withNameDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
+            }
+    }
+    return Query.query('advancedNameSearch', args)

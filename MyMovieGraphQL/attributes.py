@@ -16,7 +16,6 @@ NameLimited = {
    "birthDate": "DisplayableDate",  # yyyy-mm-dd
    "nameText": "NameText",
    "bio": "NameBio",
-   "birthDate": "DisplayableDate",
    "birthLocation": "DisplayableLocation",
    "birthName": "BirthName",
    "death": "NameDeath",  # (Not Null)
@@ -24,6 +23,15 @@ NameLimited = {
    "deathDate": "DisplayableDate",
    "deathLocation": "DisplayableLocation",
    "deathStatus": str, # (ENUM)
+}
+
+CompanyLimited = {
+   "id": str,  # (Not Null)
+   "bio": "CompanyBio",
+   "companyText": "CompanyText",
+   "companyTypes": "CompanyType",  # (Not Null)
+   "country": "LocalizedDisplayableCountry",
+   "acronyms": "CompanyAcronymConnection",
 }
 
 NewsLimited = {
@@ -187,7 +195,7 @@ An agency that represents a name
 """
 Agency = {
    "agents": "Agent",  #
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
 }
 
 """
@@ -198,7 +206,7 @@ capacity
 """
 Agent = {
    "branch": "CompanyBranch",
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "employeeContact": "CompanyContactDetails",
    "id": str,  # (Not Null)
    "isPrimaryAgent": bool,  # (Not Null)
@@ -796,7 +804,7 @@ The affiliated company
 ------------------------------------------------------------
 """
 CompanyAffiliation = {
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "id": str,  # (Not Null)
    "language": "DisplayableLanguage",  # (Not Null)
    "text": str,  # (Not Null)
@@ -837,7 +845,7 @@ CompanyContactDetails = {
 CompanyCredit = {
    "attributes": "DisplayableAttribute",  # (Not Null)
    "category": "CompanyCreditCategory",  # (Not Null)
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "countries": "DisplayableCountry",  # (Not Null)
    "displayableProperty": "DisplayableTitleCompanyCreditProperty",  # (Not Null)
    "distributionFormats": "DistributionFormat",  # (Not Null)
@@ -1209,7 +1217,7 @@ and Category to uniquely identify it.
 """
 Credit = {
     "category": "CreditCategory",
-    "name": "NameLimited",
+    #"name": "NameLimited",
     "title": "TitleLimited",
 }
 
@@ -1424,7 +1432,7 @@ CreditV2 = {
 CreditV2Limited = {
    "hierarchyDetails": "CreditHierarchyDetail",  # (Not Null)
    "id": str,  # (Not Null)
-   "name": "NameLimited",  # (Not Null)
+   #"name": "NameLimited",  # (Not Null)
    "title": "TitleLimited",  # (Not Null)
 }
 
@@ -1911,7 +1919,7 @@ DistributionFormat = {
 
 Employment = {
     "branch": "CompanyBranch",
-    "company": "Company",
+    "company": "CompanyLimited",
     "employeeContact": "CompanyContactDetails",
     "id": str,  # (Not Null)
     "jobTitle": "LocalizedString",
@@ -2044,7 +2052,7 @@ represents a name
 ------------------------------------------------------------
 """
 Experimental_Agency = {
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "experimental_agents": "Experimental_Agent",  #
 }
 
@@ -2056,7 +2064,7 @@ company who represents a name in some capacity
 """
 Experimental_Agent = {
    "branch": "Experimental_CompanyBranch",
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "experimental_employeeContact": "Experimental_CompanyContactDetails",
    "id": str,  # (Not Null)
    "isPrimaryAgent": bool,  # (Not Null)
@@ -2165,7 +2173,7 @@ Experimental_NotificationPreferenceType = {
 """
 Experimental_PersonalEmployment = {
    "branch": "Experimental_CompanyBranch",
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "experimental_employeeContact": "Experimental_CompanyContactDetails",
    "id": str,  # (Not Null)
    "jobTitle": "LocalizedString",
@@ -2657,7 +2665,7 @@ verification status
 ------------------------------------------------------------
 """
 GuildAffiliationVerificationStatus = {
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "isVerifiedByGuild": bool,  # (Not Null)
 }
 
@@ -2668,13 +2676,13 @@ company for a name
 ------------------------------------------------------------
 """
 GuildAffiliationVisibilityStatus = {
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "visibility": str,  # (Not Null)
 }
 
 """---------------- GuildMembershipDetail ---------------"""
 GuildMembershipDetail = {
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "membershipId": str,  # (Not Null)
 }
 
@@ -3503,7 +3511,7 @@ Name = {
    "autoSelectedProfessions": "NameProfession",  # (Not Null)
    "awardNominations": "AwardNominationConnection",
    "bio": "NameBio",
-   "bios": "NameBiosConnection",
+   "bios": "NameBioConnection",
    "birthDate": "DisplayableDate",
    "birthLocation": "DisplayableLocation",
    "birthName": "BirthName",
@@ -3511,7 +3519,7 @@ Name = {
    "clients": "NameRepresentationConnection",
    "contentWarnings": "ContentWarnings",
    "creditCategories": "NameCreditCategoryWithCredits",  # (Not Null)
-   "creditedWithNames": "CreditedWithNamesConnection",
+   "creditedWithNames": "CreditedWithNameConnection",
    "creditGroupings": "CreditGroupingConnection",
    "credits": "CreditConnection",
    "creditSummary": "NameCreditSummary",
@@ -4174,7 +4182,7 @@ PersonalDetailsOutput = {
 """----------------- PersonalEmployment -----------------"""
 PersonalEmployment = {
    "branch": "CompanyBranch",
-   "company": "Company",  # (Not Null)
+   "company": "CompanyLimited",  # (Not Null)
    "employeeContact": "CompanyContactDetails",
    "id": str,  # (Not Null)
    "jobTitle": "LocalizedString",

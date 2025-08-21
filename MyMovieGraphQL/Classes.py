@@ -3213,10 +3213,7 @@ class DemographicDataType:
 
 class DemographicDataValue:
     def __init__(self, **kwargs):
-        if kwargs.get('components'):
-            self.components = DemographicDataComponent(**kwargs.get('components', {}))
-        else:
-            self.components = None
+        self.components = [DemographicDataComponent(**component) for component in kwargs.get('components', [])]
         self.id = kwargs.get('id', "")
         if kwargs.get('language'):
             self.language = DisplayableLanguage(**kwargs.get('language', {}))
@@ -7423,10 +7420,7 @@ class Name:
         else:
             self.deathLocation = None
         self.deathStatus = kwargs.get('deathStatus', "")
-        if kwargs.get('demographicData'):
-            self.demographicData = DemographicDataItem(**kwargs.get('demographicData', {}))
-        else:
-            self.demographicData = None
+        self.demographicData = [DemographicDataItem(**demographic) for demographic in kwargs.get('demographicData', [])]
         if kwargs.get('directContact'):
             self.directContact = DirectContactDetails(**kwargs.get('directContact', {}))
         else:
@@ -7578,7 +7572,7 @@ class Name:
         else:
             self.primaryVideos = None
         if kwargs.get('professions'):
-            self.professions = NameProfession(**kwargs.get('professions', {}))
+            self.professions = [NameProfession(**profession) for profession in kwargs.get('professions', [])]
         else:
             self.professions = None
         if kwargs.get('publicityCategories'):
@@ -7806,22 +7800,10 @@ class NameCreditCategoryWithCredits:
 
 class NameCreditSummary:
     def __init__(self, **kwargs):
-        if kwargs.get('categories'):
-            self.categories = CreditCategorySummary(**kwargs.get('categories', {}))
-        else:
-            self.categories = None
-        if kwargs.get('genres'):
-            self.genres = GenreSummary(**kwargs.get('genres', {}))
-        else:
-            self.genres = None
-        if kwargs.get('titleTypeCategories'):
-            self.titleTypeCategories = TitleTypeCategorySummary(**kwargs.get('titleTypeCategories', {}))
-        else:
-            self.titleTypeCategories = None
-        if kwargs.get('titleTypes'):
-            self.titleTypes = TitleTypeSummary(**kwargs.get('titleTypes', {}))
-        else:
-            self.titleTypes = None
+        self.categories = [CreditCategorySummary(**category) for category in kwargs.get('categories', [])]
+        self.genres = [GenreSummary(**genre) for genre in kwargs.get('genres', [])]
+        self.titleTypeCategories = [TitleTypeCategorySummary(**titleType) for titleType in kwargs.get('titleTypeCategories', [])]
+        self.titleTypes = [TitleTypeSummary(**titleType) for titleType in kwargs.get('titleTypes', [])]
         if kwargs.get('totalCredits'):
             self.totalCredits = TotalCredits(**kwargs.get('totalCredits', {}))
         else:
@@ -8128,6 +8110,11 @@ class NameProfession:
             self.shortDescription = DisplayableProfessionDescription(**kwargs.get('shortDescription', {}))
         else:
             self.shortDescription = None
+    def __str__(self):
+        if self.profession:
+            return str(self.profession)
+        return self.id or ""
+        
     def __eq__(self, other):
         if not isinstance(other, NameProfession):
             return False

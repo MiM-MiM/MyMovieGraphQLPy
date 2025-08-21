@@ -39,6 +39,11 @@ def sanatizeArgumentDict(args: dict, base: bool = True):
                 allMissing = False
         elif args[arg] is not None:
             allMissing = False
+    argKeys = list(args.keys())
+    if not allMissing and not base:
+        for arg in argKeys:
+            if args[arg] is None:
+                del args[arg]
     if base:
         return args
     return args if not allMissing else None
@@ -154,6 +159,7 @@ def generate_query(name: str = 'title'):
     return query_string
 
 def query(name: str, variables: dict, as_dict: bool = False) -> object | dict:
+    variables = sanatizeArgumentDict(variables, True)
     query_arg = {"query": generate_query(name), "variables": variables}
     r = requests.post(url=API_URL, json=query_arg, headers=HEADERS).json()
     errors = r.get('errors')

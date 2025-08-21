@@ -1,6 +1,8 @@
 from typing import Any
 # Each constraint should return a base search dict or none
 # for that constraint with the given args used to fill it out.
+# TODO: Add type checking
+# TODO: Add value validation, ENUMs should check agaist the `ENUM.json``
 
 def _getFromListIfExists(l: list, idx: int) -> Any | None:
     try:

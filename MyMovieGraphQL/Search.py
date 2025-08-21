@@ -2,7 +2,6 @@ from MyMovieGraphQL import Query
 from MyMovieGraphQL.Classes import AdvancedTitleSearchConnection
 from MyMovieGraphQL import Constraints
 
-# TODO: All of the filters need moved to individual functions, allowing for re-use.
 def searchTitle(
         # kwargs not used that way it is more clear what is availiable and defaults are displayed easier.
         title: str = "",

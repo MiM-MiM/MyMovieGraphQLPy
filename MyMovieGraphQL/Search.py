@@ -135,8 +135,8 @@ def searchTitle(
     # it would only be extra steps.
     args = {
         "first": limit,
-        "after": pagnation if pagnation else None,
-        "jumpToPosition": offset if offset else None,
+        "after": pagnation or None,
+        "jumpToPosition": offset or None,
         "constraints": {
             # Not allowing experimental for this search.
             "experimental_boxOfficeEarningsConstraint": None,

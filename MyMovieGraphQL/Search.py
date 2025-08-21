@@ -2,6 +2,19 @@ from MyMovieGraphQL import Query
 from MyMovieGraphQL.Classes import AdvancedTitleSearchConnection
 from MyMovieGraphQL import Constraints
 
+def sort(
+        sortBy: str = "", # Changes per sort, an ENUM
+        sortOrder: str = "DESC",
+) -> dict | None:
+    sort_by = {}
+    sortOrder = sortOrder.upper()
+    if sortBy and sortOrder:
+        sort_by = {
+            'sortBy': sortBy,
+            'sortOrder': sortOrder,
+        }
+    return sort_by or None
+
 def searchTitle(
         # kwargs not used that way it is more clear what is availiable and defaults are displayed easier.
         title: str = "",
@@ -11,7 +24,8 @@ def searchTitle(
         yearEnd: int = 0,
         dateStart: str = "",
         dateEnd: str = "",
-        sort: str = "",
+        sortBy: str = "RELEASE_DATE", # AdvancedTitleSearchSortBy
+        sortOrder: str = "DESC",
         limit: int = 25,
         offset: int = 0,
         pagnation: str = "",
@@ -137,6 +151,7 @@ def searchTitle(
         "first": limit,
         "after": pagnation or None,
         "jumpToPosition": offset or None,
+        "sort": sort(sortBy, sortOrder),
         "constraints": {
             # Not allowing experimental for this search.
             "experimental_boxOfficeEarningsConstraint": None,

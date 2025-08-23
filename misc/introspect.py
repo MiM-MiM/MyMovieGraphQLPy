@@ -25,6 +25,15 @@ def get_type(obj: dict):
     if not arg_type:
         arg_type = obj.get("type", {}).get('ofType').get('ofType').get('ofType').get('name')
     return clean_name(arg_type)
+def get_kind(obj: dict):
+    arg_kind = obj.get("type", {}).get('name')
+    if not arg_kind:
+        arg_kind = obj.get("type", {}).get('ofType').get('kind')
+    if not arg_kind:
+        arg_kind = obj.get("type", {}).get('ofType').get('ofType').get('kind')
+    if not arg_kind:
+        arg_kind = obj.get("type", {}).get('ofType').get('ofType').get('ofType').get('kind')
+    return clean_name(arg_kind)
 def get_isList(obj: dict):
     try:
         isList = obj.get("type", {}).get('kind') == 'LIST'
@@ -81,6 +90,9 @@ def introspect(name: str = 'Query'):
                 enumValues {{
                     name
                     description
+                }}
+                possibleTypes {{
+                    name
                 }}
                 fields {{
                     name
@@ -162,6 +174,16 @@ def introspect(name: str = 'Query'):
     description = introspect_data.get('description') or []
     args = introspect_data.get('args') or []
     fields = introspect_data.get('fields') or []
+    kind = introspect_data.get('kind') or ""
+    possibleTypes = introspect_data.get('possibleTypes') or []
+    unionTypes = []
+    for possibleType in possibleTypes:
+        unionType = possibleType['name']
+        if unionType in unionTypes:
+            continue
+        if unionType not in introspection:
+            possible_new_types.add(unionType)
+        unionTypes.append(unionType)
     args_compact = []
     inputFields_compact = []
     fields_compact = []
@@ -176,10 +198,12 @@ def introspect(name: str = 'Query'):
         field_nullable = get_nulable(field)
         field_description = field.get('description') or ''
         field_args = field.get('args') or []
+        field_kind = field.get('kind') or ""
         field_args_compact = []
         for arg in field_args:
             field_arg_name = arg.get('name') or ''
             field_arg_type = get_type(arg)
+            field_arg_kind = get_kind(arg)
             if field_arg_type not in introspection:
                 possible_new_types.add(field_arg_type)
             field_arg_isList = get_isList(arg)
@@ -189,6 +213,7 @@ def introspect(name: str = 'Query'):
             field_args_compact.append({
                 'name': field_arg_name,
                 'type': field_arg_type,
+                'kind': field_arg_kind,
                 'list': field_arg_isList,
                 'nullable': field_arg_nullable,
                 'description': field_arg_description,
@@ -197,6 +222,7 @@ def introspect(name: str = 'Query'):
         fields_compact.append({
             'name': field_name,
             'type': field_type,
+            'kind': field_kind,
             'list': field_isList,
             'nullable': field_nullable,
             'args': field_args_compact,
@@ -228,6 +254,8 @@ def introspect(name: str = 'Query'):
         'inputFields': inputFields_compact,
         'args': args_compact,
         'fields': fields_compact,
+        'kind': kind,
+        'possibleTypes': unionTypes,
         'description': description,
     }
     for obj in possible_new_types:
@@ -235,5 +263,5 @@ def introspect(name: str = 'Query'):
     
 if __name__ == "__main__":
     introspect()
-    with open('introspection.json', 'w') as f:
+    with open('INTROSPECTION.json', 'w') as f:
         json.dump(introspection, f, indent=2, sort_keys=True)

@@ -8,6 +8,7 @@ queries = {}
 enums = {}
 scalars = {}
 inputs = {}
+args = {}
 
 for obj, val in data.items():
     if not (val['args'] or val['enumValues'] or val['fields'] or val['inputFields']):
@@ -43,6 +44,11 @@ for obj, val in data.items():
                 'list': input_list,
                 'defaultValue': input_defaultValue,
             }
+    for field in val['fields']:
+        if field.get('args'):
+            if obj not in args:
+                args[obj] = {}
+            args[obj][field.get('name')] = field.get('args')
 
 for query in data['Query']['fields']:
     query_name = query['name']
@@ -72,3 +78,5 @@ with open('SORT_BY.json', 'w', encoding="utf-8", newline='\n') as f:
     json.dump(sort_by, f, indent=2, sort_keys=True)
 with open('QUERIES.json', 'w', encoding="utf-8", newline='\n') as f:
     json.dump(queries, f, indent=2, sort_keys=True)
+with open('ARGS.json', 'w', encoding="utf-8", newline='\n') as f:
+    json.dump(args, f, indent=2, sort_keys=True)

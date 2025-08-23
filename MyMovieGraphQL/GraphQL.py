@@ -85,7 +85,7 @@ def search(searchName: str, **kwargs) -> dict:
                             enumValue = var_data['enumValues'][0]['name']
                             query_variables[var] = enumValue
                         else:
-                            raise ValueError('Variable `{var}` must be filled out, of type `{var_clean_name}`')
+                            raise ValueError(f'Variable `{var}` must be filled out, of type `{var_clean_name}`')
         elif var.endswith('_first'):
             query_variables[var] = None
             if var.replace('_first', '_last') not in kwargs:

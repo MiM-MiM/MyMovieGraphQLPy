@@ -1,6 +1,6 @@
-from MyMovieGraphQL import Query
 from MyMovieGraphQL.Classes import AdvancedNameSearchConnection, AdvancedTitleSearchConnection
 from MyMovieGraphQL import Constraints
+from MyMovieGraphQL import GraphQL
 
 def sort(
         sortBy: str = "", # Changes per sort, an ENUM
@@ -33,7 +33,7 @@ def searchTitle(
         alternateVersionIncludeType: str = "any", # any/all
         award: str | list = "",  # The award ID
         awardIncludeType: str = "any", # any/all/exclude
-        certificate: dict | list = "",  # {rating: xxx, region: xxx}
+        certificate: dict | list = {},  # {rating: xxx, region: xxx}
         certificateIncludeType: str = "any", # any/exclude
         character: str | list = "",
         creditedCharacters: bool = True,  # Limit to only credited roles.
@@ -114,7 +114,7 @@ def searchTitle(
         creditCategory: str | list = "",
         creditJobCategory: str | list = "",
         creditNameID: str | list = "",
-        creditType: str | list = "all",
+        creditType: str = "all",
         creditAdvanced: dict = {},
         meterMin: int = 0,
         meterMax: int = 0,
@@ -133,7 +133,7 @@ def searchTitle(
         withData: str | list = "",  # TitleDataType ENUMs
         withDataMissing: str | list = "",
         withDataAny: str | list = "",
-) -> AdvancedTitleSearchConnection:
+) -> dict:
     if not isinstance(limit, int):
         raise TypeError(f"Limit must be an int, `{type(limit)}` given.")
     if not isinstance(offset, int):
@@ -193,10 +193,10 @@ def searchTitle(
             "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(triviaTerm, triviaTermType),
             "userRatingsConstraint": Constraints.userRatingsConstraint(ratingMin, ratingMax, ratingCountMin, ratingCountMax),
             "watchOptionsConstraint": Constraints.watchOptionsConstraint(watchProviderID, watchRegion, watchProviderIDExclude, watchRegionExclude, watchType),
-            "withTitleDataConstraint": Constraints.withTitleDataConstraint(withData, withDataMissing, withDataAny),
+            "withTitleDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
         }
     }
-    return Query.query('advancedTitleSearch', args)
+    return GraphQL.search('advancedTitleSearch', **args)
 
 def searchName(
         name: str = "",
@@ -247,7 +247,7 @@ def searchName(
         withData: str | list = "",  # NameDataType ENUMs
         withDataMissing: str | list = "",
         withDataAny: str | list = "",
-) -> AdvancedNameSearchConnection:
+) -> dict:
     if not isinstance(limit, int):
         raise TypeError(f"Limit must be an int, `{type(limit)}` given.")
     if not isinstance(offset, int):
@@ -282,4 +282,4 @@ def searchName(
                 "withNameDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
             }
     }
-    return Query.query('advancedNameSearch', args)
+    return GraphQL.search('advancedTitleSearch', **args)

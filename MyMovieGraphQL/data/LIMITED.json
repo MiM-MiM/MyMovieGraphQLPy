@@ -1,0 +1,193 @@
+{
+  "AwardDetails": [
+    "id",
+    "text"
+  ],
+  "AwardsEvent": [
+    "id",
+    "location",
+    "text",
+    "trivia",
+    "urls"
+  ],
+  "BirthName": [
+    "text"
+  ],
+  "Cast": [
+    "attributes",
+    "category",
+    "characters",
+    "name",
+    "position",
+    "title"
+  ],
+  "Cinema": [
+    "id",
+    "accessibility",
+    "contactDetails",
+    "location",
+    "name"
+  ],
+  "Company": [
+    "acronyms",
+    "bio",
+    "companyText",
+    "companyTypes",
+    "country",
+    "id"
+  ],
+  "CompanyBio": [
+    "id",
+    "language"
+  ],
+  "Credit": [],
+  "CreditEdge": [
+    "cursor",
+    "position"
+  ],
+  "CreditV2": [
+    "hierarchyDetails",
+    "id",
+    "name",
+    "title"
+  ],
+  "DisplayableArticle": [],
+  "DisplayableDate": [
+    "date",
+    "dateComponents"
+  ],
+  "DisplayableLocation": [
+    "text"
+  ],
+  "DisplayableNameAkaProperty": [],
+  "DisplayableNameDeathCause": [
+    "text"
+  ],
+  "DisplayableNameHeightProperty": [
+    "language"
+  ],
+  "DisplayableTitleTypeProperty": [],
+  "ExperimentalCast": [
+    "attributes",
+    "category",
+    "characters",
+    "name",
+    "position",
+    "title"
+  ],
+  "ExperimentalCredit": [],
+  "ExperimentalCreditEdge": [
+    "cursor",
+    "position"
+  ],
+  "Image": [
+    "id",
+    "type",
+    "widthheight",
+    "url",
+    "languages"
+  ],
+  "ImageConnection": [
+    "edges",
+    "isPaginationDirty",
+    "pageInfo",
+    "restriction",
+    "total"
+  ],
+  "Interest": [
+    "descriptionengagementStatistics",
+    "category",
+    "id",
+    "primaryImage",
+    "primaryText",
+    "score",
+    "secondaryText",
+    "visibilityLevel"
+  ],
+  "InterestCategory": [
+    "id",
+    "language",
+    "text"
+  ],
+  "Markdown": [
+    "expandedMarkdown",
+    "markdown",
+    "plaidHtml",
+    "plainText"
+  ],
+  "Name": [
+    "id",
+    "canonicalUrl",
+    "bio",
+    "akas",
+    "birthDate",
+    "nameText",
+    "birthLocation",
+    "birthName",
+    "death",
+    "deathCause",
+    "deathDate",
+    "deathLocation",
+    "deathStatus",
+    "height"
+  ],
+  "News": [
+    "id",
+    "articleTitle",
+    "byline",
+    "date",
+    "externalUrl",
+    "image",
+    "language",
+    "source",
+    "text"
+  ],
+  "Nomination": [
+    "awardedEntities",
+    "category",
+    "forEpisodes",
+    "forSongTitles",
+    "id",
+    "isWinner",
+    "notes",
+    "winAnnouncementDate",
+    "winningRank"
+  ],
+  "NominationEvent": [
+    "akas",
+    "awards",
+    "id",
+    "location",
+    "name",
+    "trivia",
+    "urls"
+  ],
+  "Poll": [
+    "answers",
+    "author",
+    "createDate",
+    "createdFromListId",
+    "description",
+    "id",
+    "isClosed",
+    "primaryImage",
+    "question",
+    "totalVotes",
+    "type"
+  ],
+  "Title": [
+    "id",
+    "canonicalUrl",
+    "titleType",
+    "releaseYear",
+    "titleText",
+    "originalTitleText"
+  ],
+  "Video": [
+    "id",
+    "contentType",
+    "createdDate",
+    "description",
+    "runtime"
+  ]
+}

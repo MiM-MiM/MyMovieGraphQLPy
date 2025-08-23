@@ -1,12 +1,7 @@
 import re
-import requests
 from dataclasses import dataclass
 
-from MyMovieGraphQL.Query import query
-from MyMovieGraphQL.Classes import Title, Name
-
-API_URL = "https://api.graphql.imdb.com/"
-HEADERS = {"Content-Type": "application/json"}
+from MyMovieGraphQL import GraphQL
 
 @dataclass
 class regex_in:
@@ -19,15 +14,32 @@ class regex_in:
         return other.fullmatch(self.string) is not None
 
 def getByID(id: str) -> object:
-    obj = None
-    # TODO: Change the case to not use the dict type and use the object generated. Requires `Query.py` update.
+    query_name = ""
     match regex_in(id):
         case r'tt\d{7,}':
-            # Movie ID
-            obj = query('title', {'id': id})
+            query_name = "title"
         case r'nm\d{7,}':
-            # Name ID
-            obj = query('name', {'id': id})
+            query_name = "name"
+        case r'ci\d{7,}':
+            query_name = "cinema"
+        case r'co\d{7,}':
+            query_name = "company"
+        case 'creditCategory':
+            query_name = "creditCategory"
+            raise NotImplemented("creditCategory is not yet implemented, unknown ID format.")
+        case r'rm\d{7,}':
+            query_name = "image"
+        case r'imageGallery':
+            query_name = "imageGallery"
+            raise NotImplemented("imageGallery is not yet implemented, unknown ID format.")
+        case r'interest':
+            query_name = 'interest'
+            raise NotImplemented("interest is not yet implemented, unknown ID format.")
+        case r'kw\d{7,}':
+            query_name = "keyword"
+        case r'ls\d{7,}':
+            query_name = "list"
         case _:
             raise ValueError(f"Unknown ID format: {id}")
+    obj = GraphQL.search(query_name, id=id)
     return obj

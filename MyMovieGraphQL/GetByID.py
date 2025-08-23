@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 
-from MyMovieGraphQL import GraphQL
+from MyMovieGraphQL import GraphQL, MyMovie
 
 @dataclass
 class regex_in:
@@ -41,5 +41,4 @@ def getByID(id: str) -> object:
             query_name = "list"
         case _:
             raise ValueError(f"Unknown ID format: {id}")
-    obj = GraphQL.search(query_name, id=id)
-    return obj
+    return MyMovie(GraphQL.search(query_name, id=id))

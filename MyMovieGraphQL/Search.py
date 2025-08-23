@@ -1,6 +1,4 @@
-from MyMovieGraphQL.Classes import AdvancedNameSearchConnection, AdvancedTitleSearchConnection
-from MyMovieGraphQL import Constraints
-from MyMovieGraphQL import GraphQL
+from MyMovieGraphQL import Constraints, GraphQL
 
 def sort(
         sortBy: str = "", # Changes per sort, an ENUM

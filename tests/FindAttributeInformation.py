@@ -11,6 +11,9 @@ query = {
             name
                 description
                 kind
+                possibleTypes {{
+                    name
+                }}
                 fields {{
                     name
                     description

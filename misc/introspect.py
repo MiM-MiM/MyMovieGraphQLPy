@@ -263,5 +263,5 @@ def introspect(name: str = 'Query'):
     
 if __name__ == "__main__":
     introspect()
-    with open('INTROSPECTION.json', 'w') as f:
+    with open('INTROSPECTION.json', 'w', encoding="utf-8", newline='\n') as f:
         json.dump(introspection, f, indent=2, sort_keys=True)

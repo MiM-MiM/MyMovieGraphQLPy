@@ -93,5 +93,5 @@ for check_type in DATA:
 for check_type in DATA:
     if bfs(check_type):
         print(f"{check_type} is the start of a cycle still")
-with open('LIMITED.json', 'w') as f:
+with open('LIMITED.json', 'w', encoding="utf-8", newline='\n') as f:
     json.dump(LIMITED, f, indent=2, sort_keys=True)

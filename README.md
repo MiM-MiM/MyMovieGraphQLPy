@@ -2,11 +2,15 @@
 MyMovieGraphQL is a Python3.10 implementation to fetch data from IMDb via their GraphQL interface.
 
 ## Features
-- Get info by ID, only specific types can be queried.
-  - To be listed.
+- Uses a `json` file created from introspecting the types.
+- Creates a `limited` version that avoids cyclicle query generation
+- Uses arguments in the query generation, allowing the same query to work for multiple variables, caching of the generated query to be added.
+- `Name` and `Title` search have been abstracted.
 
 ## Planned Features
-- Still a major WIP, no reason to list yet.
+- Abstract `mainSearch`
+- Add more known types to the `getID`
+- `str(obj)` logic to attempt and print what is expected based on possible keys and types.
 
 # Installation
 MyMovieGraphQL is configured as a python module. It is suggested to create a [venv](https://docs.python.org/3/library/venv.html) first.
@@ -15,8 +19,8 @@ MyMovieGraphQL is configured as a python module. It is suggested to create a [ve
 # Activate venv first if used.
 # Navigate to cloned folder, `cd MyMovieGraphQLPy`
 python3 -m pip install .
-# You may need to use development mode
-python -m pip install -e
+# You may need to use editable mode
+python -m pip install -e .
 ```
 
 # Notes
@@ -32,24 +36,13 @@ The types are typically named well to hint at what they may be/return.
 - IDs that have a main type you may search/link by start with two characters, followed by 7 or 8 numbers.
 - IDs that are not normally used for linking and are just types/values are typically lower case with underscores instead of spaces.
   - Each of these will also have a `text` form, being the normal human readible form.
-- If something returns a `Title` or `Name` type, you should use the `Limited` version created.
-  - This both avoids circular query generation, a recursion limit in `Python`.
 - Complex queryies should be avoided, although possible, not suggested.
   - If a query is too complex it will time out and return a cloud error rather than a normal json encoded one.
 - Errors are json encoded and may contain helpful hints to what you may have wanted.
-  - Things will say `did you mean ...` and provide possible new keys. Example: if something has an `id` field and you pass `bad` it will suggest to use `id`.
-  - The same applies to required arguments.
-  - Arguments do not get much help besides expected type, which may indicate if it is an `ENUM`.
 
-## Known, need help to implement
-### Missing required arguments
-#### Title
-- `plotContributionLink`, `imageUploadLink`
-  - Return `ContributionLink`
-    - Has a `url`, assumed type is `str`
-  - Missing requlred argument of type `ContributionContext`
-  - Notes
-    - I assume this requires authencation and will be considered private.
+## Known issues
+All the API calls that require auth will fail.
+The `x-` headers need set.
 
 # Atrributions
 

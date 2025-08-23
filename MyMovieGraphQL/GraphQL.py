@@ -161,7 +161,7 @@ def generateSearch(searchName: str) -> tuple[str, dict[str, str]]:
         input_variables_types.append(f"${arg_name}: {arg_type}")
     input_variables_str = ", ".join(input_variables)
     input_variables_types_str = f", ".join(input_variables_types)
-    search_query = f"query query({input_variables_types_str}) {{ query: {searchName}({input_variables_str}){{ {sub_query} }} }}"
+    search_query = f"query query({input_variables_types_str}) {{ query: {searchName}({input_variables_str}){{ __typename {sub_query} }} }}"
     return search_query, variables
 
 def generateQuery(object_name: str,

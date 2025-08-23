@@ -29,6 +29,15 @@ class MyMovie:
         if self.itterableAttribute():
             self.index = 0
     
+    def __hash__(self) -> int:
+        id = self.data.get('id')
+        if not id:
+            raise NotImplementedError(f"{self.ofType} is not hashable.")
+        # Any that have an ID may be used in a dict/object
+        # that requires it to be hashable.
+        # Hash on the ID to ensure even partial objects match.
+        return hash(id)
+    
     def __eq__(self, other: object) -> bool:
         if self is other:
             return True

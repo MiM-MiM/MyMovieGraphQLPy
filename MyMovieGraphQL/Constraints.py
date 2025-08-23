@@ -83,7 +83,7 @@ def birthPlaceConstraint(
     return constraint or None
 
 def certificateConstraint(
-        certificate: dict | list = "",  # {rating: xxx, region: xxx}
+        certificate: dict | list = {},  # {rating: xxx, region: xxx}
         certificateIncludeType: str = "any", # any/exclude
 ) -> dict | None:
     constraint = {}
@@ -123,7 +123,7 @@ def colorationConstraint(
     return constraint or None
 
 def crazyCreditMatchingConstraint(
-        crazyCredit: str = "",
+        crazyCredit: str | list = "",
         crazyCreditIncludeType: str = "all", # any/all
 ) -> dict | None:
     constraint = {}
@@ -238,7 +238,7 @@ def episodicConstraint(
 
 def explicitContentConstraint(
         explicit: str = "INCLUDE_ADULT", # ExplicitContentFilter ENUM
-) -> str | None:
+) -> dict | None:
     constraint = {}
     explicit = explicit.upper()
     explicit = explicit.removesuffix("_ADULT") + "_ADULT"
@@ -352,9 +352,9 @@ def inTheatersConstraint(
         }
     if theaterLocationLatLong or theaterLocation:
         constraint["location"] = {
-            "postalCode": postalCode or None,
+            "postalCode": theaterLocation or None,
             "latLong": theaterLocationLatLong or None,
-            "radiusInMeters": radiusInMeters or None,
+            "radiusInMeters": theaterLocationRadius or None,
         }
     if theaterFavorite:
         constraint["myFavoriteTheaters"] = "ONLY_MY_FAVORITE"
@@ -638,7 +638,7 @@ def singleUserRatingConstraint(
 def soundMixConstraint(
         soundMix: str | list = "",
         soundMixExclude: str | list = "",
-) -> dict or None:
+) -> dict | None:
     constraint = {}
     anySoundMixTypes = []
     excludeSoundMixTypes = []
@@ -682,7 +682,7 @@ def titleCreditsConstraint(
         creditCategory: str | list = "",
         creditJobCategory: str | list = "",
         creditNameID: str | list = "",
-        creditType: str | list = "all",
+        creditType: str = "all",
         creditAdvanced: dict = {},
 ) -> dict | None:
     constraint = {}
@@ -733,10 +733,10 @@ def titleCreditsConstraint(
             for i in range(0, maxLength):
                 constraint[constraintName].append(
                     {
-                        "character": _getFromListIfExists(creditCharacter, i),
-                        "creditCategory": _getFromListIfExists(creditCategory, i),
-                        "jobCategory": _getFromListIfExists(creditJobCategory, i),
-                        "nameId": _getFromListIfExists(creditNameID, i),
+                        "character": _getFromListIfExists(creditCharacter, i), # pyright: ignore[reportArgumentType]
+                        "creditCategory": _getFromListIfExists(creditCategory, i), # pyright: ignore[reportArgumentType]
+                        "jobCategory": _getFromListIfExists(creditJobCategory, i), # pyright: ignore[reportArgumentType]
+                        "nameId": _getFromListIfExists(creditNameID, i), # pyright: ignore[reportArgumentType]
                     }
                 )
     return constraint or None
@@ -848,7 +848,7 @@ def withDataConstraint(
 ) -> dict | None:
     constraint = {}
     if withData:
-        if isinstance(titleData, str):
+        if isinstance(withData, str):
             withData = [withData]
         withData = [td.upper() for td in withData]
         constraint["allDataAvailable"] = withData

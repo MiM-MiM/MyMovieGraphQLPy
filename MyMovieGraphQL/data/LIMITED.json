@@ -10,9 +10,6 @@
     "trivia",
     "urls"
   ],
-  "BirthName": [
-    "text"
-  ],
   "Cast": [
     "attributes",
     "category",
@@ -29,18 +26,18 @@
     "name"
   ],
   "Company": [
-    "acronyms",
+    "id",
     "bio",
     "companyText",
     "companyTypes",
     "country",
-    "id"
+    "acronyms"
   ],
-  "CompanyBio": [
-    "id",
-    "language"
+  "Credit": [
+    "category",
+    "name",
+    "title"
   ],
-  "Credit": [],
   "CreditEdge": [
     "cursor",
     "position"
@@ -51,22 +48,6 @@
     "name",
     "title"
   ],
-  "DisplayableArticle": [],
-  "DisplayableDate": [
-    "date",
-    "dateComponents"
-  ],
-  "DisplayableLocation": [
-    "text"
-  ],
-  "DisplayableNameAkaProperty": [],
-  "DisplayableNameDeathCause": [
-    "text"
-  ],
-  "DisplayableNameHeightProperty": [
-    "language"
-  ],
-  "DisplayableTitleTypeProperty": [],
   "ExperimentalCast": [
     "attributes",
     "category",
@@ -75,7 +56,11 @@
     "position",
     "title"
   ],
-  "ExperimentalCredit": [],
+  "ExperimentalCredit": [
+    "category",
+    "name",
+    "title"
+  ],
   "ExperimentalCreditEdge": [
     "cursor",
     "position"
@@ -108,6 +93,15 @@
     "id",
     "language",
     "text"
+  ],
+  "Keyword": [
+    "category",
+    "id",
+    "text"
+  ],
+  "LocalizedMarkdown": [
+    "language",
+    "value"
   ],
   "Markdown": [
     "expandedMarkdown",
@@ -181,7 +175,15 @@
     "titleType",
     "releaseYear",
     "titleText",
-    "originalTitleText"
+    "originalTitleText",
+    "certificate",
+    "primaryImage",
+    "productionStatus",
+    "ratingsSummary",
+    "releaseDate",
+    "runtime",
+    "spokenLanguages",
+    "titleGenres"
   ],
   "Video": [
     "id",

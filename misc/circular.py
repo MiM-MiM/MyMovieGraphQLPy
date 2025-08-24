@@ -16,6 +16,9 @@ LIMITED = {
     "Title": [
         "id", "canonicalUrl", "titleType",
         "releaseYear", "titleText", "originalTitleText",
+        "certificate", "primaryImage", "productionStatus",
+        "ratingsSummary", "releaseDate", "runtime",
+        "spokenLanguages", "titleGenres",
     ],
     "Name": [
         "id", "canonicalUrl", "bio",
@@ -50,6 +53,18 @@ LIMITED = {
         "id", "contentType", "createdDate",
         "description", "runtime",
     ],
+    "LocalizedMarkdown": [
+        "language", "value"
+    ],
+    "Markdown": [
+        "expandedMarkdown", "markdown", "plaidHtml", "plainText",
+    ],
+    "Credit": [
+        "category", "name", "title",
+    ],
+    "ExperimentalCredit": [
+        "category", "name", "title",
+    ]
 }
 
 

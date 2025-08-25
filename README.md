@@ -30,8 +30,7 @@ The types are typically named well to hint at what they may be/return.
 - Pluarl names typically return a list in some way.
 - Names ending in `Connection` indicate it is a graph `edges ... node` form.
 - Types encased in brackets, `[]`, will typically have an attribute of the same name or made singular, indicates a list.
-- `ENUM` types are in all caps, such as `DOMESTIC`, no quotes around them.
-- Strings require doune quotes, `"`.
+- `ENUM` types are in all caps, such as `DOMESTIC`.
 - Dates are always `yyyy-mm-dd` with possible timezone extension or are split in `int` types for `year`, `month`, and `day`.
 - IDs that have a main type you may search/link by start with two characters, followed by 7 or 8 numbers.
 - IDs that are not normally used for linking and are just types/values are typically lower case with underscores instead of spaces.

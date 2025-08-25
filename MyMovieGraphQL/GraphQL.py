@@ -3,6 +3,7 @@ import re
 import requests
 from datetime import date
 import importlib.resources as resources
+from MyMovieGraphQL.__init__ import MyMovie
 
 API_URL = "https://api.graphql.imdb.com/"
 HEADERS = {"Content-Type": "application/json"}
@@ -51,7 +52,7 @@ def isScalarOrEnum(obj: dict):
     """
     return obj['kind'] in ['ENUM', 'SCALAR']
 
-def search(searchName: str, **kwargs) -> dict:
+def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> MyMovie:
     """Generates and executes the given search/query.
 
     Args:
@@ -59,7 +60,9 @@ def search(searchName: str, **kwargs) -> dict:
         kwargs: The args for the query.
     """
     load_config_json()
-    query, variables = generateSearch(searchName)
+    if limitAttributes and isinstance(limitAttributes, str):
+        limitAttributes = [str(limitAttributes)]
+    query, variables = generateSearch(searchName, limitAttributes=limitAttributes) # type: ignore
     query_variables = dict()
     for var in variables:
         variable_type = variables[var]
@@ -107,9 +110,9 @@ def search(searchName: str, **kwargs) -> dict:
     if errors:
         error_messages = f'\n'.join([str(e) for e in errors])
         raise ValueError(f"Query failed to execute ({len(errors)} errors):\n{'-'*40}\n{error_messages}\n{'-'*40}")
-    return r.get('data', {}).get('query', {})
+    return MyMovie(r.get('data', {}).get('query', {}))
 
-def generateSearch(searchName: str) -> tuple[str, dict[str, str]]:
+def generateSearch(searchName: str, limitAttributes: list[str] = []) -> tuple[str, dict[str, str]]:
     """Generates the search query and needed variables for a given search.
     Each response will alias the query as `query` allowing for the searchName to be
     case insensitive.
@@ -137,7 +140,7 @@ def generateSearch(searchName: str) -> tuple[str, dict[str, str]]:
     if not query:
         raise ValueError(f"{searchName} is not a valid search.")
     output_type = query['type']
-    sub_query, sub_query_variables = generateQuery(output_type)
+    sub_query, sub_query_variables = generateQuery(output_type, limitAttributes=limitAttributes)
     input_variables_types, input_variables = [], []
     variables = {}
     for arg in query['args']:
@@ -165,7 +168,8 @@ def generateSearch(searchName: str) -> tuple[str, dict[str, str]]:
     return search_query, variables
 
 def generateQuery(object_name: str,
-                  allow_limited: bool = False
+                  allow_limited: bool = False,
+                  limitAttributes: list[str] = [],
 ) -> tuple[str, dict]:
     """ Generates the subquery for the given type.
     Args:
@@ -193,6 +197,12 @@ def generateQuery(object_name: str,
     limit_data = [f['name'] for f in object_data['fields']]
     if object_name in LIMITED:
         limit_data = LIMITED[object_name]
+    if limitAttributes:
+        limit_data = [
+            f['name']
+            for f in object_data['fields']
+            if f['name'] in limitAttributes
+        ]
     object_fields = []
     for field in object_data['fields']:
         field_name = field['name']

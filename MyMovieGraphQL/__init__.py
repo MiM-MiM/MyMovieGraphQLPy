@@ -1,6 +1,7 @@
 from typing import Iterable, Any
 import re
 from dataclasses import dataclass
+from . import GraphQL
 
 @dataclass
 class regex_in:
@@ -40,6 +41,99 @@ class MyMovie:
         self.index: int | None = None
         if self.itterableAttribute():
             self.index = 0
+    
+    def __add__(self, other):
+        if not isinstance(other, type(self)):
+            raise TypeError(f"{type(other)} cannot be added to {type(self)}.")
+        if self.ofType != other.ofType:
+            raise TypeError(f"{other.ofType} cannot be added to {self.ofType}.")
+        for k, v  in other.items():
+            if k not in self.data:
+                self.data[k] = v
+                continue
+            # Need to merge
+            self_val = self.data.get(k)
+            if self_val is None:
+                self.data[k] = v
+                continue
+            if isinstance(v, type(self)) and isinstance(self_val, type(self)):
+                if v.ofType != self.ofType:
+                    raise TypeError(f'{v.ofType} and {self_val.ofType} are not the same.')
+                if v.ofType.endswith('Connection'):
+                    # replace the non-node objects and append the two edges
+                    v_pageInfo = v.data.get('pageInfo', {})
+                    v_endCursor = v_pageInfo.get('endCursor')
+                    v_startCursor = v_pageInfo.get('startCursor')
+                    self_pageInfo = self_val.data.get('pageInfo', {})
+                    self_endCursor = self_pageInfo.get('endCursor')
+                    self_startCursor = self_pageInfo.get('startCursor')
+                    if v_startCursor == self_startCursor and v_endCursor == self_endCursor:
+                        # The cursors match, no new data was fetched
+                        continue
+                    self.data[k]['pageInfo']['endCursor'] = v_endCursor
+                    self.data[k]['pageInfo']['startCursor'] = v_startCursor
+                    if self.data[k]['edges'] is not None:
+                        if v.data['edges'] is not None:
+                            self.data[k]['edges'] = v.data['edges'] + self.data[k]['edges']
+                            continue
+                        self.data[k]['edges'] = self.data[k]['edges']
+        return self
+
+        
+    def update(self,
+               attribute: str | list = "",
+               previous: bool = False,
+               variables: dict = {},
+    ):
+        """ Update the object and return the updated values.
+        Args:
+           attribute(str | list): The attribute to be updated,
+                if not provided the base object must be a connection.
+            variables(dict): The variables to be used for running the update.
+        """
+        # Sanity check
+        GraphQL.load_config_json()
+        search: str = self.ofType.removesuffix("Connection")
+        # Search is always the type with the first letter lowercase.
+        if len(search) > 1:
+            # Should always be longer than 1
+            search = search[0].lower() + search[1:]
+        foundQuery = False
+        for query in GraphQL.DATA['Query']["fields"]:
+            if query["name"] == search:
+                foundQuery = True
+        if not foundQuery:
+            raise AttributeError(f"'{self.ofType}' does not support being updated. Please update from the main object.")
+        # If the 
+        if not attribute:
+            # This is to be only used for searches
+            # or connections that have a search of the same name.
+            pageInfo = self.data.get('pageInfo', {})
+            endCursor = pageInfo.get('endCursor')
+            startCursor = pageInfo.get('startCursor')
+            if previous and startCursor is not None and "before" not in variables:
+                variables["before"] = startCursor
+            elif not previous and endCursor is not None and "after" not in variables:
+                variables["after"] = endCursor
+            if not previous and not pageInfo.get('hasNextPage'):
+                # There is no next page
+                return None
+        elif self.data.get('id') is not None:
+            variables['id'] = self.data.get('id')
+        update = GraphQL.search(searchName=search, limitAttributes=attribute, **variables)
+        if not isinstance(update, type(self)) or update is None:
+            raise ValueError(f"Updating {self.ofType} failed...")
+        self += update
+        if not attribute:
+            # Return the updated search object
+            return update
+        # Return the attributes updated.
+        if isinstance(attribute, str):
+            return self.data.get(attribute)
+        return [
+            self.data.get(attrib)
+            for attrib in attribute
+        ]
     
     def __hash__(self) -> int:
         id = self.data.get('id')
@@ -86,8 +180,9 @@ class MyMovie:
         return self.data.items()
     
     def __repr__(self) -> str:
-        if self.data.get('id'):
-            return f"<--- {self.ofType}: {self.__str__()} --->"
+        id = self.get('id')
+        if id is not None:
+            return f"<--- {self.ofType} ({id}): {self.__str__()} --->"
         return self.__str__()
     
     def __str__(self) -> str:

@@ -1,4 +1,5 @@
 from MyMovieGraphQL import Constraints, GraphQL
+from MyMovieGraphQL.__init__ import MyMovie
 
 def sort(
         sortBy: str = "", # Changes per sort, an ENUM
@@ -131,7 +132,7 @@ def searchTitle(
         withData: str | list = "",  # TitleDataType ENUMs
         withDataMissing: str | list = "",
         withDataAny: str | list = "",
-) -> dict:
+) -> MyMovie:
     if not isinstance(limit, int):
         raise TypeError(f"Limit must be an int, `{type(limit)}` given.")
     if not isinstance(offset, int):
@@ -245,7 +246,7 @@ def searchName(
         withData: str | list = "",  # NameDataType ENUMs
         withDataMissing: str | list = "",
         withDataAny: str | list = "",
-) -> dict:
+) -> MyMovie:
     if not isinstance(limit, int):
         raise TypeError(f"Limit must be an int, `{type(limit)}` given.")
     if not isinstance(offset, int):

@@ -1,4 +1,5 @@
-from MyMovieGraphQL import GraphQL, MyMovie, regex_in
+from MyMovieGraphQL import GraphQL, regex_in
+from MyMovieGraphQL.__init__ import MyMovie
 
 def getByID(id: str) -> MyMovie:
     query_name = ""
@@ -28,4 +29,4 @@ def getByID(id: str) -> MyMovie:
             query_name = "list"
         case _:
             raise ValueError(f"Unknown ID format: {id}")
-    return MyMovie(GraphQL.search(query_name, id=id))
+    return GraphQL.search(query_name, id=id)

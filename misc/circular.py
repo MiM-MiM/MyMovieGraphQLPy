@@ -95,6 +95,10 @@ def bfs(start_node):
     return False
 for check_type in DATA:
     if bfs(check_type):
+        # Edges and connections should be ignored, they may be cyclical,
+        # but this is to be blocked by the main type using it.
+        if check_type.endswith("Edge") or check_type.endswith("Connection"):
+            continue
         check_type_names = [
             field['name']
             for field in DATA[check_type]['fields']

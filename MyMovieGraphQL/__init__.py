@@ -155,7 +155,7 @@ class MyMovie:
         voteCount = self.get('voteCount')
         aggregateRatingStr = 'Unknown'
         if aggregateRating is not None:
-            aggregateRatingStr = str(aggregateRating)
+            aggregateRatingStr = f"{aggregateRating}/10"
         if voteCount is not None:
             aggregateRatingStr = f"{aggregateRatingStr} ({voteCount} votes)"
         return aggregateRatingStr

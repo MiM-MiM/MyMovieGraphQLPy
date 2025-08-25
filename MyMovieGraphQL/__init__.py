@@ -57,24 +57,28 @@ class MyMovie:
                 self.data[k] = v
                 continue
             if isinstance(v, type(self)) and isinstance(self_val, type(self)):
-                if v.ofType != self.ofType:
+                if v.ofType != self_val.ofType:
                     raise TypeError(f'{v.ofType} and {self_val.ofType} are not the same.')
                 if v.ofType.endswith('Connection'):
                     # replace the non-node objects and append the two edges
                     v_pageInfo = v.data.get('pageInfo', {})
                     v_endCursor = v_pageInfo.get('endCursor')
                     v_startCursor = v_pageInfo.get('startCursor')
+                    v_hasNextPage = v_pageInfo.get('hasNextPage')
                     self_pageInfo = self_val.data.get('pageInfo', {})
                     self_endCursor = self_pageInfo.get('endCursor')
                     self_startCursor = self_pageInfo.get('startCursor')
                     if v_startCursor == self_startCursor and v_endCursor == self_endCursor:
                         # The cursors match, no new data was fetched
                         continue
+                    # Update the pageInfo to the new data.
                     self.data[k]['pageInfo']['endCursor'] = v_endCursor
                     self.data[k]['pageInfo']['startCursor'] = v_startCursor
+                    self.data[k]['pageInfo']['hasNextPage'] = v_hasNextPage
                     if self.data[k]['edges'] is not None:
                         if v.data['edges'] is not None:
-                            self.data[k]['edges'] = v.data['edges'] + self.data[k]['edges']
+                            # XXX: Changed to appending, may switch back to pre-pending upon feedback.
+                            self.data[k]['edges'].extend(v.data['edges'])
                             continue
                         self.data[k]['edges'] = self.data[k]['edges']
         return self
@@ -94,6 +98,7 @@ class MyMovie:
         # Sanity check
         GraphQL.load_config_json()
         search: str = self.ofType.removesuffix("Connection")
+        noUpdate = []
         # Search is always the type with the first letter lowercase.
         if len(search) > 1:
             # Should always be longer than 1
@@ -104,7 +109,6 @@ class MyMovie:
                 foundQuery = True
         if not foundQuery:
             raise AttributeError(f"'{self.ofType}' does not support being updated. Please update from the main object.")
-        # If the 
         if not attribute:
             # This is to be only used for searches
             # or connections that have a search of the same name.
@@ -120,20 +124,41 @@ class MyMovie:
                 return None
         elif self.data.get('id') is not None:
             variables['id'] = self.data.get('id')
+            if isinstance(attribute, str):
+                currentAttributes = [attribute]
+            else:
+                currentAttributes = attribute
+            for attrib in currentAttributes:
+                currentData = self.data.get(attrib)
+                if currentData is not None:
+                    if isinstance(currentData, type(self)):
+                        if currentData.ofType.endswith('Connection'):
+                            pageInfo = currentData.get('pageInfo', {})
+                            hasNextPage = pageInfo.get('hasNextPage')
+                            # startCursor is the first node, endCursor is the last node.
+                            # Updating the next page we use the end.
+                            endCursor = pageInfo.get('endCursor')
+                            after = f"{self.ofType}_{attrib}_after"
+                            if not hasNextPage:
+                                # Nothing to update, remove the attribute.
+                                # Calling for the items after the last cursor
+                                # will result in an error.
+                                noUpdate.append(attrib)
+                                continue
+                            variables[after] = endCursor
+        for attrib in noUpdate:
+            if isinstance(attribute, str):
+                attribute = []
+            else:
+                attribute.remove(attrib)
+        if attribute == []:
+            # There is nothing to update
+            return None
         update = GraphQL.search(searchName=search, limitAttributes=attribute, **variables)
         if not isinstance(update, type(self)) or update is None:
             raise ValueError(f"Updating {self.ofType} failed...")
         self += update
-        if not attribute:
-            # Return the updated search object
-            return update
-        # Return the attributes updated.
-        if isinstance(attribute, str):
-            return self.data.get(attribute)
-        return [
-            self.data.get(attrib)
-            for attrib in attribute
-        ]
+        return update
     
     def __hash__(self) -> int:
         id = self.data.get('id')
@@ -170,8 +195,8 @@ class MyMovie:
         # All keys matched
         return True
     
-    def get(self, val):
-        return self.data.get(val)
+    def get(self, val, default: Any = None):
+        return self.data.get(val, default)
     
     def keys(self):
         return self.data.keys()
@@ -307,15 +332,20 @@ class MyMovie:
             return str(self.data.get(keys[0]))
         return f"<--- {self.ofType}: {keys} --->"
 
-    def __getitem__(self, val):
-        if self.ofType.endswith('Connection') and isinstance(val, int):
-            node = self.data.get('edges', [])[val].get('node')
+    def __getitem__(self, index):
+        if self.ofType.endswith('Connection') and isinstance(index, int):
+            node = self.data.get('edges', [])[index].get('node')
             if len(node.keys()) == 2:
                 for k, v in node.items():
                     if k != '__typename':
                         return v
             return node
-        return self.data[val] # type: ignore
+        return self.data[index] # type: ignore
+    
+    def __setitem__(self, index , val):
+        if not isinstance(index, str):
+            raise TypeError("Index must be a string.")
+        self.data[index] = val
 
     def __iter__(self) -> Iterable:
         attr = self.itterableAttribute()

@@ -64,6 +64,12 @@ LIMITED = {
     ],
     "ExperimentalCredit": [
         "category", "name", "title",
+    ],
+    "List": [
+        "author", "createdDate", "description",
+        "id", "isPredefined", "items",
+        "lastModifiedDate", "listClass", "listType",
+        "name", "primaryImage", "visibility",
     ]
 }
 

@@ -38,13 +38,17 @@
     "name",
     "title"
   ],
-  "CreditEdge": [
-    "cursor",
-    "position"
-  ],
   "CreditV2": [
     "hierarchyDetails",
     "id",
+    "name",
+    "title"
+  ],
+  "Crew": [
+    "attributes",
+    "category",
+    "jobDetails",
+    "jobs",
     "name",
     "title"
   ],
@@ -61,9 +65,13 @@
     "name",
     "title"
   ],
-  "ExperimentalCreditEdge": [
-    "cursor",
-    "position"
+  "ExperimentalCrew": [
+    "attributes",
+    "category",
+    "jobDetails",
+    "jobs",
+    "name",
+    "title"
   ],
   "Image": [
     "id",
@@ -72,12 +80,10 @@
     "url",
     "languages"
   ],
-  "ImageConnection": [
-    "edges",
-    "isPaginationDirty",
-    "pageInfo",
-    "restriction",
-    "total"
+  "ImageFacets": [
+    "names",
+    "titles",
+    "types"
   ],
   "Interest": [
     "descriptionengagementStatistics",
@@ -98,6 +104,20 @@
     "category",
     "id",
     "text"
+  ],
+  "List": [
+    "author",
+    "createdDate",
+    "description",
+    "id",
+    "isPredefined",
+    "items",
+    "lastModifiedDate",
+    "listClass",
+    "listType",
+    "name",
+    "primaryImage",
+    "visibility"
   ],
   "LocalizedMarkdown": [
     "language",

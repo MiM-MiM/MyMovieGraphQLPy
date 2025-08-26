@@ -466,10 +466,11 @@ class MyMovie:
         iterableAttribute = self.iterableAttribute()
         if iterableAttribute is not None and isinstance(index, int):
             node = list(iterableAttribute)[index]
-            if len(node.keys()) == 2:
-                for k, v in node.items():
-                    if k != '__typename':
-                        return v
+            if isinstance(node, MyMovie):
+                if len(node.keys()) == 2:
+                    for k, v in node.items():
+                        if k != '__typename':
+                            return v
             return node
         return self.data[index] # type: ignore
     

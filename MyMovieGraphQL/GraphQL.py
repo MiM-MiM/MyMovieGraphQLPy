@@ -183,7 +183,7 @@ def generateQuery(object_name: str,
     load_config_json()
     object_variables = dict()
     object_data = DATA[object_name]
-    if DATA[object_name]["kind"] == "UNION":
+    if DATA[object_name]["possibleTypes"]:
         sub_query = ""
         subquery_variables = {}
         for unionType in DATA[object_name]["possibleTypes"]:
@@ -217,7 +217,7 @@ def generateQuery(object_name: str,
             continue
         if field_type not in DATA:
             sub_query = f"{object_name}_{field_name}: {field_name}"
-        elif DATA[field_type]["kind"] == "UNION":
+        elif DATA[field_type]["possibleTypes"]:
             sub_query = ""
             for unionType in DATA[field_type]["possibleTypes"]:
                 fragment_query, subquery_variables = generateQuery(unionType)

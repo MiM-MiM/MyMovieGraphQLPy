@@ -70,6 +70,12 @@ LIMITED = {
         "id", "isPredefined", "items",
         "lastModifiedDate", "listClass", "listType",
         "name", "primaryImage", "visibility",
+    ],
+    "User": [
+        "displayName", "fullName", "interests",
+        "isAmazonAccount", "linkedAuthProviders", "preferredLanguage",
+        "preferredStreamingProviders", "proStatus", "profile",
+        "ratingsPrivacy", "staffStatus", "titleDisplay"
     ]
 }
 

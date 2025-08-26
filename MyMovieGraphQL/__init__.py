@@ -210,6 +210,75 @@ class MyMovie:
     def items(self):
         return self.data.items()
     
+    def __int__(self) -> int:
+        votePercentage = self.data.get('votePercentage')
+        amount = self.data.get('amount')
+        value = self.data.get('value')
+        measurement = self.data.get('measurement')
+        seconds = self.data.get('seconds')
+        aggregateRating = self.data.get('aggregateRating')
+        ratingsSummary = self.data.get('ratingsSummary')
+        chartRating = self.data.get('chartRating')
+        aggregate = self.data.get('aggregate')
+        filmLength = self.data.get('filmLength')
+        if isinstance(votePercentage, int) or isinstance(votePercentage, float):
+            return int(votePercentage)
+        if isinstance(amount, int) or isinstance(amount, float):
+            return int(amount)
+        if isinstance(value, int) or isinstance(value, float):
+            return int(value)
+        if isinstance(seconds, int) or isinstance(seconds, float):
+            return int(seconds)
+        if isinstance(aggregateRating, int) or isinstance(aggregateRating, float):
+            return int(aggregateRating)
+        if isinstance(chartRating, int) or isinstance(chartRating, float):
+            return int(chartRating)
+        if isinstance(aggregate, int) or isinstance(aggregate, float):
+            return int(aggregate)
+        if isinstance(filmLength, int) or isinstance(filmLength, float):
+            return int(filmLength)
+        if measurement is not None:
+            return int(measurement)
+        if ratingsSummary is not None:
+            return int(ratingsSummary)
+        raise TypeError(f"{self.ofType} does not support int conversion.")
+
+    def __float__(self) -> float:
+        votePercentage = self.data.get('votePercentage')
+        amount = self.data.get('amount')
+        value = self.data.get('value')
+        measurement = self.data.get('measurement')
+        seconds = self.data.get('seconds')
+        aggregateRating = self.data.get('aggregateRating')
+        ratingsSummary = self.data.get('ratingsSummary')
+        chartRating = self.data.get('chartRating')
+        aspectRatio = self.data.get('aspectRatio')
+        aggregate = self.data.get('aggregate')
+        filmLength = self.data.get('filmLength')
+        if isinstance(votePercentage, int) or isinstance(votePercentage, float):
+            return int(votePercentage)
+        if isinstance(amount, int) or isinstance(amount, float):
+            return float(amount)
+        if isinstance(value, int) or isinstance(value, float):
+            return float(value)
+        if isinstance(seconds, int) or isinstance(seconds, float):
+            return float(seconds)
+        if isinstance(aggregateRating, int) or isinstance(aggregateRating, float):
+            return float(aggregateRating)
+        if isinstance(chartRating, int) or isinstance(chartRating, float):
+            return float(chartRating)
+        if isinstance(aggregate, int) or isinstance(aggregate, float):
+            return float(aggregate)
+        if isinstance(filmLength, int) or isinstance(filmLength, float):
+            return float(filmLength)
+        if isinstance(aspectRatio, float):
+            return float(aspectRatio)
+        if measurement is not None:
+            return float(measurement)
+        if ratingsSummary is not None:
+            return float(ratingsSummary)
+        raise TypeError(f"{self.ofType} does not support float conversion.")
+
     def __repr__(self) -> str:
         id = self.get('id')
         selfStr = self.__str__().replace(f"\n", ' ')
@@ -239,6 +308,8 @@ class MyMovie:
                 return self._ratingsSummaryStr()
             case 'AlexaQuestion' | 'Faq':
                 return self._questionAnswer()
+            case 'PollAnswer':
+                return self._pollAnswer()
             case r'.*Connection':
                 # Any connections we can return the string form of the list
                 return str(list(self.itterableAttribute()))
@@ -292,6 +363,13 @@ class MyMovie:
         if deathStatus in ["DEAD", "PRESUMED_DEAD"]:
             nameString = f"{name} ({birthStr} - {deathStr})"
         return nameString
+
+    def _pollAnswer(self) -> str:
+        answerIndex = self.data.get("answerIndex")
+        description = self.data.get("description")
+        votePercentage = self.data.get("votePercentage")
+        votes = self.data.get("votes")
+        return f"{answerIndex}) {description} [{votePercentage:.2f}% ({votes} votes)]"
 
     def _userProfile(self) -> str:
         return str(self.data.get("username"))
@@ -351,10 +429,17 @@ class MyMovie:
         if value is not None:
             return str(value)
         current = ''
+        textField = ""
+        useText = False
         # Any that we want to us starts/ends/contains should go here.
         for key in self.data.keys():
             if self.data.get(key) is None:
                 continue
+            if key.endswith("Text") and not textField:
+                textField = key
+                useText = True
+            elif key.endswith("Text") and textField:
+                useText = False
             if key.startswith('current'):
                 current = str(self.data[key])
             if key == 'language' and 'Language' in self.ofType:
@@ -363,6 +448,10 @@ class MyMovie:
             return current
         if displayableProperty is not None:
             return str(displayableProperty)
+        if self.data.get("primaryText") is not None:
+            return str(self.data.get("primaryText"))
+        if useText:
+            return str(self.data.get(textField))
         keys = [
             key
             for key in self.data.keys()

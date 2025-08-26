@@ -205,6 +205,20 @@
     "spokenLanguages",
     "titleGenres"
   ],
+  "User": [
+    "displayName",
+    "fullName",
+    "interests",
+    "isAmazonAccount",
+    "linkedAuthProviders",
+    "preferredLanguage",
+    "preferredStreamingProviders",
+    "proStatus",
+    "profile",
+    "ratingsPrivacy",
+    "staffStatus",
+    "titleDisplay"
+  ],
   "Video": [
     "id",
     "contentType",

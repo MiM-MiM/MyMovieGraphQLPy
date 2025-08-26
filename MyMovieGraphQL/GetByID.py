@@ -3,7 +3,9 @@ from MyMovieGraphQL.__init__ import MyMovie
 
 def getByID(id: str) -> MyMovie:
     query_name = ""
-    otherArgs = {}
+    args = {
+        "id": id,
+    }
     match regex_in(id):
         case r'tt\d{7,}':
             query_name = "title"
@@ -21,19 +23,31 @@ def getByID(id: str) -> MyMovie:
         case r'imageGallery':
             query_name = "imageGallery"
             raise NotImplemented("imageGallery is not yet implemented, unknown ID format.")
-        case r'interest':
+        case r'in\d{7,}':
             query_name = 'interest'
-            raise NotImplemented("interest is not yet implemented, unknown ID format.")
         case r'kw\d{7,}':
             query_name = "keyword"
+        case r'ur\d{7,}':
+            # Possible without userID, you have to be signed in to get your own data.
+            query_name = "userProfile"
+            args = {
+                "input": {
+                    "userId": id,
+                },
+            }
         case r'ls\d{7,}':
-            otherArgs = {
+            args = args | {
                 "List_items_sort": {
                     "by": "LIST_ORDER",
                     "order": "ASC"
                 }
             }
             query_name = "list"
+        case '[A-Za-z_\-0-9]{7,}':
+            # XXX: Figure out a better regex, these seem random.
+            # "XG6P0TT-NX1o8k_zwliY4A" and "mzERoASQys8" are both poll IDs.
+            # Possibly not allow by getByID with the format.
+            query_name = 'poll'
         case _:
             raise ValueError(f"Unknown ID format: {id}")
-    return GraphQL.search(query_name, id=id, **otherArgs)
+    return GraphQL.search(query_name, **args)

@@ -21,12 +21,23 @@ class MyMovie:
             raise ValueError(f"MyMovie's object dict is empty.")
         self.data: dict[str, Any] = dict()
         self.ofType: str = obj.get('__typename', 'MissingTypeName')
+        baseTypePrefix = f"{self.ofType}_"
+        GraphQL.load_config_json()
+        # Some may be in UNIONSs on Connections, these keys
+        # could be the above type.
+        for k, v in GraphQL.DATA.items():
+            possibleTypes = v["possibleTypes"]
+            kind = v["kind"]
+            if self.ofType in possibleTypes and kind == "INTERFACE":
+                baseTypePrefix = f"{k}_"
+                break
         for k, val in obj.items():
             if not isinstance(k, str):
                 raise ValueError(f"Expected all dict keys to be a string, '{k}:{type(k)} = {val}' ")
             # Recursively set the type of each item,
             # making them all a `MyMovie`, a list, or a base type
             key = k.removeprefix(f'{self.ofType}_')
+            key = key.removeprefix(baseTypePrefix)
             if key in self.data:
                 raise ValueError(f"Key: '{key}', was pased more than once.")
             if isinstance(val, dict):
@@ -59,28 +70,23 @@ class MyMovie:
             if isinstance(v, type(self)) and isinstance(self_val, type(self)):
                 if v.ofType != self_val.ofType:
                     raise TypeError(f'{v.ofType} and {self_val.ofType} are not the same.')
-                if v.ofType.endswith('Connection'):
+                if 'edges' in v.data.keys():
                     # replace the non-node objects and append the two edges
                     v_pageInfo = v.data.get('pageInfo', {})
                     v_endCursor = v_pageInfo.get('endCursor')
                     v_startCursor = v_pageInfo.get('startCursor')
-                    v_hasNextPage = v_pageInfo.get('hasNextPage')
                     self_pageInfo = self_val.data.get('pageInfo', {})
                     self_endCursor = self_pageInfo.get('endCursor')
                     self_startCursor = self_pageInfo.get('startCursor')
                     if v_startCursor == self_startCursor and v_endCursor == self_endCursor:
                         # The cursors match, no new data was fetched
                         continue
-                    # Update the pageInfo to the new data.
-                    self.data[k]['pageInfo']['endCursor'] = v_endCursor
-                    self.data[k]['pageInfo']['startCursor'] = v_startCursor
-                    self.data[k]['pageInfo']['hasNextPage'] = v_hasNextPage
-                    if self.data[k]['edges'] is not None:
-                        if v.data['edges'] is not None:
-                            # XXX: Changed to appending, may switch back to pre-pending upon feedback.
-                            self.data[k]['edges'].extend(v.data['edges'])
-                            continue
-                        self.data[k]['edges'] = self.data[k]['edges']
+                    # Update the new data, some may have other fields.
+                    for v_key, v_data in v.items():
+                        if v_key == "edges" and v_data is not None:
+                            self.data[k][v_key].extend(v_data)
+                        else:
+                            self.data[k][v_key] = v_data
         return self
 
         
@@ -206,9 +212,10 @@ class MyMovie:
     
     def __repr__(self) -> str:
         id = self.get('id')
+        selfStr = self.__str__().replace(f"\n", ' ')
         if id is not None:
-            return f"<--- {self.ofType} ({id}): {self.__str__()} --->"
-        return self.__str__()
+            return f"<--- {self.ofType} ({id}): {selfStr} --->"
+        return selfStr
     
     def __str__(self) -> str:
         match regex_in(self.ofType):
@@ -222,8 +229,16 @@ class MyMovie:
                 return self._titleGenreStr()
             case 'Certificate':
                 return self._certificateStr()
+            case 'List':
+                return self._list()
+            case 'ListItemNode':
+                return self._listItemNode()
+            case "UserProfile":
+                return self._userProfile()
             case 'RatingsSummary':
                 return self._ratingsSummaryStr()
+            case 'AlexaQuestion' | 'Faq':
+                return self._questionAnswer()
             case r'.*Connection':
                 # Any connections we can return the string form of the list
                 return str(list(self.itterableAttribute()))
@@ -245,6 +260,22 @@ class MyMovie:
             return str(list(attr))
         return self.ofType
 
+    def _list(self) -> str:
+        author = self.get('author')
+        isPredefined = self.get('isPredefined')
+        name = self.get('name')
+        output = str(name)
+        if author is not None:
+            output += f" - Created by '{author}'"
+        if isPredefined:
+            output += " (Predefined)"
+        return output
+
+    def _listItemNode(self) -> str:
+        position = self.data.get('absolutePosition')
+        item = self.data.get('listItem')
+        return f"{position}) {item}"
+
     def _nameStr(self) -> str:
         name = self.data.get('nameText')
         birthDate = self.data.get('birthDate')
@@ -261,6 +292,16 @@ class MyMovie:
         if deathStatus in ["DEAD", "PRESUMED_DEAD"]:
             nameString = f"{name} ({birthStr} - {deathStr})"
         return nameString
+
+    def _userProfile(self) -> str:
+        return str(self.data.get("username"))
+
+    def _questionAnswer(self) -> str:
+        question = self.data.get("question")
+        answer = self.data.get("answer")
+        if answer is not None:
+            answer = "Answer missing."
+        return f"Q: {question}\nA: {answer}"
 
     def _titleGenreStr(self):
         genre = self.data.get('genre')
@@ -333,7 +374,7 @@ class MyMovie:
         return f"<--- {self.ofType}: {keys} --->"
 
     def __getitem__(self, index):
-        if self.ofType.endswith('Connection') and isinstance(index, int):
+        if 'edges' in self.data.keys() and isinstance(index, int):
             node = self.data.get('edges', [])[index].get('node')
             if len(node.keys()) == 2:
                 for k, v in node.items():
@@ -357,7 +398,7 @@ class MyMovie:
         attr = self.itterableAttribute()
         if attr is None:
             raise TypeError(f"'{self.ofType}' object has no len")
-        if self.ofType.endswith('Connection'):
+        if 'edges' in self.data.keys():
             return len(self.data.get('edges', []))
         return 0
 
@@ -374,7 +415,7 @@ class MyMovie:
         return value
 
     def itterableAttribute(self) -> Iterable | None:
-        if self.ofType.endswith('Connection'):
+        if 'edges' in self.data.keys():
             edges = [
                 edge.get('node')
                 for edge in self.data.get('edges', [])

@@ -43,7 +43,7 @@ def getByID(id: str) -> MyMovie:
                 }
             }
             query_name = "list"
-        case '[A-Za-z_\-0-9]{7,}':
+        case r'[A-Za-z_\-0-9]{7,}':
             # XXX: Figure out a better regex, these seem random.
             # "XG6P0TT-NX1o8k_zwliY4A" and "mzERoASQys8" are both poll IDs.
             # Possibly not allow by getByID with the format.

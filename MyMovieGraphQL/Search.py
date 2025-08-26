@@ -281,4 +281,49 @@ def searchName(
                 "withNameDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
             }
     }
-    return GraphQL.search('advancedTitleSearch', **args)
+    return GraphQL.search('advancedNameSearch', **args)
+
+def search(
+        term: str,
+        year: int = 0,
+        yearEnd: int = 0,
+        dateStart: str = "",
+        dateEnd: str = "",
+        searchType: str | list[str] = ["NAME", "TITLE"], # MainSearchType ENUM
+        titleType: str | list = ["MOVIE", "TV"],
+        limit: int = 25,
+        pagnation: str = "",
+        includeAdult: bool = True,
+        exact: bool = False,
+        isCustomerSelectable: bool = True,
+) -> MyMovie:
+    if isinstance(searchType, str):
+        searchType = [searchType]
+    searchType = [t.upper() for t in searchType]
+    if isinstance(titleType, str):
+        titleType = [titleType]
+    titleType = [t.upper() for t in titleType]
+    if not term:
+        raise ValueError("The search term must be give.")
+    dateRange = Constraints.releaseDateConstraint(year, yearEnd, dateStart, dateEnd) or {}
+    # Sort and offset not availiable.
+    args = {
+        "first": limit,
+        "after": pagnation or None,
+        "options": {
+            "searchTerm": term,
+            "includeAdult": includeAdult,
+            "isExactMatch": exact,
+            "professionSearchOptions": {
+                "isCustomerSelectable": isCustomerSelectable,
+            },
+            "titleSearchOptions": {
+                "type": titleType,
+            } | dateRange,
+            "type": searchType,
+        }
+    }
+    # If we aren't searching for a title, this must be removed.
+    if "TITLE" not in searchType:
+        args["options"]["titleSearchOptions"] = None
+    return GraphQL.search('mainSearch', **args)

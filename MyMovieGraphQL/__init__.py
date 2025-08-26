@@ -50,7 +50,7 @@ class MyMovie:
             else:
                 self.data[key] = val
         self.index: int | None = None
-        if self.itterableAttribute():
+        if self.iterableAttribute():
             self.index = 0
     
     def __add__(self, other):
@@ -312,7 +312,7 @@ class MyMovie:
                 return self._pollAnswer()
             case r'.*Connection':
                 # Any connections we can return the string form of the list
-                return str(list(self.itterableAttribute()))
+                return str(list(self.iterableAttribute()))
             case _:
                 return self._otherStr()
 
@@ -326,7 +326,7 @@ class MyMovie:
         return 'Unknown Rating'
 
     def _connection(self) -> str:
-        attr = self.itterableAttribute()
+        attr = self.iterableAttribute()
         if isinstance(attr, Iterable):
             return str(list(attr))
         return self.ofType
@@ -463,8 +463,9 @@ class MyMovie:
         return f"<--- {self.ofType}: {keys} --->"
 
     def __getitem__(self, index):
-        if 'edges' in self.data.keys() and isinstance(index, int):
-            node = self.data.get('edges', [])[index].get('node')
+        iterableAttribute = self.iterableAttribute()
+        if iterableAttribute is not None and isinstance(index, int):
+            node = list(iterableAttribute)[index]
             if len(node.keys()) == 2:
                 for k, v in node.items():
                     if k != '__typename':
@@ -478,13 +479,13 @@ class MyMovie:
         self.data[index] = val
 
     def __iter__(self) -> Iterable:
-        attr = self.itterableAttribute()
+        attr = self.iterableAttribute()
         if attr is None:
             raise TypeError(f"'{self.ofType}' object is not iterable")
         return iter(attr)
     
     def __len__(self) -> int:
-        attr = self.itterableAttribute()
+        attr = self.iterableAttribute()
         if attr is None:
             raise TypeError(f"'{self.ofType}' object has no len")
         if 'edges' in self.data.keys():
@@ -492,7 +493,8 @@ class MyMovie:
         return 0
 
     def __next__(self):
-        if self.itterableAttribute() is None:
+        iterableAttribute = self.iterableAttribute()
+        if iterableAttribute is None:
             raise TypeError(f"'{self.ofType}' object is not iterable")
         if self.index is None:
             raise TypeError(f"'{self.ofType}' object has a 'None' index") 
@@ -500,15 +502,25 @@ class MyMovie:
         if self.index >= len(self):
             self.index = max(self.index-1, 0)
             raise StopIteration
-        value = self.data.get('edges', [])[self.index]
+        value = list(iterableAttribute)[self.index]
         return value
 
-    def itterableAttribute(self) -> Iterable | None:
+    def iterableAttribute(self) -> Iterable[list] | None:
         if 'edges' in self.data.keys():
             edges = [
-                edge.get('node')
+                # main search will have an entity, which is the actual data.
+                edge.get('node').get('entity')
+                if edge.get('node').get('entity') is not None
+                else edge.get('node')
                 for edge in self.data.get('edges', [])
             ]
             return iter(edges)
-
+        # If there is only one item in the object and that is a list,
+        # it is iterable. i.e. titleGenres in the Title object.
+        if len(self.data.keys()) == 2:
+            for key, val in self.data.items():
+                if key == "__typename":
+                    continue
+                if isinstance(val, list):
+                    return iter(val)
         return None

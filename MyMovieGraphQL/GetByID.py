@@ -3,6 +3,7 @@ from MyMovieGraphQL.__init__ import MyMovie
 
 def getByID(id: str) -> MyMovie:
     query_name = ""
+    otherArgs = {}
     match regex_in(id):
         case r'tt\d{7,}':
             query_name = "title"
@@ -26,7 +27,13 @@ def getByID(id: str) -> MyMovie:
         case r'kw\d{7,}':
             query_name = "keyword"
         case r'ls\d{7,}':
+            otherArgs = {
+                "List_items_sort": {
+                    "by": "LIST_ORDER",
+                    "order": "ASC"
+                }
+            }
             query_name = "list"
         case _:
             raise ValueError(f"Unknown ID format: {id}")
-    return GraphQL.search(query_name, id=id)
+    return GraphQL.search(query_name, id=id, **otherArgs)

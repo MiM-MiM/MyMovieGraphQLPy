@@ -5,10 +5,9 @@ MyMovieGraphQL is a Python3.10 implementation to fetch data from IMDb via their 
 - Uses a `json` file created from introspecting the types.
 - Creates a `limited` version that avoids cyclicle query generation
 - Uses arguments in the query generation, allowing the same query to work for multiple variables, caching of the generated query to be added.
-- `Name` and `Title` search have been abstracted.
+- `Name`. `Title`, and `Main` (multiple type) search have been abstracted.
 
 ## Planned Features
-- Abstract `mainSearch`
 - Add more known types to the `getID`
 - `str(obj)` logic to attempt and print what is expected based on possible keys and types.
 

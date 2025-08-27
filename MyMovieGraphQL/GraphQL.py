@@ -27,6 +27,10 @@ def sanatizeArgumentDict(args: dict, base: bool = True):
         args(dict, required): The args being sanatized.
         base(bool, optional): The base arguments must remain even if null, this specifies that.
     """
+    if not isinstance(args, dict):
+        raise TypeError(f"The args must be a dict, '{type(args)}' given.")
+    if not isinstance(base, bool):
+        raise TypeError(f"The base check must be a boolean, '{type(base)}' given.")
     allMissing = True
     for arg in args:
         if isinstance(args[arg], dict):
@@ -50,6 +54,9 @@ def isScalarOrEnum(obj: dict):
     Args:
         obj(dict, required): The dict of the type from the introspection.
     """
+    if not isinstance(obj, dict):
+        raise TypeError(f"Object must be a dict, '{type(obj)}' given.")
+    # The return will handle attribute erors.
     return obj['kind'] in ['ENUM', 'SCALAR']
 
 def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> MyMovie:
@@ -59,6 +66,12 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
         searchName (str, required): The query name to be ran.
         kwargs: The args for the query.
     """
+    if not isinstance(searchName, str):
+        raise TypeError(f"searchName must be a string, '{type(searchName)}' given.")
+    if not isinstance(limitAttributes, str | list):
+        raise TypeError(f"searchName must be a string or list of strings, '{type(searchName)}' given.")
+    if isinstance(limitAttributes, list) and not all([isinstance(attrib, str) for attrib in limitAttributes]):
+        raise TypeError(f"limitAttributes is a list containing a non-string.")
     load_config_json()
     if limitAttributes and isinstance(limitAttributes, str):
         limitAttributes = [str(limitAttributes)]

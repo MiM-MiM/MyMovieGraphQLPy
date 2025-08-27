@@ -325,12 +325,6 @@ class MyMovie:
             return str(rating)
         return 'Unknown Rating'
 
-    def _connection(self) -> str:
-        attr = self.iterableAttribute()
-        if isinstance(attr, Iterable):
-            return str(list(attr))
-        return self.ofType
-
     def _list(self) -> str:
         author = self.get('author')
         isPredefined = self.get('isPredefined')

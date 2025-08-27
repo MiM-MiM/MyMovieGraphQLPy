@@ -1,3 +1,4 @@
+import re
 from MyMovieGraphQL import Constraints, GraphQL
 from MyMovieGraphQL.__init__ import MyMovie
 
@@ -5,6 +6,10 @@ def sort(
         sortBy: str = "", # Changes per sort, an ENUM
         sortOrder: str = "DESC",
 ) -> dict | None:
+    if not isinstance(sortBy, str):
+        raise TypeError(f"SortBy must be a string, '{type(sortBy)}' given.")
+    if not isinstance(sortOrder, str):
+        raise TypeError(f"Sort order must be a string, '{type(sortOrder)}' given.")
     sort_by = {}
     sortOrder = sortOrder.upper()
     if sortBy and sortOrder:
@@ -139,8 +144,10 @@ def searchTitle(
         raise TypeError(f"Offset must be an int, `{type(offset)}` given.")
     if not isinstance(pagnation, str):
         raise TypeError(f"pagnation must be a string, `{type(pagnation)}` given.")
-    if limit < 0:
-        raise ValueError(f"Limit must be >= 0, `{limit}` passed")
+    if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
+        raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
+    if limit < 1:
+        raise ValueError(f"Limit must be >= 1, `{limit}` passed")
     if offset < 0:
         raise ValueError(f"Offset must be >= 1, `{offset}` passed")
     # The dict could be generated with the query `generate_argument_dict` function
@@ -253,8 +260,10 @@ def searchName(
         raise TypeError(f"Offset must be an int, `{type(offset)}` given.")
     if not isinstance(pagnation, str):
         raise TypeError(f"pagnation must be a string, `{type(pagnation)}` given.")
-    if limit < 0:
-        raise ValueError(f"Limit must be >= 0, `{limit}` passed")
+    if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
+        raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
+    if limit < 1:
+        raise ValueError(f"Limit must be >= 1, `{limit}` passed")
     if offset < 0:
         raise ValueError(f"Offset must be >= 1, `{offset}` passed")
     args = {
@@ -290,19 +299,45 @@ def search(
         dateStart: str = "",
         dateEnd: str = "",
         searchType: str | list[str] = ["NAME", "TITLE"], # MainSearchType ENUM
-        titleType: str | list = ["MOVIE", "TV"],
+        titleType: str | list[str] = ["MOVIE", "TV"],
         limit: int = 25,
         pagnation: str = "",
         includeAdult: bool = True,
         exact: bool = False,
         isCustomerSelectable: bool = True,
 ) -> MyMovie:
+    if not isinstance(term, str):
+        raise TypeError(f"The search term must be a string, '{type(term)}' given.")
+    if not isinstance(searchType, str | list):
+        raise TypeError(f"The search type must be a string or list of strings, '{type(searchType)}' given.")
+    if isinstance(searchType, list) and not all([isinstance(attrib, str) or not attrib for attrib in searchType]):
+        raise TypeError(f"Search type is a list containing a non-string or blank string.")
+    if not isinstance(titleType, str | list):
+        raise TypeError(f"The title type must be a string or list of strings, '{type(titleType)}' given.")
+    if isinstance(titleType, list) and not all([isinstance(attrib, str) or not attrib for attrib in titleType]):
+        raise TypeError(f"Title type is a list containing a non-string or blank string.")
+    if not searchType:
+        raise ValueError("The search type cannot be blank.")
+    if not isinstance(limit, int):
+        raise TypeError(f"Search limit must be an it, '{type(limit)}' given.")
+    if not isinstance(includeAdult, bool):
+        raise TypeError(f"Include adult flag must be a bool, '{type(includeAdult)}' given.")
+    if not isinstance(exact, bool):
+        raise TypeError(f"Exact flag must be a bool, '{type(exact)}' given.")
+    if not isinstance(isCustomerSelectable, bool):
+        raise TypeError(f"Customer selectable flag must be a bool, '{type(isCustomerSelectable)}' given.")
+    if limit < 1:
+        raise ValueError(f"The limit must be at least one, {limit} given")
+    if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
+        raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
     if isinstance(searchType, str):
         searchType = [searchType]
     searchType = [t.upper() for t in searchType]
     if isinstance(titleType, str):
         titleType = [titleType]
     titleType = [t.upper() for t in titleType]
+    if "TITLE" in searchType and not titleType:
+        raise ValueError("The title type must be given if you are searching a title.")
     if not term:
         raise ValueError("The search term must be give.")
     dateRange = Constraints.releaseDateConstraint(year, yearEnd, dateStart, dateEnd) or {}

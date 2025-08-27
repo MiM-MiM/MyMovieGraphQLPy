@@ -2,6 +2,11 @@ from MyMovieGraphQL import GraphQL, regex_in
 from MyMovieGraphQL.__init__ import MyMovie
 
 def getByID(id: str) -> MyMovie:
+    if not isinstance(id, str):
+        raise TypeError(f"The id must ba a string, '{type(id)}' given.")
+    if not id:
+        # Also handled below, this is to provide an empty error rather than invalid error.
+        raise ValueError(f"The id cannot be empty.")
     query_name = ""
     args = {
         "id": id,

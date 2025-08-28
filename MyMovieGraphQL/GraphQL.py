@@ -2,11 +2,17 @@ import json
 import re
 import requests
 from datetime import date
+from langcodes import Language
 import importlib.resources as resources
 from MyMovieGraphQL.__init__ import MyMovie
 
 API_URL = "https://api.graphql.imdb.com/"
-HEADERS = {"Content-Type": "application/json"}
+HEADERS = {
+    "Content-Type": "application/json",
+    "x-imdb-user-country": "US",
+    "x-imdb-user-language": "en-US",
+}
+#x-imdb-customer-id, x-imdb-client-name
 
 DATA, LIMITED = {}, {}
 def load_config_json():
@@ -18,6 +24,30 @@ def load_config_json():
             DATA = json.load(f)
         with resources.open_text('MyMovieGraphQL.data', 'LIMITED.json') as f:
             LIMITED = json.load(f)
+
+def setLocalCountryLanguage(
+        country: str = HEADERS.get('x-imdb-user-country', 'US'),
+        language: str = HEADERS.get('x-imdb-user-language', 'en-US'),
+) -> None:
+    global HEADERS
+    if not isinstance(country, str):
+        raise TypeError(f"The country must be a string, '{type(country)}' given.")
+    if not isinstance(language, str):
+        raise TypeError(f"The country must be a string, '{type(language)}' given.")
+    if not (country and language):
+        raise ValueError(f"Both the country and the language must be set, given: '{country=}', '{language=}'.")
+    country = country.upper()
+    # If the country isn't '-' (disabled) or "XOR" (original), validate the code.
+    lang = Language.make(
+        language=language,
+        territory=country if country not in ["-", "XOR"] else None
+    )
+    if not lang.is_valid():
+        raise ValueError(f"The given country/language combination is invalid: {lang}")
+    HEADERS |= {
+        "x-imdb-user-country": country,
+        "x-imdb-user-language": str(lang),
+    }
 
 def sanatizeArgumentDict(args: dict, base: bool = True):
     """ Recursively sets the arguments to None if the child objects

@@ -1,28 +1,22 @@
 from typing import Any
 import re
+from beartype import beartype
 # Each constraint should return a base search dict or none
 # for that constraint with the given args used to fill it out.
-# TODO: Add type checking
 # TODO: Add value validation, ENUMs should check agaist the `ENUM.json``
 
+@beartype
 def _getFromListIfExists(l: list, idx: int) -> Any | None:
-    if not isinstance(l, list):
-        raise TypeError(f"getFromList requires a list, '{type(l)}' given.")
     try:
         return l[idx]
     except IndexError:
         return None
 
-
+@beartype
 def alternateVersionMatchingConstraint(
         alternateVersion: str | list[str] = "",
         alternateVersionIncludeType: str = "any", # any/all
 ) -> dict | None:
-    if not isinstance(alternateVersion, str | list):
-        raise TypeError(f"alternateVersion must be a string or list, `{type(alternateVersion)}` given.")
-    if not isinstance(alternateVersionIncludeType, str):
-        raise TypeError(f"pagnation must be a string, `{type(alternateVersionIncludeType)}` given.")
-    
     constraint = {}
     allowedTypes = ['any', 'all']
     alternateVersionIncludeType = alternateVersionIncludeType.lower()
@@ -33,16 +27,11 @@ def alternateVersionMatchingConstraint(
         constraint[constraintName] = alternateVersion
     return constraint or None
 
+@beartype
 def awardConstraint(
         award: str | list[str] = "",  # The award ID
         awardIncludeType: str = "any", # any/all/exclude
 ) -> dict | None:
-    if not isinstance(award, str | list):
-        raise TypeError(f"The award must be a string or list of strings, '{type(award)}' given.")
-    if isinstance(award, list) and not all([isinstance(attrib, str) for attrib in award]):
-        raise TypeError(f"award is a list containing a non-string.")
-    if not isinstance(awardIncludeType, str):
-        raise TypeError(f"The type must be a string, '{type(awardIncludeType)}' given.")
     constraint = {}
     allowedTypes = ['any', 'all', 'exclude']
     awardIncludeType = awardIncludeType.lower()
@@ -54,16 +43,11 @@ def awardConstraint(
         constraint[constraintName] = awardFilter
     return constraint or None
 
+@beartype
 def biographyConstraint(
         biographyAuthor: str | list[str] = "",
         biographyText: str = "",
 ) -> dict | None:
-    if not isinstance(biographyAuthor, str | list):
-        raise TypeError(f"The biographyAuthor must be a string or list of strings, '{type(biographyAuthor)}' given.")
-    if isinstance(biographyAuthor, list) and not all([isinstance(attrib, str) for attrib in biographyAuthor]):
-        raise TypeError(f"biographyAuthor is a list containing a non-string.")
-    if not isinstance(biographyText, str):
-        raise TypeError(f"The type must be a string, '{type(biographyText)}' given.")
     constraint = {}
     if biographyText:
         constraint["searchText"] = biographyText
@@ -73,17 +57,12 @@ def biographyConstraint(
         constraint["anyBiographyAuthors"] = biographyAuthor
     return constraint or None
 
+@beartype
 def birthDateConstraint(
         birthdayRangeStart: str = "",
         birthdayRangeEnd: str = "",
         birthday: str = "", # MonthDay ISO-8601 format '--06-19'
 ) -> dict | None:
-    if not isinstance(birthdayRangeStart, str):
-        raise TypeError(f"The start must be a string, '{type(birthdayRangeStart)}' given.")
-    if not isinstance(birthdayRangeEnd, str):
-        raise TypeError(f"The end must be a string, '{type(birthdayRangeEnd)}' given.")
-    if not isinstance(birthday, str):
-        raise TypeError(f"The birthday must be a string, '{type(birthday)}' given.")
     if birthdayRangeStart and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', birthdayRangeStart):
         raise ValueError(f"The start date is not of the correct form, yy-mm-dd")
     if birthdayRangeEnd and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', birthdayRangeEnd):
@@ -101,24 +80,20 @@ def birthDateConstraint(
         }
     return constraint or None
 
+@beartype
 def birthPlaceConstraint(
         birthPlace: str = "",
 ) -> dict | None:
-    if not isinstance(birthPlace, str):
-        raise TypeError(f"The birt place must be a string, '{type(birthPlace)}' given.")
     constraint = {}
     if birthPlace:
         constraint["birthPlace"] = birthPlace
     return constraint or None
 
+@beartype
 def certificateConstraint(
         certificate: dict | list = {},  # {rating: xxx, region: xxx}
         certificateIncludeType: str = "any", # any/exclude
 ) -> dict | None:
-    if not isinstance(certificate, str | dict):
-        raise TypeError(f"The certificate must be a string or dict, '{type(certificate)}' given.")
-    if not isinstance(certificateIncludeType, str):
-        raise TypeError(f"The certificate type must be a string, '{type(certificateIncludeType)}' given.")
     allowedDictKeys: set[str] = {"rating", "region"}
     if isinstance(certificate, dict):
         if any([key not in allowedDictKeys for key in certificate.keys()]):
@@ -136,16 +111,11 @@ def certificateConstraint(
         constraint[constraintName] = certificate
     return constraint or None
 
+@beartype
 def characterConstraint(
         character: str | list[str] = "",
         creditedCharacters: bool = True,  # Limit to only credited roles.
 ) -> dict | None:
-    if not isinstance(character, str | list):
-        raise TypeError(f"The character must be a string or list of strings, '{type(character)}' given.")
-    if isinstance(character, list) and not all([isinstance(attrib, str) for attrib in character]):
-        raise TypeError(f"character is a list containing a non-string.")
-    if not isinstance(creditedCharacters, bool):
-        raise TypeError(f"The credited character flag must be a bool, '{type(creditedCharacters)}' given.")
     constraint = {}
     if character:
         if isinstance(character, str):
@@ -154,16 +124,11 @@ def characterConstraint(
         constraint["shouldLimitToCreditedNameIds"] = creditedCharacters
     return constraint or None
 
+@beartype
 def colorationConstraint(
         coloration: str | list[str] = "", # The ColorationType ENUM
         colorationIncludeType: str = "any", # any/exclude
 ) -> dict | None:
-    if not isinstance(coloration, str | list):
-        raise TypeError(f"The coloration must be a string or list of strings, '{type(coloration)}' given.")
-    if isinstance(coloration, list) and not all([isinstance(attrib, str) for attrib in coloration]):
-        raise TypeError(f"coloration is a list containing a non-string.")
-    if not isinstance(colorationIncludeType, str):
-        raise TypeError(f"The type must be a string, '{type(colorationIncludeType)}' given.")
     constraint = {}
     allowedTypes = ['any', 'exclude']
     colorationIncludeType = colorationIncludeType.lower()
@@ -174,16 +139,11 @@ def colorationConstraint(
         constraint[constraintName] = coloration
     return constraint or None
 
+@beartype
 def crazyCreditMatchingConstraint(
         crazyCredit: str | list[str] = "",
         crazyCreditIncludeType: str = "all", # any/all
 ) -> dict | None:
-    if not isinstance(crazyCredit, str | list):
-        raise TypeError(f"The crazy credit must be a string or list of strings, '{type(crazyCredit)}' given.")
-    if isinstance(crazyCredit, list) and not all([isinstance(attrib, str) for attrib in crazyCredit]):
-        raise TypeError(f"crazy credit is a list containing a non-string.")
-    if not isinstance(crazyCreditIncludeType, str):
-        raise TypeError(f"The type must be a string, '{type(crazyCreditIncludeType)}' given.")
     constraint = {}
     allowedTypes = ['any', 'all']
     crazyCreditIncludeType = crazyCreditIncludeType.lower() 
@@ -194,21 +154,12 @@ def crazyCreditMatchingConstraint(
         constraint[constraintName] = crazyCredit
     return constraint or None
 
+@beartype
 def creditedCompanyConstraint(
         companyCategory: str | list[str] = "",
         company: str | list[str] = "",
         companyIncludeType: str = "any", # all/any/exclude
 ) -> dict | None:
-    if not isinstance(companyCategory, str | list):
-        raise TypeError(f"The company category must be a string or list of strings, '{type(companyCategory)}' given.")
-    if isinstance(companyCategory, list) and not all([isinstance(attrib, str) for attrib in companyCategory]):
-        raise TypeError(f"company category is a list containing a non-string.")
-    if not isinstance(company, str | list):
-        raise TypeError(f"The company must be a string or list of strings, '{type(company)}' given.")
-    if isinstance(company, list) and not all([isinstance(attrib, str) for attrib in company]):
-        raise TypeError(f"company is a list containing a non-string.")
-    if not isinstance(companyIncludeType, str):
-        raise TypeError(f"The type must be a string, '{type(companyIncludeType)}' given.")
     constraint = {}
     allowedTypes = ["any", "all", "exclude"]
     companyIncludeType = companyIncludeType.lower()
@@ -227,16 +178,11 @@ def creditedCompanyConstraint(
         constraint[constraintName] = company
     return constraint or None
 
+@beartype
 def creditedNameConstraint(
         creditedNameID: str | list[str] = "",
         creditedNameIncludeType: str = "all", # any/all/exclude
 ) -> dict | None:
-    if not isinstance(creditedNameID, str | list):
-        raise TypeError(f"The credited name must be a string or list of strings, '{type(creditedNameID)}' given.")
-    if isinstance(creditedNameID, list) and not all([isinstance(attrib, str) for attrib in creditedNameID]):
-        raise TypeError(f"credited name is a list containing a non-string.")
-    if not isinstance(creditedNameIncludeType, str):
-        raise TypeError(f"The type must be a string, '{type(creditedNameIncludeType)}' given.")
     constraint = {}
     allowedTypes = ["any", "all", "exclude"]
     creditedNameIncludeType = creditedNameIncludeType.lower()
@@ -247,16 +193,11 @@ def creditedNameConstraint(
         constraint[constraintName] = creditedNameID
     return constraint or None
 
+@beartype
 def currentProductionStatusStageConstraint(
         productionStageID: str | list[str] = "",
         productionStageIncludeType: str = "any", # any/exclude
 ) -> dict | None:
-    if not isinstance(productionStageID, str | list):
-        raise TypeError(f"The credited name must be a string or list of strings, '{type(productionStageID)}' given.")
-    if isinstance(productionStageID, list) and not all([isinstance(attrib, str) for attrib in productionStageID]):
-        raise TypeError(f"credited name is a list containing a non-string.")
-    if not isinstance(productionStageIncludeType, str):
-        raise TypeError(f"The type must be a string, '{type(productionStageIncludeType)}' given.")
     constraint = {}
     allowedTypes = ["any", "exclude"]
     productionStageIncludeType = productionStageIncludeType.lower()
@@ -267,14 +208,11 @@ def currentProductionStatusStageConstraint(
         constraint[constraintName] = productionStageID
     return constraint or None
 
+@beartype
 def deathDateConstraint(
         deathDate: str = "", # The start day or exact day.
         deathDateEnd: str = "", # If both given it is a range.
 ) -> dict | None:
-    if not isinstance(deathDate, str):
-        raise TypeError(f"The death date must be a string, '{type(deathDate)}' given.")
-    if not isinstance(deathDateEnd, str):
-        raise TypeError(f"The death date end must be a string, '{type(deathDateEnd)}' given.")
     if deathDate and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', deathDate):
         raise ValueError(f"The death date is not of the correct form, yy-mm-dd")
     if deathDateEnd and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', deathDateEnd):
@@ -287,16 +225,16 @@ def deathDateConstraint(
         }
     return constraint or None
 
+@beartype
 def deathPlaceConstraint(
         deathPlace: str = "",
 ) -> dict | None:
-    if not isinstance(deathPlace, str):
-        raise TypeError(f"The death place must be a string, '{type(deathPlace)}' given.")
     constraint = {}
     if deathPlace:
         constraint["deathPlace"] = deathPlace
     return constraint or None
 
+@beartype
 def episodicConstraint(
         seriesID: str | list[str] = "", # Ther ID of the series to use
         seriesIDType: str = "any", # any/exclude # Limit to them matching.
@@ -304,22 +242,6 @@ def episodicConstraint(
         episode: str | list[str] = "", # The episode numbers to use.
         seasonEpisodeType: str = "any", # any/exclude # Limit to them matching.
 ) -> dict | None:
-    if not isinstance(seriesID, str | list):
-        raise TypeError(f"The series ID must be a string or list of strings, '{type(seriesID)}' given.")
-    if isinstance(seriesID, list) and not all([isinstance(attrib, str) for attrib in seriesID]):
-        raise TypeError(f"Series ID is a list containing a non-string.")
-    if not isinstance(season, str | list):
-        raise TypeError(f"The season must be a string or list of strings, '{type(season)}' given.")
-    if isinstance(season, list) and not all([isinstance(attrib, str) for attrib in season]):
-        raise TypeError(f"Seeason is a list containing a non-string.")
-    if not isinstance(episode, str | list):
-        raise TypeError(f"The episode must be a string or list of strings, '{type(episode)}' given.")
-    if isinstance(episode, list) and not all([isinstance(attrib, str) for attrib in episode]):
-        raise TypeError(f"Episode is a list containing a non-string.")
-    if not isinstance(seriesIDType, str):
-        raise TypeError(f"The series type must be a string, '{type(seriesIDType)}' given.")
-    if not isinstance(seasonEpisodeType, str):
-        raise TypeError(f"The episode type must be a string, '{type(seasonEpisodeType)}' given.")
     constraint = {}
     seasonEpisodeType = seasonEpisodeType.lower()
     seriesIDType = seriesIDType.lower()
@@ -342,11 +264,10 @@ def episodicConstraint(
             constraint[constraintName] = episode
     return constraint or None
 
+@beartype
 def explicitContentConstraint(
         explicit: str = "INCLUDE_ADULT", # ExplicitContentFilter ENUM
 ) -> dict | None:
-    if not isinstance(explicit, str):
-        raise TypeError(f"The explicit filter must be a string, '{type(explicit)}' given.")
     constraint = {}
     explicit = explicit.upper()
     explicit = explicit.removesuffix("_ADULT") + "_ADULT"
@@ -355,16 +276,11 @@ def explicitContentConstraint(
         constraint["explicitContentFilter"] = explicit
     return constraint or None
 
+@beartype
 def filmingLocationConstraint(
         filmingLocation: str | list[str] = "", # The filming location
         filmingLocationType: str = "any", # any/all
 ) -> dict | None:
-    if not isinstance(filmingLocation, str | list):
-        raise TypeError(f"The location must be a string or list of strings, '{type(filmingLocation)}' given.")
-    if isinstance(filmingLocation, list) and not all([isinstance(attrib, str) for attrib in filmingLocation]):
-        raise TypeError(f"Location is a list containing a non-string.")
-    if not isinstance(filmingLocationType, str):
-        raise TypeError(f"The type must be a string, '{type(filmingLocationType)}' given.")
     constraint = {}
     allowedTypes = ["any", "all"]
     filmingLocationType = filmingLocationType.lower()
@@ -375,21 +291,12 @@ def filmingLocationConstraint(
         constraint[constraintName] = filmingLocation
     return constraint or None
 
+@beartype
 def filmographyConstraint(
         filmographyTitleID: str | list[str] = "",
         filmographyTitleIDType: str = "all", # all/any/exclude
         filmographyTitleIDExclude: str | list[str] = "", # If type is also exclude it will use this one.
 ) -> dict | None:
-    if not isinstance(filmographyTitleID, str | list):
-        raise TypeError(f"The title ID must be a string or list of strings, '{type(filmographyTitleID)}' given.")
-    if isinstance(filmographyTitleID, list) and not all([isinstance(attrib, str) for attrib in filmographyTitleID]):
-        raise TypeError(f"Title ID is a list containing a non-string.")
-    if not isinstance(filmographyTitleIDType, str):
-        raise TypeError(f"The type must be a string, '{type(filmographyTitleIDType)}' given.")
-    if not isinstance(filmographyTitleIDExclude, str | list):
-        raise TypeError(f"The title ID (exclude) must be a string or list of strings, '{type(filmographyTitleIDExclude)}' given.")
-    if isinstance(filmographyTitleIDExclude, list) and not all([isinstance(attrib, str) for attrib in filmographyTitleIDExclude]):
-        raise TypeError(f"Title ID (exclude) is a list containing a non-string.")
     constraint = {}
     allowedTypes = ["any", "all", "exclude"]
     filmographyTitleIDType = filmographyTitleIDType.lower()
@@ -404,16 +311,11 @@ def filmographyConstraint(
         constraint["excludeTitleIds"] = filmographyTitleIDExclude
     return constraint or None
 
+@beartype
 def genderIdentityConstraint(
         gender: str | list[str] = "",
         genderType: str = "any",
 ) -> dict | None:
-    if not isinstance(gender, str | list):
-        raise TypeError(f"The gender must be a string or list of strings, '{type(gender)}' given.")
-    if isinstance(gender, list) and not all([isinstance(attrib, str) for attrib in gender]):
-        raise TypeError(f"Gender is a list containing a non-string.")
-    if not isinstance(genderType, str):
-        raise TypeError(f"The type must be a string, '{type(genderType)}' given.")
     constraint = {}
     genderType = genderType.lower()
     allowedTypes = ["any", "exclude"]
@@ -425,19 +327,12 @@ def genderIdentityConstraint(
         constraint[constraintName] = gender
     return constraint or None
 
+@beartype
 def genreConstraint(
         genre: str | list[str] = "", # The genre
         genreType: str = "all", # all/any/exclude
         genreMaxRelevant: int | None = None,
 ) -> dict | None:
-    if not isinstance(genre, str | list):
-        raise TypeError(f"The genre must be a string or list of strings, '{type(genre)}' given.")
-    if isinstance(genre, list) and not all([isinstance(attrib, str) for attrib in genre]):
-        raise TypeError(f"genre is a list containing a non-string.")
-    if not isinstance(genreType, str):
-        raise TypeError(f"The type must be a string, '{type(genreType)}' given.")
-    if not isinstance(genreMaxRelevant, int | None):
-        raise TypeError(f"The max relevant must be an int or None, '{type(genreMaxRelevant)}' given.")
     constraint = {}
     allowedTypes = ["any", "all", "exclude"]
     genreType = genreType.lower()
@@ -450,16 +345,11 @@ def genreConstraint(
             constraint["maxRelevantGenres"] = genreMaxRelevant
     return constraint or None
 
+@beartype
 def goofMatchingConstraint(
         goof: str | list[str] = "", # the text to search for
         goofType: str = "all", # all/any
 ) -> dict | None:
-    if not isinstance(goof, str | list):
-        raise TypeError(f"The goof must be a string or list of strings, '{type(goof)}' given.")
-    if isinstance(goof, list) and not all([isinstance(attrib, str) for attrib in goof]):
-        raise TypeError(f"goof is a list containing a non-string.")
-    if not isinstance(goofType, str):
-        raise TypeError(f"The type must be a string, '{type(goofType)}' given.")
     constraint = {}
     allowedTypes = ["any", "all"]
     goofType = goofType.lower()
@@ -470,6 +360,7 @@ def goofMatchingConstraint(
         constraint[constraintName] = goof
     return constraint or None
 
+@beartype
 def inTheatersConstraint(
         theaterID: str | list[str] = "", # The theater IDs
         theaterAttribute: str | list[str] = "", # SearchTheaterAttribute ENUM.
@@ -480,25 +371,12 @@ def inTheatersConstraint(
         theaterLocationRadius: int = 50, # In meters, default 50m
         theaterFavorite: bool = False, # Wehn true: MyFavoriteTheaterSearchFilter ENUM
 ) -> dict | None:
-    if not isinstance(theaterID, str | list):
-        raise TypeError(f"The theater ID must be a string or list of strings, '{type(theaterID)}' given.")
-    if isinstance(theaterID, list) and not all([isinstance(attrib, str) for attrib in theaterID]):
-        raise TypeError(f"Theater ID is a list containing a non-string.")
-    if not isinstance(theaterStart, str):
-        raise TypeError(f"The start must be a string (ISO-8601 date), '{type(theaterStart)}' given.")
-    if not isinstance(theaterEnd, str):
-        raise TypeError(f"The end must be a string (ISO-8601 date), '{type(theaterEnd)}' given.")
     if theaterEnd and not theaterStart:
         raise ValueError(f"You must have a start if you have an end date.")
     allowedDictKeys: set[str] = {"lat", "long"}
-    if not isinstance(theaterLocationLatLong, dict):
-        raise TypeError(f"The latitude and longitude must be a dict containing {allowedDictKeys} as floats, '{type(theaterLocationLatLong)}' given.")
     if isinstance(theaterLocationLatLong, dict):
         if any([key not in allowedDictKeys for key in theaterLocationLatLong.keys()]):
             raise ValueError(f"Certificate contained more keys than allowed, {allowedDictKeys}.")
-        for a in allowedDictKeys:
-            if not isinstance(theaterLocationLatLong.get(a), float | None):
-                raise TypeError(f"Latitude and Longitude must be floats for the keys: {allowedDictKeys}")
     if theaterStart and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', theaterStart):
         raise ValueError(f"The start date is not of the correct form, yy-mm-dd")
     if theaterEnd and not re.fullmatch(r'\d{4}-\d{2}-\d{2}', theaterEnd):
@@ -507,14 +385,8 @@ def inTheatersConstraint(
     long = theaterLocationLatLong.get("long")
     if (bool(lat) ^ bool(long)):
         raise ValueError(f"Either both latitude and longitude are passed or none.")
-    if not isinstance(theaterLocation, str):
-        raise TypeError(f"The location must be a string (postal code), '{type(theaterLocation)}' given.")
-    if not isinstance(theaterLocationRadius, int):
-        raise TypeError(f"The radius must be an int (in meters), '{type(theaterLocationRadius)}' given.")
     if theaterLocationRadius < 1:
         raise ValueError(f"The radius must be a positive integer {theaterLocationRadius}")
-    if not isinstance(theaterFavorite, bool):
-        raise TypeError(f"The favorite flag must be a bool, '{type(theaterFavorite)}' given.")
     constraint = {}
     if theaterID:
         if isinstance(theaterID, str):
@@ -539,16 +411,11 @@ def inTheatersConstraint(
         constraint["myFavoriteTheaters"] = "ONLY_MY_FAVORITE"
     return constraint or None
 
+@beartype
 def interestConstraint(
         interestID: str | list[str] = "",
         interestType: str = "all", # all/any/exclude
 ) -> dict | None:
-    if not isinstance(interestID, str | list):
-        raise TypeError(f"The interest ID must be a string or list of strings, '{type(interestID)}' given.")
-    if isinstance(interestID, list) and not all([isinstance(attrib, str) for attrib in interestID]):
-        raise TypeError(f"interest ID is a list containing a non-string.")
-    if not isinstance(interestType, str):
-        raise TypeError(f"The type must be a string, '{type(interestType)}' given.")
     constraint = {}
     allowedTypes = ['any', 'all', 'exclude']
     interestType = interestType.lower() 
@@ -559,16 +426,11 @@ def interestConstraint(
             constraint[constraintName] = interestID
     return constraint or None
 
+@beartype
 def keywordConstraint(
         keyword: str | list[str] = "",
         keywordType: str = "all", # all/any/exclude
 ) -> dict | None:
-    if not isinstance(keyword, str | list):
-        raise TypeError(f"The keyword must be a string or list of strings, '{type(keyword)}' given.")
-    if isinstance(keyword, list) and not all([isinstance(attrib, str) for attrib in keyword]):
-        raise TypeError(f"keyword is a list containing a non-string.")
-    if not isinstance(keywordType, str):
-        raise TypeError(f"The type must be a string, '{type(keywordType)}' given.")
     constraint = {}
     allowedTypes = ['any', 'all', 'exclude']
     keywordType = keywordType.lower()
@@ -579,6 +441,7 @@ def keywordConstraint(
         constraint[constraintName] = keyword
     return constraint or None
 
+@beartype
 def languageConstraint(
         language: str | list[str] = "",
         languageType: str = "any", # all/any/exclude
@@ -586,20 +449,6 @@ def languageConstraint(
         languagePrimaryType: str = "any", # any/exclude
         silent: bool | None = None, # Silent
 ) -> dict | None:
-    if not isinstance(language, str | list):
-        raise TypeError(f"The language must be a string or list of strings, '{type(language)}' given.")
-    if isinstance(language, list) and not all([isinstance(attrib, str) for attrib in language]):
-        raise TypeError(f"language is a list containing a non-string.")
-    if not isinstance(languageType, str):
-        raise TypeError(f"The type must be a string, '{type(languageType)}' given.")
-    if not isinstance(languagePrimary, str | list):
-        raise TypeError(f"The primary language must be a string or list of strings, '{type(languagePrimary)}' given.")
-    if isinstance(languagePrimary, list) and not all([isinstance(attrib, str) for attrib in languagePrimary]):
-        raise TypeError(f"Primary language is a list containing a non-string.")
-    if not isinstance(languagePrimaryType, str):
-        raise TypeError(f"The primary type must be a string, '{type(languagePrimaryType)}' given.")
-    if not isinstance(silent, bool | None):
-        raise TypeError(f"The silent flag must be a bool or None, '{type(silent)}' given.")
     constraint = {}
     languageType = languageType.lower() 
     languagePrimaryType = languagePrimaryType.lower() 
@@ -619,6 +468,7 @@ def languageConstraint(
         constraint["isSilent"] = silent
     return constraint or None
 
+@beartype
 def listConstraint(
         inList: str | list[str] = "",
         inPredefinedList: str | list[str] = "", # ListClassId ENUM
@@ -627,22 +477,6 @@ def listConstraint(
         inListType: str = "any", # all/any
         inPredefinedListType: str = "any", # all/any
 ) -> dict | None:
-    if not isinstance(inList, str | list):
-        raise TypeError(f"The list must be a string or list of strings, '{type(inList)}' given.")
-    if isinstance(inList, list) and not all([isinstance(attrib, str) for attrib in inList]):
-        raise TypeError(f"list is a list containing a non-string.")
-    if not isinstance(inListType, str):
-        raise TypeError(f"The type must be a string, '{type(inListType)}' given.")
-    if not isinstance(inPredefinedList, str | list):
-        raise TypeError(f"The pre-defined list must be a string or list of strings, '{type(inPredefinedList)}' given.")
-    if isinstance(inPredefinedList, list) and not all([isinstance(attrib, str) for attrib in inPredefinedList]):
-        raise TypeError(f"Pre-defined list is a list containing a non-string.")
-    if not isinstance(inPredefinedListType, str):
-        raise TypeError(f"The pre-defined list type must be a string, '{type(inPredefinedListType)}' given.")
-    if not isinstance(notInPredefinedList, str | list):
-        raise TypeError(f"The pre-defined (not in) list must be a string or list of strings, '{type(notInPredefinedList)}' given.")
-    if isinstance(notInPredefinedList, list) and not all([isinstance(attrib, str) for attrib in notInPredefinedList]):
-        raise TypeError(f"Pre-defined list (not in) is a list containing a non-string.")
     constraint = {}
     inListType = inListType.capitalize() 
     inPredefinedListType = inPredefinedListType.capitalize() 
@@ -672,17 +506,12 @@ def listConstraint(
         }
     return constraint or None
 
+@beartype
 def myRatingConstraint(
         myRatingType: str = "INCLUDE", # MyRatingSearchFilterType ENUM
         myRatingMin: int | None = None,
         myRatingMax: int | None = None,
 ):
-    if not isinstance(myRatingType, str):
-        raise TypeError(f"The type must be a string, '{type(myRatingType)}' given.")
-    if not isinstance(myRatingMin, int | None):
-        raise TypeError(f"The min must be an int (or None), '{type(myRatingMin)}' given.")
-    if not isinstance(myRatingMax, int | None):
-        raise TypeError(f"The min must be an int (or None), '{type(myRatingMax)}' given.")
     if myRatingMin is not None and myRatingMax is not None and myRatingMin > myRatingMax:
         # Cannot use the float(min or 'inf') style here, if one is 0, it results in inf.
         raise ValueError(f"The min cannot be larger than the mad, min:{myRatingMin} > max:{myRatingMax}")
@@ -697,24 +526,13 @@ def myRatingConstraint(
         }
     return constraint or None
 
+@beartype
 def originCountryConstraint(
         originCountry: str | list[str] = "",
         originCountryType: str = "all", # all/any/exclude
         originPrimaryCountry: str | list[str] = "",
         originPrimaryCountryType: str = "any", # any/exclude
 ):
-    if not isinstance(originCountry, str | list):
-        raise TypeError(f"The country must be a string or list of strings, '{type(originCountry)}' given.")
-    if isinstance(originCountry, list) and not all([isinstance(attrib, str) for attrib in originCountry]):
-        raise TypeError(f"country is a list containing a non-string.")
-    if not isinstance(originCountryType, str):
-        raise TypeError(f"The type must be a string, '{type(originCountryType)}' given.")
-    if not isinstance(originPrimaryCountry, str | list):
-        raise TypeError(f"The primary country must be a string or list of strings, '{type(originPrimaryCountry)}' given.")
-    if isinstance(originPrimaryCountry, list) and not all([isinstance(attrib, str) for attrib in originPrimaryCountry]):
-        raise TypeError(f"Primary country is a list containing a non-string.")
-    if not isinstance(originPrimaryCountryType, str):
-        raise TypeError(f"The primary type must be a string, '{type(originPrimaryCountryType)}' given.")
     constraint = {}
     allowedTypes = ['all', 'any', 'exclude']
     if originCountry and originCountryType in allowedTypes:
@@ -730,21 +548,12 @@ def originCountryConstraint(
         constraint[constraintName] = originPrimaryCountry
     return constraint or None
 
+@beartype
 def plotMatchingConstraint(
         plotText: str | list[str] = "",
         plotTextType: str = "all", #all/any
         plotAuthor: str | list[str] = "",
 ) -> dict | None:
-    if not isinstance(plotText, str | list):
-        raise TypeError(f"The plot must be a string or list of strings, '{type(plotText)}' given.")
-    if isinstance(plotText, list) and not all([isinstance(attrib, str) for attrib in plotText]):
-        raise TypeError(f"Plot is a list containing a non-string.")
-    if not isinstance(plotTextType, str):
-        raise TypeError(f"The type must be a string, '{type(plotTextType)}' given.")
-    if not isinstance(plotAuthor, str | list):
-        raise TypeError(f"The plot author must be a string or list of strings, '{type(plotAuthor)}' given.")
-    if isinstance(plotAuthor, list) and not all([isinstance(attrib, str) for attrib in plotAuthor]):
-        raise TypeError(f"Plot author is a list containing a non-string.")
     constraint = {}
     allowedTypes = ['all', 'any']
     plotTextType = plotTextType.lower()
@@ -759,21 +568,12 @@ def plotMatchingConstraint(
         constraint["anyPlotAuthors"] = plotAuthor
     return constraint or None
 
+@beartype
 def professionConstraint(
         profession: str | list[str] = "",
         professionType: str = "any",
         professionExclude: str | list[str] = "", # If type is set to exclude this overrids the above.
 ) -> dict | None:
-    if not isinstance(profession, str | list):
-        raise TypeError(f"The profession must be a string or list of strings, '{type(profession)}' given.")
-    if isinstance(profession, list) and not all([isinstance(attrib, str) for attrib in profession]):
-        raise TypeError(f"profession is a list containing a non-string.")
-    if not isinstance(professionType, str):
-        raise TypeError(f"The type must be a string, '{type(professionType)}' given.")
-    if not isinstance(professionExclude, str | list):
-        raise TypeError(f"The profession exclude must be a string or list of strings, '{type(professionExclude)}' given.")
-    if isinstance(professionExclude, list) and not all([isinstance(attrib, str) for attrib in professionExclude]):
-        raise TypeError(f"profession exclude is a list containing a non-string.")
     constraint = {}
     allowedTypes = ["all", "any", "exclude"]
     professionType = professionType.lower()
@@ -788,21 +588,12 @@ def professionConstraint(
         constraint["excludeProfessionIds"] = professionExclude
     return constraint or None
 
+@beartype
 def professionCategoryConstraint(
         professionCategory: str | list[str] = "",
         professionCategoryType: str = "any",
         professionCategoryExclude: str | list[str] = "", # If type is set to exclude this overrids the above.
 ) -> dict | None:
-    if not isinstance(professionCategory, str | list):
-        raise TypeError(f"The profession category must be a string or list of strings, '{type(professionCategory)}' given.")
-    if isinstance(professionCategory, list) and not all([isinstance(attrib, str) for attrib in professionCategory]):
-        raise TypeError(f"profession category is a list containing a non-string.")
-    if not isinstance(professionCategoryType, str):
-        raise TypeError(f"The type must be a string, '{type(professionCategoryType)}' given.")
-    if not isinstance(professionCategoryExclude, str | list):
-        raise TypeError(f"The profession category must be a string or list of strings, '{type(professionCategoryExclude)}' given.")
-    if isinstance(professionCategoryExclude, list) and not all([isinstance(attrib, str) for attrib in professionCategoryExclude]):
-        raise TypeError(f"profession exclude category is a list containing a non-string.")
     constraint = {}
     allowedTypes = ["all", "any", "exclude"]
     professionCategoryType = professionCategoryType.lower()
@@ -817,16 +608,11 @@ def professionCategoryConstraint(
         constraint["excludeProfessionCategoryIds"] = professionCategoryExclude
     return constraint or None
 
+@beartype
 def quoteMatchingConstraint(
         quote: str | list[str] = "",
         quoteType: str = "all", # all/any
 ) -> dict | None:
-    if not isinstance(quote, str | list):
-        raise TypeError(f"The quote must be a string or list of strings, '{type(quote)}' given.")
-    if isinstance(quote, list) and not all([isinstance(attrib, str) for attrib in quote]):
-        raise TypeError(f"quote is a list containing a non-string.")
-    if not isinstance(quoteType, str):
-        raise TypeError(f"The type must be a string, '{type(quoteType)}' given.")
     constraint = {}
     allowedTypes = ['all', 'any']
     quoteType = quoteType.lower()
@@ -837,20 +623,13 @@ def quoteMatchingConstraint(
         constraint[constraintName] = quote
     return constraint or None
 
+@beartype
 def rankedTitleListConstraint(
         rankedTitleMin: int | None = None,
         rankedTitleMax: int | None = None,
         rankedTitleListType: str = "TITLE_METER", # RankedTitleListType ENUM
         rankedTitleType: str = "all", # all/exclude
 ) -> dict | None:
-    if not isinstance(rankedTitleMin, int | None):
-        raise TypeError(f"The min must be an int or None, '{type(rankedTitleMin)}' given.")
-    if not isinstance(rankedTitleMax, int | None):
-        raise TypeError(f"The max must be an int or None, '{type(rankedTitleMax)}' given.")
-    if not isinstance(rankedTitleListType, str):
-        raise TypeError(f"The list type must be a string, '{type(rankedTitleListType)}' given.")
-    if not isinstance(rankedTitleType, str):
-        raise TypeError(f"The type must be a string, '{type(rankedTitleType)}' given.")
     if rankedTitleMin is not None and rankedTitleMax is not None and rankedTitleMin > rankedTitleMax:
         raise ValueError(f"The min cannot be larger than the ma, min:{rankedTitleMin} > max:{rankedTitleMax}")
     # This can have a list of ranges, out of scope for basic search.
@@ -870,20 +649,13 @@ def rankedTitleListConstraint(
         ]
     return constraint or None
 
+@beartype
 def releaseDateConstraint(
         year: int = 0,
         yearEnd: int = 0,
         dateStart: str = "", # yyyy-mm-dd
         dateEnd: str = "", # yyyy-mm-dd
 ) -> dict | None:
-    if not isinstance(year, int):
-        raise TypeError(f"The year must be an int, '{type(year)}' given.")
-    if not isinstance(yearEnd, int):
-        raise TypeError(f"The end year must be an int, '{type(yearEnd)}' given.")
-    if not isinstance(dateStart, str):
-        raise TypeError(f"The start date type must be a string, '{type(dateStart)}' given.")
-    if not isinstance(dateEnd, str):
-        raise TypeError(f"The end date type must be a string, '{type(dateEnd)}' given.")
     if year and dateStart:
         raise ValueError(f"You can only pass a start date or a year, not both.")
     if yearEnd and dateEnd:
@@ -909,14 +681,11 @@ def releaseDateConstraint(
         }
     return constraint or None
 
+@beartype
 def runtimeConstraint(
         runtimeMin: int = 0, # In minutes
         runtimeMax: int = 0,
 ) -> dict | None:
-    if not isinstance(runtimeMin, int):
-        raise TypeError(f"The min must be an int, '{type(year)}' given.")
-    if not isinstance(runtimeMax, int):
-        raise TypeError(f"The max must be an int, '{type(year)}' given.")
     if runtimeMax and runtimeMin and runtimeMin > runtimeMax:
         raise ValueError(f"The min cannot be larger than the max, min:{runtimeMin} > max:{runtimeMax}.")
     if runtimeMin < 0 or runtimeMax < 0:
@@ -929,20 +698,13 @@ def runtimeConstraint(
         }
     return constraint or None
 
+@beartype
 def singleUserRatingConstraint(
         ratingUserID: str = "",
         ratingUserRangeMin: int = 0,
         ratingUserRangeMax: int = 0,
         ratingUserType: str = "INCLUDE", # SingleUserRatingSearchFilterType ENUM
 ) -> dict | None:
-    if not isinstance(ratingUserID, str):
-        raise TypeError(f"The user ID must be a string, '{type(ratingUserID)}' given.")
-    if not isinstance(ratingUserType, str):
-        raise TypeError(f"The type must be a string, '{type(ratingUserType)}' given.")
-    if not isinstance(ratingUserRangeMin, int):
-        raise TypeError(f"The min must be an int, '{type(ratingUserRangeMin)}' given.")
-    if not isinstance(ratingUserRangeMax, int):
-        raise TypeError(f"The max must be an int, '{type(ratingUserRangeMax)}' given.")
     if ratingUserRangeMin and ratingUserRangeMax and ratingUserRangeMin > ratingUserRangeMax:
         raise ValueError(f"The min cannot be larger than the max, min:{ratingUserRangeMin} > max:{ratingUserRangeMax}.")
     if ratingUserRangeMin < 0 or ratingUserRangeMax < 0:
@@ -961,18 +723,11 @@ def singleUserRatingConstraint(
         }
     return constraint or None
 
+@beartype
 def soundMixConstraint(
         soundMix: str | list[str] = "",
         soundMixExclude: str | list[str] = "",
 ) -> dict | None:
-    if not isinstance(soundMix, str | list):
-        raise TypeError(f"The sound mix must be a string or list of strings, '{type(soundMix)}' given.")
-    if isinstance(soundMix, list) and not all([isinstance(attrib, str) for attrib in soundMix]):
-        raise TypeError(f"Sound mix is a list containing a non-string.")
-    if not isinstance(soundMixExclude, str | list):
-        raise TypeError(f"The sound mix (exclude) must be a string or list of strings, '{type(soundMixExclude)}' given.")
-    if isinstance(soundMixExclude, list) and not all([isinstance(attrib, str) for attrib in soundMixExclude]):
-        raise TypeError(f"Sound mix (exclude) is a list containing a non-string.")
     constraint = {}
     anySoundMixTypes = []
     excludeSoundMixTypes = []
@@ -987,16 +742,11 @@ def soundMixConstraint(
         }
     return constraint or None
 
+@beartype
 def soundtrackMatchingConstraint(
         soundtrackTerms: str | list[str] = "",
         soundtrackTermsType: str = "all", # all/any
 ) -> dict | None:
-    if not isinstance(soundtrackTerms, str | list):
-        raise TypeError(f"The sound track terms must be a string or list of strings, '{type(soundtrackTerms)}' given.")
-    if isinstance(soundtrackTerms, list) and not all([isinstance(attrib, str) for attrib in soundtrackTerms]):
-        raise TypeError(f"Sound track terms is a list containing a non-string.")
-    if not isinstance(soundtrackTermsType, str):
-        raise TypeError(f"The type must be a string, '{type(soundtrackTermsType)}' given.")
     constraint = {}
     allowedTypes = ['all', 'any']
     soundtrackTermsType = soundtrackTermsType.lower()
@@ -1007,11 +757,10 @@ def soundtrackMatchingConstraint(
         constraint[constraintName] = soundtrackTerms
     return constraint or None
 
+@beartype
 def textSearchConstraint(
         search: str = "",
 ) -> dict | None:
-    if not isinstance(search, str):
-        raise TypeError(f"The search must be a string, '{type(search)}' given.")
     constraint = {}
     if search:
         constraint = {
@@ -1019,6 +768,7 @@ def textSearchConstraint(
         }
     return constraint or None
 
+@beartype
 def titleCreditsConstraint(
         creditCharacter: str | list[str] = "",
         creditCategory: str | list[str] = "",
@@ -1027,27 +777,7 @@ def titleCreditsConstraint(
         creditType: str = "all",
         creditAdvanced: dict = {},
 ) -> dict | None:
-    if not isinstance(creditCharacter, str | list):
-        raise TypeError(f"The character must be a string or list of strings, '{type(creditCharacter)}' given.")
-    if isinstance(creditCharacter, list) and not all([isinstance(attrib, str) for attrib in creditCharacter]):
-        raise TypeError(f"character is a list containing a non-string.")
-    if not isinstance(creditCategory, str | list):
-        raise TypeError(f"The credit category must be a string or list of strings, '{type(creditCategory)}' given.")
-    if isinstance(creditCategory, list) and not all([isinstance(attrib, str) for attrib in creditCategory]):
-        raise TypeError(f"credit category is a list containing a non-string.")
-    if not isinstance(creditJobCategory, str | list):
-        raise TypeError(f"The credit job category must be a string or list of strings, '{type(creditJobCategory)}' given.")
-    if isinstance(creditJobCategory, list) and not all([isinstance(attrib, str) for attrib in creditJobCategory]):
-        raise TypeError(f"credit job category is a list containing a non-string.")
-    if not isinstance(creditNameID, str | list):
-        raise TypeError(f"The name ID must be a string or list of strings, '{type(creditNameID)}' given.")
-    if isinstance(creditNameID, list) and not all([isinstance(attrib, str) for attrib in creditNameID]):
-        raise TypeError(f"Name ID is a list containing a non-string.")
-    if not isinstance(creditType, str):
-        raise TypeError(f"The type must be a string, '{type(creditType)}' given.")
-    # TODO: Validate the keys/values, this is not a general use arg.
-    if not isinstance(creditAdvanced, dict):
-        raise TypeError(f"The advanced credit filter must be a dict, '{type(creditAdvanced)}' given.")
+    # TODO: Validate the creditAdvanced keys/values, this is not a general use arg.
     constraint = {}
     allowedTypes = ['all', 'any']
     creditType = creditType.lower()
@@ -1104,17 +834,12 @@ def titleCreditsConstraint(
                 )
     return constraint or None
 
+@beartype
 def titleMeterConstraint(
         meterMin: int = 0,
         meterMax: int = 0,
         meterType: str = "TITLE_METER", # TitleMeterType ENUM
 ) -> dict | None:
-    if not isinstance(meterMin, int):
-        raise TypeError(f"The min must be an int, '{type(meterMin)}' given.")
-    if not isinstance(meterMax, int):
-        raise TypeError(f"The max must be an int, '{type(meterMax)}' given.")
-    if not isinstance(meterType, str):
-        raise TypeError(f"The type must be a string, '{type(meterType)}' given.")
     if meterMin and meterMax and meterMin > meterMax:
         raise ValueError(f"The min cannot be bigger than the max, min:{meterMin} > max:{meterMax}")
     if meterMin < 0 or meterMax < 0:
@@ -1131,18 +856,11 @@ def titleMeterConstraint(
         }
     return constraint or None
 
+@beartype
 def titleTypeConstraint(
         titleType: str | list[str] = "",
         titleTypeExclude: str | list[str] = "",
 ) -> dict | None:
-    if not isinstance(titleType, str | list):
-        raise TypeError(f"The type must be a string or list of strings, '{type(titleType)}' given.")
-    if isinstance(titleType, list) and not all([isinstance(attrib, str) for attrib in titleType]):
-        raise TypeError(f"Type is a list containing a non-string.")
-    if not isinstance(titleTypeExclude, str | list):
-        raise TypeError(f"The exclude type must be a string or list of strings, '{type(titleTypeExclude)}' given.")
-    if isinstance(titleTypeExclude, list) and not all([isinstance(attrib, str) for attrib in titleTypeExclude]):
-        raise TypeError(f"Exclude type is a list containing a non-string.")
     constraint = {}
     if titleType:
         if isinstance(titleType, str):
@@ -1158,16 +876,11 @@ def titleTypeConstraint(
         }
     return constraint or None
 
+@beartype
 def triviaMatchingConstraint(
         triviaTerm: str | list[str] = "",
         triviaTermType: str = "all", # all/any
 ) -> dict | None:
-    if not isinstance(triviaTerm, str | list):
-        raise TypeError(f"The trivia term must be a string or list of strings, '{type(triviaTerm)}' given.")
-    if isinstance(triviaTerm, list) and not all([isinstance(attrib, str) for attrib in triviaTerm]):
-        raise TypeError(f"Trivia term is a list containing a non-string.")
-    if not isinstance(triviaTermType, str):
-        raise TypeError(f"The type must be a string, '{type(triviaTermType)}' given.")
     constraint = {}
     triviaTermType = triviaTermType.lower()
     allowedTypes = ['all', 'any']
@@ -1178,30 +891,13 @@ def triviaMatchingConstraint(
         constraint[constraintName] = triviaTerm
     return constraint or None
 
+@beartype
 def userRatingsConstraint(
         ratingMin: float = 0.0,
         ratingMax: float = 0.0,
         ratingCountMin: int = 0,
         ratingCountMax: int = 0,
 ) -> dict | None:
-    if not isinstance(ratingMin, float):
-        raise TypeError(f"The min must be a float, '{type(ratingMin)}' given.")
-    if not isinstance(ratingMax, float):
-        raise TypeError(f"The max must be a float, '{type(ratingMax)}' given.")
-    if not isinstance(ratingCountMin, int):
-        raise TypeError(f"The rating count min must be an int, '{type(ratingCountMin)}' given.")
-    if not isinstance(ratingCountMax, int):
-        raise TypeError(f"The rating count max must be an int, '{type(ratingMax)}' given.")
-    if ratingMin and ratingMax and ratingMin > ratingMax:
-        raise TypeError(f"The min cannot be larger than the max, min:{ratingMin} > max:{ratingMax}")
-    if ratingMin < 0 or ratingMax < 0:
-        raise TypeError(f"The min and max must be positive, min:{ratingMin} and max:{ratingMax}")
-    if ratingMin > 10 or ratingMax > 10:
-        raise TypeError(f"The min and max can be at most 10, min:{ratingMin} and max:{ratingMax}")
-    if ratingCountMin and ratingCountMax and ratingCountMin > ratingCountMax:
-        raise TypeError(f"The rating count min cannot be larger than the max, min:{ratingCountMin} > max:{ratingCountMax}")
-    if ratingCountMin < 0 or ratingCountMax < 0:
-        raise TypeError(f"The rating count min and max must be positive, min:{ratingCountMin} and max:{ratingCountMax}")
     constraint = {}
     if (ratingMin or ratingMax):
         constraint["aggregateRatingRange"] = {
@@ -1215,6 +911,7 @@ def userRatingsConstraint(
         }
     return constraint or None
 
+@beartype
 def watchOptionsConstraint(
         watchProviderID: str | list[str] = "",
         watchRegion: str | list[str] = "",
@@ -1222,26 +919,6 @@ def watchOptionsConstraint(
         watchRegionExclude: str | list[str] = "",
         watchType: str | list[str] = "", # SearchWatchOptionType ENUM
 ) -> dict | None:
-    if not isinstance(watchProviderID, str | list):
-        raise TypeError(f"The provider ID must be a string or list of strings, '{type(watchProviderID)}' given.")
-    if isinstance(watchProviderID, list) and not all([isinstance(attrib, str) for attrib in watchProviderID]):
-        raise TypeError(f"Provider ID is a list containing a non-string.")
-    if not isinstance(watchRegion, str | list):
-        raise TypeError(f"The region must be a string or list of strings, '{type(watchRegion)}' given.")
-    if isinstance(watchRegion, list) and not all([isinstance(attrib, str) for attrib in watchRegion]):
-        raise TypeError(f"Region is a list containing a non-string.")
-    if not isinstance(watchProviderIDExclude, str | list):
-        raise TypeError(f"The provider exclude must be a string or list of strings, '{type(watchProviderIDExclude)}' given.")
-    if isinstance(watchProviderIDExclude, list) and not all([isinstance(attrib, str) for attrib in watchProviderIDExclude]):
-        raise TypeError(f"Provider exclude is a list containing a non-string.")
-    if not isinstance(watchRegionExclude, str | list):
-        raise TypeError(f"The region exclude must be a string or list of strings, '{type(watchRegionExclude)}' given.")
-    if isinstance(watchRegionExclude, list) and not all([isinstance(attrib, str) for attrib in watchRegionExclude]):
-        raise TypeError(f"Region exclude is a list containing a non-string.")
-    if not isinstance(watchType, str | list):
-        raise TypeError(f"The watch type must be a string or list of strings, '{type(watchType)}' given.")
-    if isinstance(watchType, list) and not all([isinstance(attrib, str) for attrib in watchType]):
-        raise TypeError(f"Watch type is a list containing a non-string.")
     constraint = {}
     if watchProviderID:
         if isinstance(watchProviderID, str):
@@ -1266,23 +943,12 @@ def watchOptionsConstraint(
         constraint["hasWatchOptionTypes"] = watchType
     return constraint or None
 
+@beartype
 def withDataConstraint(
         withData: str | list[str] = "",  # respective (DataType)DataType ENUMs
         withDataMissing: str | list[str] = "",
         withDataAny: str | list[str] = "",
 ) -> dict | None:
-    if not isinstance(withData, str | list):
-        raise TypeError(f"The with data must be a string or list of strings, '{type(withData)}' given.")
-    if isinstance(withData, list) and not all([isinstance(attrib, str) for attrib in withData]):
-        raise TypeError(f"With data is a list containing a non-string.")
-    if not isinstance(withDataMissing, str | list):
-        raise TypeError(f"The missing data must be a string or list of strings, '{type(withDataMissing)}' given.")
-    if isinstance(withDataMissing, list) and not all([isinstance(attrib, str) for attrib in withDataMissing]):
-        raise TypeError(f"Missing data is a list containing a non-string.")
-    if not isinstance(withDataAny, str | list):
-        raise TypeError(f"The any data must be a string or list of strings, '{type(withDataAny)}' given.")
-    if isinstance(withDataAny, list) and not all([isinstance(attrib, str) for attrib in withDataAny]):
-        raise TypeError(f"Any data is a list containing a non-string.")
     constraint = {}
     if withData:
         if isinstance(withData, str):

@@ -1,6 +1,7 @@
 from typing import Iterable, Any
 import re
 from dataclasses import dataclass
+from beartype import beartype
 from . import GraphQL
 
 @dataclass
@@ -14,9 +15,8 @@ class regex_in:
         return other.fullmatch(self.string) is not None
 
 class MyMovie:
+    @beartype
     def __init__(self, obj: dict) -> None:
-        if not isinstance(obj, dict):
-            raise TypeError(f"MyMovie's object must be a dict, '{type(obj)}' given.")
         if not obj:
             raise ValueError(f"MyMovie's object dict is empty.")
         self.data: dict[str, Any] = dict()
@@ -89,11 +89,11 @@ class MyMovie:
                             self.data[k][v_key] = v_data
         return self
 
-        
+    @beartype
     def update(self,
                attribute: str | list = "",
                previous: bool = False,
-               variables: dict = {},
+               variables: dict[str, str | int | float | dict | None] = {},
     ):
         """ Update the object and return the updated values.
         Args:
@@ -456,7 +456,8 @@ class MyMovie:
             return str(self.data.get(keys[0]))
         return f"<--- {self.ofType}: {keys} --->"
 
-    def __getitem__(self, index):
+    @beartype
+    def __getitem__(self, index: str | int):
         iterableAttribute = self.iterableAttribute()
         if iterableAttribute is not None and isinstance(index, int):
             node = list(iterableAttribute)[index]
@@ -467,8 +468,9 @@ class MyMovie:
                             return v
             return node
         return self.data[index] # type: ignore
-    
-    def __setitem__(self, index , val):
+
+    @beartype
+    def __setitem__(self, index: str , val: Any):
         if not isinstance(index, str):
             raise TypeError("Index must be a string.")
         self.data[index] = val

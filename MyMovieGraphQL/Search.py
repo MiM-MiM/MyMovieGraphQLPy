@@ -1,15 +1,13 @@
 import re
+from beartype import beartype
 from MyMovieGraphQL import Constraints, GraphQL
 from MyMovieGraphQL.__init__ import MyMovie
 
+@beartype
 def sort(
         sortBy: str = "", # Changes per sort, an ENUM
         sortOrder: str = "DESC",
 ) -> dict | None:
-    if not isinstance(sortBy, str):
-        raise TypeError(f"SortBy must be a string, '{type(sortBy)}' given.")
-    if not isinstance(sortOrder, str):
-        raise TypeError(f"Sort order must be a string, '{type(sortOrder)}' given.")
     sort_by = {}
     sortOrder = sortOrder.upper()
     if sortBy and sortOrder:
@@ -19,6 +17,7 @@ def sort(
         }
     return sort_by or None
 
+@beartype
 def searchTitle(
         # kwargs not used that way it is more clear what is availiable and defaults are displayed easier.
         title: str = "",
@@ -138,12 +137,6 @@ def searchTitle(
         withDataMissing: str | list = "",
         withDataAny: str | list = "",
 ) -> MyMovie:
-    if not isinstance(limit, int):
-        raise TypeError(f"Limit must be an int, `{type(limit)}` given.")
-    if not isinstance(offset, int):
-        raise TypeError(f"Offset must be an int, `{type(offset)}` given.")
-    if not isinstance(pagnation, str):
-        raise TypeError(f"pagnation must be a string, `{type(pagnation)}` given.")
     if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
         raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
     if limit < 1:
@@ -204,6 +197,7 @@ def searchTitle(
     }
     return GraphQL.search('advancedTitleSearch', **args)
 
+@beartype
 def searchName(
         name: str = "",
         sortBy: str = "BIRTH_DATE", # AdvancedNameSearchSortBy ENUM
@@ -254,12 +248,6 @@ def searchName(
         withDataMissing: str | list = "",
         withDataAny: str | list = "",
 ) -> MyMovie:
-    if not isinstance(limit, int):
-        raise TypeError(f"Limit must be an int, `{type(limit)}` given.")
-    if not isinstance(offset, int):
-        raise TypeError(f"Offset must be an int, `{type(offset)}` given.")
-    if not isinstance(pagnation, str):
-        raise TypeError(f"pagnation must be a string, `{type(pagnation)}` given.")
     if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
         raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
     if limit < 1:
@@ -292,6 +280,7 @@ def searchName(
     }
     return GraphQL.search('advancedNameSearch', **args)
 
+@beartype
 def search(
         term: str,
         year: int = 0,
@@ -306,26 +295,8 @@ def search(
         exact: bool = False,
         isCustomerSelectable: bool = True,
 ) -> MyMovie:
-    if not isinstance(term, str):
-        raise TypeError(f"The search term must be a string, '{type(term)}' given.")
-    if not isinstance(searchType, str | list):
-        raise TypeError(f"The search type must be a string or list of strings, '{type(searchType)}' given.")
-    if isinstance(searchType, list) and not all([isinstance(attrib, str) or not attrib for attrib in searchType]):
-        raise TypeError(f"Search type is a list containing a non-string or blank string.")
-    if not isinstance(titleType, str | list):
-        raise TypeError(f"The title type must be a string or list of strings, '{type(titleType)}' given.")
-    if isinstance(titleType, list) and not all([isinstance(attrib, str) or not attrib for attrib in titleType]):
-        raise TypeError(f"Title type is a list containing a non-string or blank string.")
     if not searchType:
         raise ValueError("The search type cannot be blank.")
-    if not isinstance(limit, int):
-        raise TypeError(f"Search limit must be an it, '{type(limit)}' given.")
-    if not isinstance(includeAdult, bool):
-        raise TypeError(f"Include adult flag must be a bool, '{type(includeAdult)}' given.")
-    if not isinstance(exact, bool):
-        raise TypeError(f"Exact flag must be a bool, '{type(exact)}' given.")
-    if not isinstance(isCustomerSelectable, bool):
-        raise TypeError(f"Customer selectable flag must be a bool, '{type(isCustomerSelectable)}' given.")
     if limit < 1:
         raise ValueError(f"The limit must be at least one, {limit} given")
     if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):

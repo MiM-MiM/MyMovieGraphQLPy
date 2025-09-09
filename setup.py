@@ -16,8 +16,9 @@ setuptools.setup(
     },
     install_requires=[
         'importlib-metadata; python_version>="3.10"',
-        "langcodes",
-        "requests",
+        "beartype", # Type checking
+        "langcodes", # Validate language codes
+        "requests", # Make HTTP requests
     ],
     package_data={
         'MyMovieGraphQL': ['data/*.json'],  # Include the JSON files

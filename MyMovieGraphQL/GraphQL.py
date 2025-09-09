@@ -4,6 +4,7 @@ import requests
 from datetime import date
 from langcodes import Language
 import importlib.resources as resources
+from beartype import beartype
 from MyMovieGraphQL.__init__ import MyMovie
 
 API_URL = "https://api.graphql.imdb.com/"
@@ -25,15 +26,12 @@ def load_config_json():
         with resources.open_text('MyMovieGraphQL.data', 'LIMITED.json') as f:
             LIMITED = json.load(f)
 
+@beartype
 def setLocalCountryLanguage(
         country: str = HEADERS.get('x-imdb-user-country', 'US'),
         language: str = HEADERS.get('x-imdb-user-language', 'en-US'),
 ) -> None:
     global HEADERS
-    if not isinstance(country, str):
-        raise TypeError(f"The country must be a string, '{type(country)}' given.")
-    if not isinstance(language, str):
-        raise TypeError(f"The country must be a string, '{type(language)}' given.")
     if not (country and language):
         raise ValueError(f"Both the country and the language must be set, given: '{country=}', '{language=}'.")
     country = country.upper()
@@ -49,6 +47,7 @@ def setLocalCountryLanguage(
         "x-imdb-user-language": str(lang),
     }
 
+@beartype
 def sanatizeArgumentDict(args: dict, base: bool = True):
     """ Recursively sets the arguments to None if the child objects
     are also empty. The base argument object keeps
@@ -57,10 +56,6 @@ def sanatizeArgumentDict(args: dict, base: bool = True):
         args(dict, required): The args being sanatized.
         base(bool, optional): The base arguments must remain even if null, this specifies that.
     """
-    if not isinstance(args, dict):
-        raise TypeError(f"The args must be a dict, '{type(args)}' given.")
-    if not isinstance(base, bool):
-        raise TypeError(f"The base check must be a boolean, '{type(base)}' given.")
     allMissing = True
     for arg in args:
         if isinstance(args[arg], dict):
@@ -78,17 +73,17 @@ def sanatizeArgumentDict(args: dict, base: bool = True):
         return args
     return args if not allMissing else None
 
+@beartype
 def isScalarOrEnum(obj: dict):
     """Returns true if the object's kind is an ENUM or SCALAR (has no subfields)
 
     Args:
         obj(dict, required): The dict of the type from the introspection.
     """
-    if not isinstance(obj, dict):
-        raise TypeError(f"Object must be a dict, '{type(obj)}' given.")
     # The return will handle attribute erors.
     return obj['kind'] in ['ENUM', 'SCALAR']
 
+@beartype
 def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> MyMovie:
     """Generates and executes the given search/query.
 
@@ -96,12 +91,6 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
         searchName (str, required): The query name to be ran.
         kwargs: The args for the query.
     """
-    if not isinstance(searchName, str):
-        raise TypeError(f"searchName must be a string, '{type(searchName)}' given.")
-    if not isinstance(limitAttributes, str | list):
-        raise TypeError(f"searchName must be a string or list of strings, '{type(searchName)}' given.")
-    if isinstance(limitAttributes, list) and not all([isinstance(attrib, str) for attrib in limitAttributes]):
-        raise TypeError(f"limitAttributes is a list containing a non-string.")
     load_config_json()
     if limitAttributes and isinstance(limitAttributes, str):
         limitAttributes = [str(limitAttributes)]
@@ -155,6 +144,7 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
         raise ValueError(f"Query failed to execute ({len(errors)} errors):\n{'-'*40}\n{error_messages}\n{'-'*40}")
     return MyMovie(r.get('data', {}).get('query', {}))
 
+@beartype
 def generateSearch(searchName: str, limitAttributes: list[str] = []) -> tuple[str, dict[str, str]]:
     """Generates the search query and needed variables for a given search.
     Each response will alias the query as `query` allowing for the searchName to be
@@ -210,6 +200,7 @@ def generateSearch(searchName: str, limitAttributes: list[str] = []) -> tuple[st
     search_query = f"query query({input_variables_types_str}) {{ query: {searchName}({input_variables_str}){{ __typename {sub_query} }} }}"
     return search_query, variables
 
+@beartype
 def generateQuery(object_name: str,
                   allow_limited: bool = False,
                   limitAttributes: list[str] = [],

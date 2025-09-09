@@ -14,8 +14,8 @@ setuptools.setup(
     extras_require={
         "dev": DEV_PACKAGES,
     },
+    python_requires='>=3.10',
     install_requires=[
-        'importlib-metadata; python_version>="3.10"',
         "beartype", # Type checking
         "langcodes", # Validate language codes
         "requests", # Make HTTP requests

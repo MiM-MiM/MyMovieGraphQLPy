@@ -14,12 +14,36 @@ MyMovieGraphQL is a Python3.10 implementation to fetch data from IMDb via their 
 # Installation
 MyMovieGraphQL is configured as a python module. It is suggested to create a [venv](https://docs.python.org/3/library/venv.html) first.
 
+## General Install
+This will always use the latest versions of packages, may encounter bugs.
 ```bash
 # Activate venv first if used.
 # Navigate to cloned folder, `cd MyMovieGraphQLPy`
 python3 -m pip install .
-# You may need to use editable mode
+```
+
+## Secure Install
+This install uses the requirements.txt with hashes specified to ensure known good versions get installed.
+```bash
+# Activate venv first if used.
+# Navigate to cloned folder, `cd MyMovieGraphQLPy`
+python -m pip install -r requirements.txt --require-hashes
+python -m pip install --no-deps .
+```
+See [Secure installs](https://pip.pypa.io/en/stable/topics/secure-installs/) for more information.
+
+### Generate secure requirements.txt
+Update the `requirements.in` file and run the `compile` command to fetch the latest hashes.
+```bash
+pip-compile --generate-hashes requirements.in
+```
+
+## Editable mode
+Add `-e` after `install`.
+```bash
 python -m pip install -e .
+# Or 
+python -m pip install -e --no-deps .
 ```
 
 # Notes

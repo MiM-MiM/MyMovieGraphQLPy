@@ -1,8 +1,7 @@
 import pytest
 import inspect
 from beartype.roar import BeartypeCallHintParamViolation
-from MyMovieGraphQL import Constraints, GetByID, GraphQL, Search
-from MyMovieGraphQL.__init__ import MyMovie
+from MyMovieGraphQL import Constraints, GetByID, GraphQL, MyMovie, Search
 from typing import get_origin, get_args, Any
 from types import UnionType
 

@@ -1,7 +1,8 @@
 import pytest
 import inspect
 from beartype.roar import BeartypeCallHintParamViolation
-import MyMovieGraphQL.Constraints as Constraints
+from MyMovieGraphQL import Constraints, GetByID, GraphQL, Search
+from MyMovieGraphQL.__init__ import MyMovie
 from typing import get_origin, get_args, Any
 from types import UnionType
 
@@ -18,7 +19,6 @@ def get_invalid_type_for_annotation(annotation):
     # Handle Union types (e.g., str | list[str])
     if origin is UnionType:
         valid_types = []
-        print(args)
         for arg in args:
             arg_origin = get_origin(arg)
             if arg_origin:
@@ -61,9 +61,22 @@ constraint_functions = [
     (name, func) for name, func in inspect.getmembers(Constraints, inspect.isfunction)
     if not name.startswith('__') and name != "Any" and name != "beartype"
 ]
+getByID_functions = [
+    (name, func) for name, func in inspect.getmembers(GetByID, inspect.isfunction)
+    if not name.startswith('__') and name != "Any" and name != "beartype"
+]
+graphQL_functions = [
+    (name, func) for name, func in inspect.getmembers(GraphQL, inspect.isfunction)
+    if not name.startswith('__') and name != "Any" and name != "beartype"
+]
+search_functions = [
+    (name, func) for name, func in inspect.getmembers(Search, inspect.isfunction)
+    if not name.startswith('__') and name != "Any" and name != "beartype"
+]
+all_functions = getByID_functions + constraint_functions + graphQL_functions + search_functions
 
-@pytest.mark.parametrize("name, func", constraint_functions)
-def test_constraint_function_typing(name, func):
+@pytest.mark.parametrize("name, func", all_functions)
+def test_function_typing(name, func):
     sig = inspect.signature(func)
 
     for param_name, param in sig.parameters.items():
@@ -78,5 +91,35 @@ def test_constraint_function_typing(name, func):
         kwargs = {param_name: invalid_value}
 
         with pytest.raises(BeartypeCallHintParamViolation):
-            func(**kwargs)
-            print(kwargs)
+            try:
+                func(**kwargs)
+            except BeartypeCallHintParamViolation as e:
+                raise e
+            except Exception as e:
+                args = ', '.join(f"{key}={val}" for key, val in kwargs.items())
+                # Simple print of the input that caused an error
+                print(f"{name}({args})\n\t>> {e}")
+                raise e
+
+# Do these manually.
+exampleMovie = MyMovie({'__typename': 'Movie'})
+def test_MyMovie():
+    with pytest.raises(BeartypeCallHintParamViolation):
+        MyMovie(1234) # type: ignore
+def test_MyMovie_add():
+    with pytest.raises(TypeError):
+        add = exampleMovie + 5
+def test_MyMovie_update():
+    tests = [
+        {'attribute': 1234},
+        {'previous': 'not_a_bool'},
+        {'variables': 'not_a_dict'},
+    ]
+    for test in tests:
+        with pytest.raises(BeartypeCallHintParamViolation):
+            exampleMovie.update(**test)
+def test_MyMovie_get_set():
+    with pytest.raises(BeartypeCallHintParamViolation):
+        exampleMovie[{1, 2}] # type: ignore
+    with pytest.raises(BeartypeCallHintParamViolation):
+        exampleMovie[1.234] # type: ignore

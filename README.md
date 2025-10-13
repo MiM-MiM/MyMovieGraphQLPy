@@ -23,7 +23,7 @@ python3 -m pip install .
 ```
 
 ## Secure Install
-This install uses the requirements.txt with hashes specified to ensure known good versions get installed.
+This install uses the requirements.txt with hashes specified to ensure known good versions get installed.  If the `--require-hashes` argument is not passed it will not perform the hash check and can lead to compromised packages being installed.
 ```bash
 # Activate venv first if used.
 # Navigate to cloned folder, `cd MyMovieGraphQLPy`

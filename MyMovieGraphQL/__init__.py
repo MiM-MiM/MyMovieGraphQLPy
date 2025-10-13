@@ -1,3 +1,11 @@
+"""
+A module to provide a simpler interface to the
+GraphQL API provided by IMDb. The main `MyMovie`
+class is used to handle the response and generate
+some methods that may be used, such as `int` and `str`.
+`Search` and `GetByID` will return this object.
+"""
+
 from typing import Iterable, Any
 import re
 from dataclasses import dataclass

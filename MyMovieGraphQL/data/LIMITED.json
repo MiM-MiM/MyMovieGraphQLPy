@@ -192,6 +192,7 @@
   "Title": [
     "id",
     "canonicalUrl",
+    "countriesOfOrigin",
     "titleType",
     "releaseYear",
     "titleText",

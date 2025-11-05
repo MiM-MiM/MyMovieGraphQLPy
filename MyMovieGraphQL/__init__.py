@@ -61,6 +61,14 @@ class MyMovie:
         if self.iterableAttribute():
             self.index = 0
     
+    def __bool__(self) -> bool:
+        for k, v in self.items():
+            if k not in ['__typename', 'id', 'canonicalUrl']:
+                # Ensure at least one attribute is filled out.
+                if v:
+                    return True
+        return False
+
     def __add__(self, other):
         if not isinstance(other, type(self)):
             raise TypeError(f"{type(other)} cannot be added to {type(self)}.")

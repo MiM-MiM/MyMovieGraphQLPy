@@ -94,6 +94,8 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
     load_config_json()
     if limitAttributes and isinstance(limitAttributes, str):
         limitAttributes = [str(limitAttributes)]
+    elif not limitAttributes:
+        limitAttributes = []
     query, variables = generateSearch(searchName, limitAttributes=limitAttributes) # type: ignore
     query_variables = dict()
     for var in variables:

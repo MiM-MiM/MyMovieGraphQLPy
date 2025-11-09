@@ -27,8 +27,8 @@ def searchTitle(
         yearEnd: int = 0,
         dateStart: str = "",
         dateEnd: str = "",
-        sortBy: str = "RELEASE_DATE", # AdvancedTitleSearchSortBy
-        sortOrder: str = "DESC",
+        sortBy: str = "RANKING", # AdvancedTitleSearchSortBy
+        sortOrder: str = "ASC",
         limit: int = 25,
         offset: int = 0,
         pagnation: str = "",
@@ -200,8 +200,8 @@ def searchTitle(
 @beartype
 def searchName(
         name: str = "",
-        sortBy: str = "BIRTH_DATE", # AdvancedNameSearchSortBy ENUM
-        sortOrder: str = "DESC",
+        sortBy: str = "POPULARITY", # AdvancedNameSearchSortBy ENUM
+        sortOrder: str = "ASC",
         limit: int = 25,
         offset: int = 0,
         pagnation: str = "",

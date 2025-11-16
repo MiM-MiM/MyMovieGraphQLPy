@@ -172,7 +172,7 @@ def searchTitle(
             "goofMatchingConstraint": Constraints.goofMatchingConstraint(goof, goofType),
             "inTheatersConstraint": Constraints.inTheatersConstraint(theaterID, theaterAttribute, theaterStart, theaterEnd, theaterLocation, theaterLocationLatLong, theaterLocationRadius, theaterFavorite),
             "interestConstraint": Constraints.interestConstraint(interestID, interestType),
-            "keywordConstraint": Constraints.keywordConstraint(keyword, interestType),
+            "keywordConstraint": Constraints.keywordConstraint(keyword, keywordType),
             "languageConstraint": Constraints.languageConstraint(language, languageType, languagePrimary, languagePrimaryType, silent),
             "listConstraint": Constraints.listConstraint(inList, inPredefinedList, notInList, notInPredefinedList, inListType, inPredefinedListType),
             "myRatingConstraint": Constraints.myRatingConstraint(myRatingType, myRatingMin, myRatingMax),

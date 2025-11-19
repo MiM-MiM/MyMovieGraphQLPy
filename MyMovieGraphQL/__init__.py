@@ -60,6 +60,25 @@ class MyMovie:
         self.index: int | None = None
         if self.iterableAttribute():
             self.index = 0
+
+    def to_dict(self) -> dict:
+        """ Transforms the `MyMovie` object to a dict.
+            If the value is a MyMovie or a list of MyMovie's
+            it will call that objects `to_dict`.
+
+            Return:
+                dict: A dict of a recursively flattened dict of the
+                    `data` attribute in the object.
+        """
+        as_dict = dict()
+        for k, v in self.data.items():
+            if isinstance(v, MyMovie):
+                as_dict[k] = v.to_dict()
+            elif isinstance(v, list) and len(v) > 0 and isinstance(v[0], MyMovie):
+                as_dict[k] = [itm.to_dict() for itm in v]
+            else:
+                as_dict[k] = v
+        return as_dict
     
     def __bool__(self) -> bool:
         for k, v in self.items():

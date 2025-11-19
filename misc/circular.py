@@ -18,7 +18,7 @@ LIMITED = {
         "releaseYear", "titleText", "originalTitleText",
         "certificate", "primaryImage", "productionStatus",
         "ratingsSummary", "releaseDate", "runtime",
-        "spokenLanguages", "titleGenres",
+        "spokenLanguages", "titleGenres", "countriesOfOrigin"
     ],
     "Name": [
         "id", "canonicalUrl", "bio",
@@ -76,6 +76,10 @@ LIMITED = {
         "isAmazonAccount", "linkedAuthProviders", "preferredLanguage",
         "preferredStreamingProviders", "proStatus", "profile",
         "ratingsPrivacy", "staffStatus", "titleDisplay"
+    ],
+    "CreditedRole": [
+        "attributes", "category", "characters",
+        "id", "language", "text",
     ]
 }
 

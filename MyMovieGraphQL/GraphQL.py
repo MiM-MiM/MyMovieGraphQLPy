@@ -35,6 +35,8 @@ def setLocalCountryLanguage(
     if not (country and language):
         raise ValueError(f"Both the country and the language must be set, given: '{country=}', '{language=}'.")
     country = country.upper()
+    # Remove country code from language.
+    language = language.split('-')[0]
     # If the country isn't '-' (disabled) or "XOR" (original), validate the code.
     lang = Language.make(
         language=language,

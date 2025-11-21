@@ -5,7 +5,7 @@ from datetime import date
 from langcodes import Language
 import importlib.resources as resources
 from beartype import beartype
-from MyMovieGraphQL.__init__ import MyMovie
+from MyMovieGraphQL.MyMovie import MyMovie
 
 API_URL = "https://api.graphql.imdb.com/"
 HEADERS = {

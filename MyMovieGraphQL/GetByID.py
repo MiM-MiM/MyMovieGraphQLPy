@@ -1,5 +1,5 @@
-from MyMovieGraphQL import GraphQL, regex_in
-from MyMovieGraphQL.__init__ import MyMovie
+from MyMovieGraphQL import GraphQL
+from MyMovieGraphQL.MyMovie import MyMovie, regex_in
 from beartype import beartype
 
 @beartype

@@ -1,7 +1,7 @@
 import re
 from beartype import beartype
 from MyMovieGraphQL import Constraints, GraphQL
-from MyMovieGraphQL.__init__ import MyMovie
+from MyMovieGraphQL.MyMovie import MyMovie
 
 @beartype
 def sort(

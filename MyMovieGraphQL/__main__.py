@@ -45,7 +45,7 @@ Example:
     • Search only names for Nicolas Cage, restricting to only males.
         `python -m MyMovieGraphQL searchName "Nicolas Cage" gender=male`
     • Fetch by ID and then apply an update to get the akas.
-        `python -m MyMovieGraphQL getByID tt0012345 | update akas` # Fetches
+        `python -m MyMovieGraphQL getByID tt0012345 | update akas`
 
 Disclaimer:
     This interface is provided free of charge and is not intended to be used for commercial

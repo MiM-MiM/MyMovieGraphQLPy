@@ -27,6 +27,25 @@ Commands:
     • \033[4msearch\033[0m: The base search, `title` and `name` are both returned.
     • \033[4mnameSearch\033[0m: Search only names.
     • \033[4mtitleSearch\033[0m: Search only titles.
+    • \033[4mupdate\033[0m: Update the object, each additional argument is a field to update.
+
+Additional arguments:
+    • Searches use the form `argument1=value1 argument2=value2 ...`
+    • Updates are just the keys to be updated, `key1 key2 ...`
+
+Example:
+    • Fetch the base tt0012345 title object.
+        `python -m MyMovieGraphQL getByID tt0012345`
+    • Search both titles and names for Billy Madison
+        `python -m MyMovieGraphQL search "Billy Madison"`
+    • Search only titles for Billy Madison
+        `python -m MyMovieGraphQL searchTitle "Billy Madison"`
+    • Search only names for Nicolas Cage
+        `python -m MyMovieGraphQL searchName "Nicolas Cage"`
+    • Search only names for Nicolas Cage, restricting to only males.
+        `python -m MyMovieGraphQL searchName "Nicolas Cage" gender=male`
+    • Fetch by ID and then apply an update to get the akas.
+        `python -m MyMovieGraphQL getByID tt0012345 | update akas` # Fetches
 
 Disclaimer:
     This interface is provided free of charge and is not intended to be used for commercial

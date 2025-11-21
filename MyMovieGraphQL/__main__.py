@@ -82,21 +82,21 @@ def getByID() -> MyMovie:
 def search() -> MyMovie:
     if len(sys.argv) < 3:
         raise RuntimeError("Search requires at least the search term, followed by the arguments: `MovieGraphQL search term arg1=val1 arg2=val2 ...`")
-    term = sys.argv[2]
+    term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.search)
     return Search.search(term=term, **args)
 
 def nameSearch() -> MyMovie:
     if len(sys.argv) < 3:
         raise RuntimeError("Name search requires at least the search term, followed by the arguments: `MovieGraphQL searchName name arg1=val1 arg2=val2 ...`")
-    term = sys.argv[2]
+    term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.searchName)
     return Search.searchName(name=term, **args)
 
 def titleSearch() -> MyMovie:
     if len(sys.argv) < 3:
         raise RuntimeError("Title search requires at least the search term, followed by the arguments: `MovieGraphQL searchName title arg1=val1 arg2=val2 ...`")
-    term = sys.argv[2]
+    term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.searchTitle)
     return Search.searchTitle(title=term, **args)
 

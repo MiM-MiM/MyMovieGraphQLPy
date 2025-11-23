@@ -46,6 +46,56 @@ python -m pip install -e .
 python -m pip install -e --no-deps .
 ```
 
+## CLI Usage
+You can run the package as a module to use a small CLI that wraps common
+operations (fetch by ID, search, update, etc.). The commands print JSON to
+stdout so you can pipe or redirect the output as needed.
+
+### Examples:
+
+Fetch a title by ID and save to a file:
+```powershell
+python -m MyMovieGraphQL getByID tt0012345
+```
+
+Perform a main search (both titles and names) and pretty-print the result:
+```powershell
+python -m MyMovieGraphQL search "Billy Madison"
+```
+
+Search titles only (advanced title search):
+```powershell
+python -m MyMovieGraphQL titleSearch "Billy Madison" sortBy=RUNTIME sortOrder=DESC limit=10
+```
+
+Search names only (advanced name search):
+```powershell
+python -m MyMovieGraphQL nameSearch "Nicolas Cage" gender=male
+```
+
+Fetch by ID and then update to retrieve additional fields (reads JSON from stdin):
+```powershell
+python -m MyMovieGraphQL getByID tt0012345 | python -m MyMovieGraphQL update akas
+```
+Can use partial data, type and ID are required.
+```
+echo '{ "__typename": "Title", "id": "tt0012345"}' | python -m MyMovieGraphQL update akas
+```
+
+Environment variables that affect CLI behavior:
+
+- `MYMOVIEGRAPHQL_COUNTRY`: Country header used in API calls (default `US`).
+- `MYMOVIEGRAPHQL_LANGUAGE`: Language header used in API calls (default `en`).
+- `MYMOVIEGRAPHQL_INDENT`: JSON indent level for printed output (default `2`; set to `0` to disable pretty printing).
+- `MYMOVIEGRAPHQL_LOGLEVEL`: Logging level (e.g., `DEBUG`, `INFO`, `WARNING`).
+
+Notes:
+- CLI commands accept additional arguments as `key=value` pairs which are
+  coerced to the target function's parameter types where possible.
+- Use `python -m MyMovieGraphQL help` to print the built-in help text with
+  examples and available commands.
+
+
 # Notes
 The API although works publicly, is not documented for the public. The listed fields and arguments may not be complete. If you find one that should be listed please raise an issue with what it belongs to, even if you do not yet know any of the attributes or required arguments.
 

@@ -1,4 +1,12 @@
 
+"""Command-line interface for the MyMovieGraphQL package.
+
+This module implements a minimal CLI that exposes several convenience
+commands (``getByID``, ``search``, ``searchName``, ``searchTitle``,
+``update``) for interacting with IMDb's GraphQL API and printing JSON to
+stdout.
+"""
+
 from MyMovieGraphQL import GetByID, GraphQL, Search
 from MyMovieGraphQL.MyMovie import MyMovie
 from MyMovieGraphQL.logger import logger
@@ -77,12 +85,21 @@ GraphQL.setLocalCountryLanguage(country=COUNTRY, language=LANGUAGE)
 
 
 def getByID() -> MyMovie:
+    """Run the ``getByID`` CLI command.
+
+    Expects exactly one additional argument: the IMDb identifier to fetch.
+    """
     if len(sys.argv) != 3:
         raise RuntimeError(f"GetByID requires exactly one additional argument, {len(sys.argv)-2} given.\n`MovieGraphQL getByID tt1234567`")
     return GetByID.getByID(sys.argv[2])
 
 
 def search() -> MyMovie:
+    """Run the ``search`` CLI command.
+
+    Uses subsequent arguments as key=value pairs that are mapped into the
+    corresponding function parameters for ``Search.search``.
+    """
     if len(sys.argv) < 3:
         raise RuntimeError("Search requires at least the search term, followed by the arguments: `MovieGraphQL search term arg1=val1 arg2=val2 ...`")
     term = sys.argv[2].strip()
@@ -91,6 +108,10 @@ def search() -> MyMovie:
     return Search.search(term=term, **args)
 
 def nameSearch() -> MyMovie:
+    """Run the ``searchName`` CLI command.
+
+    Uses subsequent arguments as key=value pairs mapped to ``Search.searchName``.
+    """
     if len(sys.argv) < 3:
         raise RuntimeError("Name search requires at least the search term, followed by the arguments: `MovieGraphQL searchName name arg1=val1 arg2=val2 ...`")
     term = sys.argv[2].strip()
@@ -99,6 +120,10 @@ def nameSearch() -> MyMovie:
     return Search.searchName(name=term, **args)
 
 def titleSearch() -> MyMovie:
+    """Run the ``searchTitle`` CLI command.
+
+    Uses subsequent arguments as key=value pairs mapped to ``Search.searchTitle``.
+    """
     if len(sys.argv) < 3:
         raise RuntimeError("Title search requires at least the search term, followed by the arguments: `MovieGraphQL searchName title arg1=val1 arg2=val2 ...`")
     term = sys.argv[2].strip()
@@ -107,6 +132,11 @@ def titleSearch() -> MyMovie:
     return Search.searchTitle(title=term, **args)
 
 def update() -> MyMovie:
+    """Run the ``update`` CLI command.
+
+    Reads a JSON object from stdin and applies update keys passed on the
+    command line to fetch additional attributes.
+    """
     if len(sys.argv) < 3:
         raise RuntimeError(f"Update requires at least one additional argument, {len(sys.argv)-2} given.\n`MovieGraphQL update key1 key2`. The current data is input using stdin.")
     data = json.loads(sys.stdin.read())
@@ -119,6 +149,15 @@ def update() -> MyMovie:
     return obj
 
 def get_args(func: FunctionType) -> dict[str, Any]:
+    """Parse CLI key=value args and coerce them to the target function's types.
+
+    Args:
+        func (FunctionType): The function whose signature is used to coerce
+            CLI-provided values.
+
+    Returns:
+        dict[str, Any]: Keyword arguments ready to pass to ``func``.
+    """
     args_input = {}
     for input_arg in sys.argv[3:]:
         arg = input_arg.split("=")

@@ -1,9 +1,8 @@
-"""
-A module to provide a simpler interface to the
-GraphQL API provided by IMDb. The main `MyMovie`
-class is used to handle the response and generate
-some methods that may be used, such as `int` and `str`.
-`Search` and `GetByID` will return this object.
+"""Provide a simple wrapper type around IMDb GraphQL responses.
+
+The ``MyMovie`` type wraps the JSON response for a single GraphQL
+object and offers convenience methods for common conversions and
+traversal. ``Search`` and ``GetByID`` return this object.
 """
 
 from typing import Iterable, Any
@@ -15,17 +14,43 @@ from MyMovieGraphQL.logger import logger
 
 @dataclass
 class regex_in:
+    """Helper used to compare a string against a regex pattern.
+
+    Instances allow usage in structural pattern matching to test whether
+    the stored string matches a provided pattern.
+    Used for match case statements.
+    """
+    
     string: str
 
     def __eq__(self, other: str | re.Pattern):  # type: ignore
+        """Return True when ``other`` matches the stored string.
+
+        ``other`` may be a regex pattern or a string representing a
+        regular expression.
+        """
         if isinstance(other, str):
             other = re.compile(other)
         assert isinstance(other, re.Pattern)
         return other.fullmatch(self.string) is not None
 
 class MyMovie:
+    """Container for a GraphQL object returned by IMDb.
+
+    The class wraps a nested dict-like structure and provides methods to
+    inspect, convert and update the contained data.
+    """
+    
     @beartype
     def __init__(self, obj: dict) -> None:
+        """Initialize the ``MyMovie`` wrapper from a raw response dict.
+
+        Args:
+            obj (dict): The raw GraphQL object representation.
+
+        Raises:
+            ValueError: If ``obj`` is empty.
+        """
         if not obj:
             raise ValueError(f"MyMovie's object dict is empty.")
         self.data: dict[str, Any] = dict()
@@ -65,13 +90,14 @@ class MyMovie:
             logger.debug("Created MyMovie object <--- %s: %s ---> with %d attribute(s).", self.ofType, self.data.get('id'), len(self.data)-1)
 
     def to_dict(self) -> dict:
-        """ Transforms the `MyMovie` object to a dict.
-            If the value is a MyMovie or a list of MyMovie's
-            it will call that objects `to_dict`.
+        """Transform the `MyMovie` object to a dict.
 
-            Return:
-                dict: A dict of a recursively flattened dict of the
-                    `data` attribute in the object.
+        If a value is a ``MyMovie`` or a list of ``MyMovie`` instances, the
+        method will call that object's ``to_dict`` recursively.
+
+        Returns:
+            dict: A recursively flattened dict corresponding to the object's
+            ``data`` attribute.
         """
         as_dict = dict()
         for k, v in self.data.items():
@@ -84,6 +110,10 @@ class MyMovie:
         return as_dict
     
     def __bool__(self) -> bool:
+        """Return True if the object contains at least one meaningful value.
+
+        Ignores keys present when there is no data beyond IDs.
+        """
         for k, v in self.items():
             if k not in ['__typename', 'id', 'canonicalUrl']:
                 # Ensure at least one attribute is filled out.
@@ -92,6 +122,11 @@ class MyMovie:
         return False
 
     def __add__(self, other):
+        """Merge another ``MyMovie`` into this one and return the result.
+
+        The operation attempts to intelligently merge nested structures
+        and append paginated edges when present.
+        """
         if not isinstance(other, type(self)):
             raise TypeError(f"{type(other)} cannot be added to {type(self)}.")
         if self.ofType != other.ofType:
@@ -133,11 +168,19 @@ class MyMovie:
                previous: bool = False,
                variables: dict[str, str | int | float | dict | None] = {},
     ):
-        """ Update the object and return the updated values.
+        """Update the object and return the updated values.
+
         Args:
-           attribute(str | list): The attribute to be updated,
-                if not provided the base object must be a connection.
-            variables(dict): The variables to be used for running the update.
+            attribute (str | list): The attribute to be updated. If not
+                provided, the base object must be a connection.
+            previous (bool): Whether to fetch the previous page (for
+                connections).
+            variables (dict[str, str | int | float | dict | None]): Variables
+                to use when running the update.
+
+        Returns:
+            MyMovie | None: The updated ``MyMovie`` instance or ``None`` when
+            there is nothing to update.
         """
         # Sanity check
         GraphQL.load_config_json()
@@ -209,6 +252,10 @@ class MyMovie:
         return update
     
     def __hash__(self) -> int:
+        """Return a hash based on the contained ID.
+
+        Raises ``NotImplementedError`` when the object lacks an ID.
+        """
         id = self.data.get('id')
         if not id:
             raise NotImplementedError(f"{self.ofType} is not hashable.")
@@ -218,6 +265,11 @@ class MyMovie:
         return hash(id)
     
     def __eq__(self, other: object) -> bool:
+        """Compare two ``MyMovie`` objects for equality.
+
+        Objects are equal if they share the same type and either have the
+        same ID or identical data content.
+        """
         if self is other:
             return True
         if not isinstance(other, type(self)):
@@ -244,15 +296,28 @@ class MyMovie:
         return True
     
     def get(self, val, default: Any = None):
+        """Return the value for ``val`` from the internal data mapping.
+
+        Args:
+            val: Key to lookup.
+            default: Default when the key is missing.
+        """
         return self.data.get(val, default)
     
     def keys(self):
+        """Return an iterable of keys present in the wrapped data."""
         return self.data.keys()
     
     def items(self):
+        """Return an iterable of (key, value) pairs from the wrapped data."""
         return self.data.items()
     
     def __int__(self) -> int:
+        """Return an integer representation when a numeric field is present.
+
+        Attempts multiple common numeric fields and raises ``TypeError`` if
+        no suitable value is available.
+        """
         votePercentage = self.data.get('votePercentage')
         amount = self.data.get('amount')
         value = self.data.get('value')
@@ -286,6 +351,7 @@ class MyMovie:
         raise TypeError(f"{self.ofType} does not support int conversion.")
 
     def __float__(self) -> float:
+        """Return a float representation when a numeric field is present."""
         votePercentage = self.data.get('votePercentage')
         amount = self.data.get('amount')
         value = self.data.get('value')
@@ -322,6 +388,7 @@ class MyMovie:
         raise TypeError(f"{self.ofType} does not support float conversion.")
 
     def __repr__(self) -> str:
+        """Return a compact developer-friendly representation."""
         id = self.get('id')
         selfStr = self.__str__().replace(f"\n", ' ')
         if id is not None:
@@ -329,6 +396,7 @@ class MyMovie:
         return selfStr
     
     def __str__(self) -> str:
+        """Return a human-friendly string representation based on object type."""
         match regex_in(self.ofType):
             case 'Title':
                 return self._titleStr()
@@ -500,6 +568,7 @@ class MyMovie:
 
     @beartype
     def __getitem__(self, index: str | int):
+        """Retrieve a value by key or integer index for iterable attributes."""
         iterableAttribute = self.iterableAttribute()
         if iterableAttribute is not None and isinstance(index, int):
             node = list(iterableAttribute)[index]
@@ -513,17 +582,20 @@ class MyMovie:
 
     @beartype
     def __setitem__(self, index: str , val: Any):
+        """Assign ``val`` to the given string ``index`` key in the data mapping."""
         if not isinstance(index, str):
             raise TypeError("Index must be a string.")
         self.data[index] = val
 
     def __iter__(self) -> Iterable:
+        """Return an iterator over the iterable attribute if present."""
         attr = self.iterableAttribute()
         if attr is None:
             raise TypeError(f"'{self.ofType}' object is not iterable")
         return iter(attr)
     
     def __len__(self) -> int:
+        """Return the length of the iterable attribute when present."""
         attr = self.iterableAttribute()
         if attr is None:
             raise TypeError(f"'{self.ofType}' object has no len")
@@ -532,6 +604,7 @@ class MyMovie:
         return 0
 
     def __next__(self):
+        """Advance the internal iterator index and return the next value."""
         iterableAttribute = self.iterableAttribute()
         if iterableAttribute is None:
             raise TypeError(f"'{self.ofType}' object is not iterable")
@@ -545,6 +618,12 @@ class MyMovie:
         return value
 
     def iterableAttribute(self) -> Iterable[list] | None:
+        """Return an iterator over the primary iterable attribute, or ``None``.
+
+        If the wrapped object represents a connection, this returns an
+        iterator over node entities; otherwise, when the object contains a
+        single list attribute it returns an iterator over that list.
+        """
         if 'edges' in self.data.keys():
             edges = [
                 # main search will have an entity, which is the actual data.

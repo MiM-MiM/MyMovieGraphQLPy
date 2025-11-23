@@ -1,3 +1,9 @@
+"""Utility to fetch a `MyMovie` object by IMDb-style identifier.
+
+This module exposes a single function `getByID` which inspects the given
+identifier and dispatches to the appropriate GraphQL search.
+"""
+
 from MyMovieGraphQL import GraphQL
 from MyMovieGraphQL.logger import logger
 from MyMovieGraphQL.MyMovie import MyMovie, regex_in
@@ -5,6 +11,21 @@ from beartype import beartype
 
 @beartype
 def getByID(id: str) -> MyMovie:
+    """Fetch a `MyMovie` object given an IMDb-style identifier.
+
+    The function inspects the ID format (for example ``tt1234567`` for a
+    title or ``nm1234567`` for a name) and dispatches to the appropriate
+    GraphQL search.
+
+    Args:
+        id (str): The IMDb-style identifier to fetch.
+
+    Returns:
+        MyMovie: A `MyMovie` object representing the fetched entity.
+
+    Raises:
+        ValueError: If the ID format is not recognized.
+    """
     logger.info("Attempting to fetch by ID: %s", id)
     query_name = ""
     args = {

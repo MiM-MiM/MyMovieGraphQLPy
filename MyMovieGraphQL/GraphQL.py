@@ -1,3 +1,10 @@
+"""GraphQL helpers used to build and execute IMDb GraphQL requests.
+
+This module contains utilities to load introspection/configuration JSON,
+generate queries and searches, and execute them against IMDb's GraphQL
+endpoint.
+"""
+
 import json
 import re
 import requests
@@ -19,8 +26,7 @@ HEADERS = {
 
 DATA, LIMITED = {}, {}
 def load_config_json():
-    """Loads the config files only once.
-    """
+    """Load the config JSON files only once."""
     global DATA, LIMITED
     if not (DATA or LIMITED):
         logger.debug("Loading config introspection JSON config files.")
@@ -34,6 +40,15 @@ def setLocalCountryLanguage(
         country: str = HEADERS.get('x-imdb-user-country', 'US'),
         language: str = HEADERS.get('x-imdb-user-language', 'en-US'),
 ) -> None:
+    """Set local country and language headers used for API requests.
+
+    Args:
+        country (str): ISO country code (defaults to HEADERS setting).
+        language (str): Language code (defaults to HEADERS setting).
+
+    Raises:
+        ValueError: If the country/language combination is invalid.
+    """
     global HEADERS
     if not (country and language):
         raise ValueError(f"Both the country and the language must be set, given: '{country=}', '{language=}'.")
@@ -55,12 +70,16 @@ def setLocalCountryLanguage(
 
 @beartype
 def sanatizeArgumentDict(args: dict, base: bool = True):
-    """ Recursively sets the arguments to None if the child objects
-    are also empty. The base argument object keeps
+    """Recursively sanitize argument dicts by collapsing empty children to ``None``.
 
     Args:
-        args(dict, required): The args being sanatized.
-        base(bool, optional): The base arguments must remain even if null, this specifies that.
+        args (dict): The arguments being sanitized.
+        base (bool): When True, the top-level dict is always returned even if
+            it contains no non-empty values.
+
+    Returns:
+        dict | None: The sanitized dict or ``None`` when the dict and all
+        children are empty and ``base`` is False.
     """
     allMissing = True
     for arg in args:
@@ -81,21 +100,26 @@ def sanatizeArgumentDict(args: dict, base: bool = True):
 
 @beartype
 def isScalarOrEnum(obj: dict):
-    """Returns true if the object's kind is an ENUM or SCALAR (has no subfields)
+    """Return True if the object's kind is ``ENUM`` or ``SCALAR``.
 
     Args:
-        obj(dict, required): The dict of the type from the introspection.
+        obj (dict): The introspection dict describing the type.
     """
     # The return will handle attribute erors.
     return obj['kind'] in ['ENUM', 'SCALAR']
 
 @beartype
 def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> MyMovie:
-    """Generates and executes the given search/query.
+    """Generate and execute the given search/query.
 
     Args:
-        searchName (str, required): The query name to be ran.
-        kwargs: The args for the query.
+        searchName (str): The query name to run.
+        limitAttributes (str | list[str]): Optional list of attribute names to
+            limit the returned fields.
+        **kwargs: Additional variables passed to the query.
+
+    Returns:
+        MyMovie: The search result wrapped in a ``MyMovie`` object.
     """
     load_config_json()
     if limitAttributes and isinstance(limitAttributes, str):
@@ -158,21 +182,23 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
 
 @beartype
 def generateSearch(searchName: str, limitAttributes: list[str] = []) -> tuple[str, dict[str, str]]:
-    """Generates the search query and needed variables for a given search.
-    Each response will alias the query as `query` allowing for the searchName to be
-    case insensitive.
-    
+    """Generate the search query and the variables needed for a given search.
+
+    Each response will alias the query as ``query`` allowing the search name
+    to be case-insensitive.
+
     Args:
-       searchName (str, required): The name of the query to run,
-           i.e. mainSearch for the same type of response if typed into
-           the top search bar on imdb's website.
+        searchName (str): The name of the query to run (e.g. ``mainSearch``).
+        limitAttributes (list[str]): Optional list of attributes to limit the
+            returned fields.
+
     Returns:
-        str: The query itself to be ran
-        dict[str, str]: The dict of the variables:
-            {variable: type}
-            - variable names are prefixed to avoid colisions.
+        tuple[str, dict[str, str]]: A tuple where the first item is the query
+        string and the second is a dict mapping variable names to GraphQL
+        types (e.g. ``{"var": "Int!"}``).
+
     Raises:
-        ValueError: When the given search is not a valid option.
+        ValueError: If the given search name is not valid.
     """
     load_config_json()
     query = None
@@ -217,14 +243,18 @@ def generateQuery(object_name: str,
                   allow_limited: bool = False,
                   limitAttributes: list[str] = [],
 ) -> tuple[str, dict]:
-    """ Generates the subquery for the given type.
+    """Generate the subquery for a given GraphQL type.
+
     Args:
-        object_name(str, required): the object type to use.
-        allow_limited(bool, optional): default false.
-            Used to skip the check of blocking recursive types.
+        object_name (str): The object type to generate the subquery for.
+        allow_limited (bool): If True, allows limited fields (skips recursive
+            blocking checks).
+        limitAttributes (list[str]): Optional list of attribute names to limit
+            the generated fields.
+
     Returns:
-        str: The subquery
-        set[dict]: A set of dicts for the variables.
+        tuple[str, dict]: The subquery string and a dict of variables required
+        for the subquery.
     """
     load_config_json()
     object_variables = dict()

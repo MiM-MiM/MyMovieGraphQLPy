@@ -1,3 +1,12 @@
+"""Search helpers for high-level search operations.
+
+This module provides convenience functions for constructing search
+arguments and invoking GraphQL searches for titles, names, and
+general-purpose searches.
+
+Docstring style: Google style (``Args``, ``Returns``, ``Raises``).
+"""
+
 import re
 from beartype import beartype
 from MyMovieGraphQL import Constraints, GraphQL
@@ -10,6 +19,16 @@ def sort(
         sortBy: str = "", # Changes per sort, an ENUM
         sortOrder: str = "DESC",
 ) -> dict | None:
+    """Construct a sort specification for title/name searches.
+
+    Args:
+        sortBy (str): Sort field name or empty to omit sorting.
+        sortOrder (str): Sort order, typically ``'ASC'`` or ``'DESC'``.
+
+    Returns:
+        dict | None: A dict with ``'sortBy'`` and ``'sortOrder'`` keys or
+        ``None`` if no sorting should be applied.
+    """
     sort_by = {}
     sortOrder = sortOrder.upper()
     if sortBy and sortOrder:
@@ -138,7 +157,28 @@ def searchTitle(
         withData: str | list = "",  # TitleDataType ENUMs
         withDataMissing: str | list = "",
         withDataAny: str | list = "",
-) -> MyMovie:
+    ) -> MyMovie:
+    """Perform an advanced title search.
+
+    The function accepts a large number of optional parameters corresponding
+    to IMDb's advanced title search filters. Parameters are passed through
+    to the GraphQL backend after being converted into constraint dicts.
+    At least one of the parameters must be provided.
+
+    Args:
+        title (str): Title search text.
+        sortBy (str): Sort field name.
+        sortOrder (str): Sort order, ``'ASC'`` or ``'DESC'``.
+        limit (int): Maximum number of results to return.
+        offset (int): Offset for pagination.
+        ... (many other optional args)
+
+    Returns:
+        MyMovie: A `MyMovie` object representing the search results.
+
+    Raises:
+        ValueError: For invalid pagination or limit/offset values.
+    """
     if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
         raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
     if limit < 1:
@@ -257,7 +297,25 @@ def searchName(
         withData: str | list = "",  # NameDataType ENUMs
         withDataMissing: str | list = "",
         withDataAny: str | list = "",
-) -> MyMovie:
+    ) -> MyMovie:
+    """Perform an advanced name search.
+
+    See ``searchTitle`` for parameter semantics; this function targets the
+    advanced name search endpoint and converts provided arguments into
+    constraints.
+    At least one of the parameters must be provided.
+
+    Args:
+        name (str): Name search text.
+        sortBy (str): Sort field name.
+        sortOrder (str): Sort order, ``'ASC'`` or ``'DESC'``.
+        limit (int): Maximum number of results to return.
+        offset (int): Offset for pagination.
+        ... (many other optional args)
+
+    Returns:
+        MyMovie: A `MyMovie` object representing the results.
+    """
     if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
         raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
     if limit < 1:
@@ -313,7 +371,24 @@ def search(
         includeAdult: bool = True,
         exact: bool = False,
         isCustomerSelectable: bool = True,
-) -> MyMovie:
+    ) -> MyMovie:
+    """Perform a general main search across titles and names.
+
+    The search term is required. Other parameters control the types
+    of entities to search for and various filters, optional.
+
+    Args:
+        term (str): Search term.
+        searchType (str|list[str]): Types to search, e.g. ``['NAME','TITLE']``.
+        titleType (str|list[str]): Title subtypes when searching titles.
+        ... (many other optional args)
+
+    Returns:
+        MyMovie: A `MyMovie` object containing the search results.
+
+    Raises:
+        ValueError: If required parameters are missing or invalid.
+    """
     if not searchType:
         raise ValueError("The search type cannot be blank.")
     if limit < 1:

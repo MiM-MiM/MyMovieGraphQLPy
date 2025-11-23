@@ -1,3 +1,6 @@
 sphinx
 sphinx-rtd-theme
 sphinx-autodoc-typehints
+responses
+flake8
+pytest

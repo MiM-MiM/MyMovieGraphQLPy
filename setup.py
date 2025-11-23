@@ -1,12 +1,12 @@
 import setuptools
 
-DEV_PACKAGES = ["responses", "flake8", "pytest"]
+DEV_PACKAGES = ["responses", "flake8", "pytest", "sphinx", "sphinx-rtd-theme", "sphinx-autodoc-typehints"]
 
 setuptools.setup(
     name="MyMovieGraphQL",
     packages=["MyMovieGraphQL"],
     url="https://github.com/MiM-MiM/MyMovieGraphQLPy",
-    version="1.0.0-rc1",
+    version="1.0.0",
     description="Python3.10+ to fetch data from IMDb via the GraphQL API",
     author="MiM",
     keywords=["IMDb", "IMDbGraphQL", "GraphQL", "IMDbAPI", "API"],

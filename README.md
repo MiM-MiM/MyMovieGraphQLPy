@@ -54,27 +54,27 @@ stdout so you can pipe or redirect the output as needed.
 ### Examples:
 
 Fetch a title by ID and save to a file:
-```powershell
+```bash
 python -m MyMovieGraphQL getByID tt0012345
 ```
 
 Perform a main search (both titles and names) and pretty-print the result:
-```powershell
+```bash
 python -m MyMovieGraphQL search "Billy Madison"
 ```
 
 Search titles only (advanced title search):
-```powershell
+```bash
 python -m MyMovieGraphQL titleSearch "Billy Madison" sortBy=RUNTIME sortOrder=DESC limit=10
 ```
 
 Search names only (advanced name search):
-```powershell
+```bash
 python -m MyMovieGraphQL nameSearch "Nicolas Cage" gender=male
 ```
 
 Fetch by ID and then update to retrieve additional fields (reads JSON from stdin):
-```powershell
+```bash
 python -m MyMovieGraphQL getByID tt0012345 | python -m MyMovieGraphQL update akas
 ```
 Can use partial data, type and ID are required.

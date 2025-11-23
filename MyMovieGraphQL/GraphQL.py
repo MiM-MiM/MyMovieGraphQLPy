@@ -6,6 +6,8 @@ from langcodes import Language
 import importlib.resources as resources
 from beartype import beartype
 from MyMovieGraphQL.MyMovie import MyMovie
+from MyMovieGraphQL.logger import logger
+import logging
 
 API_URL = "https://api.graphql.imdb.com/"
 HEADERS = {
@@ -21,6 +23,7 @@ def load_config_json():
     """
     global DATA, LIMITED
     if not (DATA or LIMITED):
+        logger.debug("Loading config introspection JSON config files.")
         with resources.open_text('MyMovieGraphQL.data', 'INTROSPECTION.json') as f:
             DATA = json.load(f)
         with resources.open_text('MyMovieGraphQL.data', 'LIMITED.json') as f:
@@ -48,6 +51,7 @@ def setLocalCountryLanguage(
         "x-imdb-user-country": country,
         "x-imdb-user-language": str(lang),
     }
+    logger.debug("Set local country and language headers to: country=%s, language=%s", country, str(lang))
 
 @beartype
 def sanatizeArgumentDict(args: dict, base: bool = True):
@@ -141,6 +145,10 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
         'query': query,
         'variables': query_variables
     }
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Executing search '%s' with variables: %s", searchName, query_variables)
+    else:
+        logger.info("Executing search '%s'.", searchName)
     r = requests.post(url=API_URL, json=query_arg, headers=HEADERS).json()
     errors = r.get('errors')
     if errors:

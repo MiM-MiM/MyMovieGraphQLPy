@@ -2,6 +2,8 @@ import re
 from beartype import beartype
 from MyMovieGraphQL import Constraints, GraphQL
 from MyMovieGraphQL.MyMovie import MyMovie
+from MyMovieGraphQL.logger import logger
+import logging
 
 @beartype
 def sort(
@@ -195,7 +197,15 @@ def searchTitle(
             "withTitleDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
         }
     }
-    return GraphQL.search('advancedTitleSearch', **args)
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("SearchTitle called with args: %s", args)
+    elif title:
+        logger.info("SearchTitle called with title: '%s'", title)
+    else:
+        logger.info("SearchTitle called with arguments other than a title.")
+    obj = GraphQL.search('advancedTitleSearch', **args)
+    logger.info("SearchTitle returned %d results.", len(obj))
+    return obj
 
 @beartype
 def searchName(
@@ -278,7 +288,16 @@ def searchName(
                 "withNameDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
             }
     }
-    return GraphQL.search('advancedNameSearch', **args)
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("SearchName called with args: %s", args)
+    elif name:
+        logger.info("SearchName called with name: '%s'", name)
+    else:
+        logger.info("SearchName called with arguments other than a name.")
+    obj = GraphQL.search('advancedNameSearch', **args)
+    logger.info("SearchName returned %d results.", len(obj))
+    return obj
+
 
 @beartype
 def search(
@@ -332,4 +351,12 @@ def search(
     # If we aren't searching for a title, this must be removed.
     if "TITLE" not in searchType:
         args["options"]["titleSearchOptions"] = None
-    return GraphQL.search('mainSearch', **args)
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("MainSearch called with args: %s", args)
+    elif term:
+        logger.info("MainSearch called with term: '%s'", term)
+    else:
+        logger.info("MainSearch called with arguments other than a term.")
+    obj = GraphQL.search('mainSearch', **args)
+    logger.info("MainSearch returned %d results.", len(obj))
+    return obj

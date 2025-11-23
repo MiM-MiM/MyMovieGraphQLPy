@@ -1,9 +1,11 @@
 from MyMovieGraphQL import GraphQL
+from MyMovieGraphQL.logger import logger
 from MyMovieGraphQL.MyMovie import MyMovie, regex_in
 from beartype import beartype
 
 @beartype
 def getByID(id: str) -> MyMovie:
+    logger.info("Attempting to fetch by ID: %s", id)
     query_name = ""
     args = {
         "id": id,

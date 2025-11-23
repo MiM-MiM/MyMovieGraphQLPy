@@ -1,6 +1,7 @@
 
 from MyMovieGraphQL import GetByID, GraphQL, Search
 from MyMovieGraphQL.MyMovie import MyMovie
+from MyMovieGraphQL.logger import logger
 import os, sys, json
 import inspect
 from types import UnionType, FunctionType
@@ -20,6 +21,7 @@ Environment Variables:
     • \033[4mMYMOVIEGRAPHQL_COUNTRY\033[0m: Change the country used in the API call, default US.
     • \033[4mMYMOVIEGRAPHQL_LANGUAGE\033[0m: Change the language used in the API call, default en.
     • \033[4mMYMOVIEGRAPHQL_INDENT\033[0m: Change the indent size, defualt 2. 0 Disables indentation.
+    • \033[4mMYMOVIEGRAPHQL_LOGLEVEL\033[0m: Change the log level, default INFO. Options are DEBUG, INFO, WARNING, ERROR, CRITICAL.
 
 Commands:
     • \033[4mhelp\033[0m: Print this help message.
@@ -61,6 +63,7 @@ if len(sys.argv) == 1:
 COUNTRY = os.environ.get('MYMOVIEGRAPHQL_COUNTRY', 'US')
 LANGUAGE = os.environ.get('MYMOVIEGRAPHQL_LANGUAGE', 'en')
 INDENT = os.environ.get('MYMOVIEGRAPHQL_INDENT', 2)
+logger.setLevel(level=os.environ.get('MYMOVIEGRAPHQL_LOGLEVEL', 'INFO').upper())
 
 if isinstance(INDENT, str):
     try:
@@ -84,6 +87,7 @@ def search() -> MyMovie:
         raise RuntimeError("Search requires at least the search term, followed by the arguments: `MovieGraphQL search term arg1=val1 arg2=val2 ...`")
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.search)
+    logger.info("Main search called with term: '%s' and args: %s", term, args)
     return Search.search(term=term, **args)
 
 def nameSearch() -> MyMovie:
@@ -91,6 +95,7 @@ def nameSearch() -> MyMovie:
         raise RuntimeError("Name search requires at least the search term, followed by the arguments: `MovieGraphQL searchName name arg1=val1 arg2=val2 ...`")
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.searchName)
+    logger.info("Name search called with term: '%s' and args: %s", term, args)
     return Search.searchName(name=term, **args)
 
 def titleSearch() -> MyMovie:
@@ -98,6 +103,7 @@ def titleSearch() -> MyMovie:
         raise RuntimeError("Title search requires at least the search term, followed by the arguments: `MovieGraphQL searchName title arg1=val1 arg2=val2 ...`")
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.searchTitle)
+    logger.info("Title search called with term: '%s' and args: %s", term, args)
     return Search.searchTitle(title=term, **args)
 
 def update() -> MyMovie:
@@ -106,6 +112,7 @@ def update() -> MyMovie:
     data = json.loads(sys.stdin.read())
     if not (data.get('__typename') or data.get('id')):
         raise ValueError("The given input does not contain a type and id.")
+    logger.info("Given initial object <--- %s: %s --->", data.get('__typename'), data.get('id'))
     obj = MyMovie(data)
     for upd in sys.argv[2:]:
         obj.update(upd.strip())
@@ -115,9 +122,18 @@ def get_args(func: FunctionType) -> dict[str, Any]:
     args_input = {}
     for input_arg in sys.argv[3:]:
         arg = input_arg.split("=")
+        arg_name = arg[0].strip().lower()
         if len(arg) < 2:
+            logger.warning("Ignoring argument not in key=value format: '%s'", arg_name)
             continue
-        args_input[arg[0].strip().lower()] = "=".join(arg[1:]).strip()
+        if arg_name in args_input:
+            logger.warning("Ignoring duplicate argument: '%s'", arg_name)
+            continue
+        arg_value = "=".join(arg[1:]).strip()
+        if not arg_value:
+            logger.warning("Ignoring argument with no value: '%s'", arg_name)
+            continue
+        args_input[arg_name] = arg_value
     args = {}
     sig = inspect.signature(func)
     for param_name, param in sig.parameters.items():
@@ -129,6 +145,10 @@ def get_args(func: FunctionType) -> dict[str, Any]:
             args[param_name] = args_input[param_name.lower()].lower() not in {'f', 'false', '0'}
         else:
             args[param_name] = param.annotation(args_input[param_name.lower()])
+    for args_input_key in args_input.keys():
+        detected_args = [arg.lower() for arg in args.keys()]
+        if args_input_key.lower() not in detected_args:
+            logger.warning("Ignoring unknown argument: '%s'", args_input_key)
     return args
 
 obj = MyMovie({'__typename': 'None'})

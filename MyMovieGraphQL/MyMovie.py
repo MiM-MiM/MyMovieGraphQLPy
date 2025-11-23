@@ -11,6 +11,7 @@ import re
 from dataclasses import dataclass
 from beartype import beartype
 from MyMovieGraphQL import GraphQL
+from MyMovieGraphQL.logger import logger
 
 @dataclass
 class regex_in:
@@ -60,6 +61,8 @@ class MyMovie:
         self.index: int | None = None
         if self.iterableAttribute():
             self.index = 0
+        if self.data.get('id'):
+            logger.debug("Created MyMovie object <--- %s: %s ---> with %d attribute(s).", self.ofType, self.data.get('id'), len(self.data)-1)
 
     def to_dict(self) -> dict:
         """ Transforms the `MyMovie` object to a dict.
@@ -199,6 +202,10 @@ class MyMovie:
         if not isinstance(update, type(self)) or update is None:
             raise ValueError(f"Updating {self.ofType} failed...")
         self += update
+        if update:
+            logger.info("Updated <--- %s: %s ---> with %d new attributes.", self.ofType, self.data.get('id'), len(update.data))
+        else:
+            logger.info("No update for <--- %s: %s --->.", self.ofType, self.data.get('id'))
         return update
     
     def __hash__(self) -> int:

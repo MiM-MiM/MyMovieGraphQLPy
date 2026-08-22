@@ -88,12 +88,14 @@ Environment variables that affect CLI behavior:
 - `MYMOVIEGRAPHQL_LANGUAGE`: Language header used in API calls (default `en`).
 - `MYMOVIEGRAPHQL_INDENT`: JSON indent level for printed output (default `2`; set to `0` to disable pretty printing).
 - `MYMOVIEGRAPHQL_LOGLEVEL`: Logging level (e.g., `DEBUG`, `INFO`, `WARNING`).
+- `MYMOVIEGRAPHQL_LIVE`: When set to anything it will use the live endpoint rather than the cached one.
 
 Notes:
 - CLI commands accept additional arguments as `key=value` pairs which are
   coerced to the target function's parameter types where possible.
 - Use `python -m MyMovieGraphQL help` to print the built-in help text with
   examples and available commands.
+- Default uses the cached endpoint, caching.graphql.imdb.com
 
 
 # Notes

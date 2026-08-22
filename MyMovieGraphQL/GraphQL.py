@@ -5,6 +5,7 @@ generate queries and searches, and execute them against IMDb's GraphQL
 endpoint.
 """
 
+import os
 import json
 import re
 import requests
@@ -16,11 +17,14 @@ from MyMovieGraphQL.MyMovie import MyMovie
 from MyMovieGraphQL.logger import logger
 import logging
 
-API_URL = "https://api.graphql.imdb.com/"
+API_URL = "https://caching.graphql.imdb.com/"
+if "MYMOVIEGRAPHQL_LIVE" in os.environ:
+    API_URL = "https://api.graphql.imdb.com/"
 HEADERS = {
     "Content-Type": "application/json",
     "x-imdb-user-country": "US",
     "x-imdb-user-language": "en-US",
+    "x-imdb-client-name": "imdb-web-next",
 }
 #x-imdb-customer-id, x-imdb-client-name
 

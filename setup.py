@@ -6,7 +6,7 @@ setuptools.setup(
     name="MyMovieGraphQL",
     packages=["MyMovieGraphQL"],
     url="https://github.com/MiM-MiM/MyMovieGraphQLPy",
-    version="1.0.0",
+    version="1.0.1",
     description="Python3.10+ to fetch data from IMDb via the GraphQL API",
     author="MiM",
     keywords=["IMDb", "IMDbGraphQL", "GraphQL", "IMDbAPI", "API"],

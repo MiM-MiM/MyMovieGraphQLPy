@@ -54,7 +54,7 @@ class MyMovie:
             ValueError: If ``obj`` is empty.
         """
         if not obj:
-            raise ValueError(f"MyMovie's object dict is empty.")
+            raise ValueError("MyMovie's object dict is empty.")
         self.data: dict[str, Any] = dict()
         self.ofType: str = obj.get("__typename", "MissingTypeName")
         baseTypePrefix = f"{self.ofType}_"
@@ -412,7 +412,7 @@ class MyMovie:
     def __repr__(self) -> str:
         """Return a compact developer-friendly representation."""
         id = self.get("id")
-        selfStr = self.__str__().replace(f"\n", " ")
+        selfStr = self.__str__().replace("\n", " ")
         if id is not None:
             return f"<--- {self.ofType} ({id}): {selfStr} --->"
         return selfStr

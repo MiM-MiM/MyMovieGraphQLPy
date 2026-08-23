@@ -43,14 +43,14 @@ def getByID(id: str) -> MyMovie:
             query_name = "company"
         case "creditCategory":
             query_name = "creditCategory"
-            raise NotImplemented(
+            raise NotImplementedError(
                 "creditCategory is not yet implemented, unknown ID format."
             )
         case r"rm\d{7,}":
             query_name = "image"
         case r"imageGallery":
             query_name = "imageGallery"
-            raise NotImplemented(
+            raise NotImplementedError(
                 "imageGallery is not yet implemented, unknown ID format."
             )
         case r"in\d{7,}":

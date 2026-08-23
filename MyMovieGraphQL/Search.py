@@ -183,7 +183,9 @@ def searchTitle(
     """
     if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
         raise ValueError(
-            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
+            "Pagination does not look to be valid, "
+            "expected a base64 like string, [A-Za-z0-9=] "
+            f"with optional equals at the end, '{pagnation}' given."
         )
     if limit < 1:
         raise ValueError(f"Limit must be >= 1, `{limit}` passed")
@@ -415,7 +417,9 @@ def searchName(
     """
     if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
         raise ValueError(
-            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
+            "Pagination does not look to be valid, "
+            "expected a base64 like string, [A-Za-z0-9=] "
+            f"with optional equals at the end, '{pagnation}' given."
         )
     if limit < 1:
         raise ValueError(f"Limit must be >= 1, `{limit}` passed")
@@ -523,7 +527,9 @@ def search(
         raise ValueError(f"The limit must be at least one, {limit} given")
     if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
         raise ValueError(
-            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
+            "Pagination does not look to be valid, "
+            "expected a base64 like string, [A-Za-z0-9=] "
+            f"with optional equals at the end, '{pagnation}' given."
         )
     if isinstance(searchType, str):
         searchType = [searchType]

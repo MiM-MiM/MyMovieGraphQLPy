@@ -217,7 +217,7 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
     r = orjson.loads(r.content)
     errors = r.get("errors")
     if errors:
-        error_messages = f"\n".join([str(e) for e in errors])
+        error_messages = "\n".join([str(e) for e in errors])
         raise ValueError(
             f"Query failed to execute ({len(errors)} errors):\n{'-'*40}\n{error_messages}\n{'-'*40}"
         )
@@ -282,8 +282,10 @@ def generateSearch(
         variables[arg_name] = arg_type
         input_variables_types.append(f"${arg_name}: {arg_type}")
     input_variables_str = ", ".join(input_variables)
-    input_variables_types_str = f", ".join(input_variables_types)
-    search_query = f"query query({input_variables_types_str}) {{ query: {searchName}({input_variables_str}){{ __typename {sub_query} }} }}"
+    input_variables_types_str = ", ".join(input_variables_types)
+    search_query = f"""query query({input_variables_types_str}) {{
+        query: {searchName}({input_variables_str}){{ __typename {sub_query} }}
+    }}"""
     return search_query, variables
 
 

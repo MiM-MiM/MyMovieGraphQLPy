@@ -18,11 +18,11 @@ from beartype import beartype
 
 
 @beartype
-def _getFromListIfExists(l: list, idx: int) -> Any | None:
+def _getFromListIfExists(lst: list, idx: int) -> Any | None:
     """Return the list element at ``idx`` or ``None`` if out of range.
 
     Args:
-        l (list): The list to read from.
+        lst (list): The list to read from.
         idx (int): The index to retrieve.
 
     Returns:
@@ -30,7 +30,7 @@ def _getFromListIfExists(l: list, idx: int) -> Any | None:
         out of range.
     """
     try:
-        return l[idx]
+        return lst[idx]
     except IndexError:
         return None
 
@@ -134,11 +134,11 @@ def birthDateConstraint(
     if birthdayRangeStart and not re.fullmatch(
         r"\d{4}-\d{2}-\d{2}", birthdayRangeStart
     ):
-        raise ValueError(f"The start date is not of the correct form, yy-mm-dd")
+        raise ValueError("The start date is not of the correct form, yy-mm-dd")
     if birthdayRangeEnd and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", birthdayRangeEnd):
-        raise ValueError(f"The end date is not of the correct form, yy-mm-dd")
+        raise ValueError("The end date is not of the correct form, yy-mm-dd")
     if birthday and not re.fullmatch(r"(--)?\d{2}-\d{2}", birthday):
-        raise ValueError(f"The birthday is not of the correct form, mm-dd or --mm-dd")
+        raise ValueError("The birthday is not of the correct form, mm-dd or --mm-dd")
     constraint = {}
     birthday = "--" + birthday.removeprefix("--")
     if birthday and len(birthday) == 7:
@@ -387,9 +387,9 @@ def deathDateConstraint(
         ValueError: When date formats are invalid.
     """
     if deathDate and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", deathDate):
-        raise ValueError(f"The death date is not of the correct form, yy-mm-dd")
+        raise ValueError("The death date is not of the correct form, yy-mm-dd")
     if deathDateEnd and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", deathDateEnd):
-        raise ValueError(f"The death date end is not of the correct form, yy-mm-dd")
+        raise ValueError("The death date end is not of the correct form, yy-mm-dd")
     constraint = {}
     if deathDate or deathDateEnd:
         constraint["deathDateRange"] = {
@@ -652,7 +652,7 @@ def inTheatersConstraint(
         ValueError: For invalid date formats or inconsistent location args.
     """
     if theaterEnd and not theaterStart:
-        raise ValueError(f"You must have a start if you have an end date.")
+        raise ValueError("You must have a start if you have an end date.")
     allowedDictKeys: set[str] = {"lat", "long"}
     if isinstance(theaterLocationLatLong, dict):
         if any([key not in allowedDictKeys for key in theaterLocationLatLong.keys()]):
@@ -660,13 +660,13 @@ def inTheatersConstraint(
                 f"Certificate contained more keys than allowed, {allowedDictKeys}."
             )
     if theaterStart and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", theaterStart):
-        raise ValueError(f"The start date is not of the correct form, yy-mm-dd")
+        raise ValueError("The start date is not of the correct form, yy-mm-dd")
     if theaterEnd and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", theaterEnd):
-        raise ValueError(f"The end date is not of the correct form, yy-mm-dd")
+        raise ValueError("The end date is not of the correct form, yy-mm-dd")
     lat = theaterLocationLatLong.get("lat")
     long = theaterLocationLatLong.get("long")
     if bool(lat) ^ bool(long):
-        raise ValueError(f"Either both latitude and longitude are passed or none.")
+        raise ValueError("Either both latitude and longitude are passed or none.")
     if theaterLocationRadius < 1:
         raise ValueError(
             f"The radius must be a positive integer {theaterLocationRadius}"
@@ -1099,13 +1099,13 @@ def releaseDateConstraint(
         ValueError: When incompatible or invalid date arguments are given.
     """
     if year and dateStart:
-        raise ValueError(f"You can only pass a start date or a year, not both.")
+        raise ValueError("You can only pass a start date or a year, not both.")
     if yearEnd and dateEnd:
-        raise ValueError(f"You can only pass a end date or a year, not both.")
+        raise ValueError("You can only pass a end date or a year, not both.")
     if dateStart and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", dateStart):
-        raise ValueError(f"The start date is not of the correct form, yy-mm-dd")
+        raise ValueError("The start date is not of the correct form, yy-mm-dd")
     if dateEnd and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", dateEnd):
-        raise ValueError(f"The end date is not of the correct form, yy-mm-dd")
+        raise ValueError("The end date is not of the correct form, yy-mm-dd")
     # If you only give a year, do start and end of that year.
     # Otherwise you can specify yearEnd or more exact dates.
     constraint = {}
@@ -1367,18 +1367,12 @@ def titleCreditsConstraint(
             for i in range(0, maxLength):
                 constraint[constraintName].append(
                     {
-                        "character": _getFromListIfExists(
-                            creditCharacter, i
-                        ),  # pyright: ignore[reportArgumentType]
-                        "creditCategory": _getFromListIfExists(
-                            creditCategory, i
-                        ),  # pyright: ignore[reportArgumentType]
-                        "jobCategory": _getFromListIfExists(
-                            creditJobCategory, i
-                        ),  # pyright: ignore[reportArgumentType]
-                        "nameId": _getFromListIfExists(
-                            creditNameID, i
-                        ),  # pyright: ignore[reportArgumentType]
+                        # fmt: off
+                        "character": _getFromListIfExists(creditCharacter, i),  # pyright: ignore[reportArgumentType]
+                        "creditCategory": _getFromListIfExists(creditCategory, i),  # pyright: ignore[reportArgumentType]
+                        "jobCategory": _getFromListIfExists(creditJobCategory, i),  # pyright: ignore[reportArgumentType]
+                        "nameId": _getFromListIfExists(creditNameID, i),  # pyright: ignore[reportArgumentType]
+                        # fmt: on
                     }
                 )
     return constraint or None

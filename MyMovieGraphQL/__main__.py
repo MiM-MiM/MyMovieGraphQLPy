@@ -9,7 +9,9 @@ stdout.
 from MyMovieGraphQL import GetByID, GraphQL, Search
 from MyMovieGraphQL.MyMovie import MyMovie
 from MyMovieGraphQL.logger import logger
-import os, sys, orjson
+import os
+import sys
+import orjson
 import inspect
 from types import UnionType, FunctionType
 from typing import Any
@@ -17,7 +19,7 @@ from typing import Any
 if __name__ != "__main__":
     raise RuntimeError("This is not to be called indirectly.")
 
-HELP = f"""
+HELP = """
 \033[4mMyMovieGraphQL\033[0m is a simplified interface for generating the GraphQL
 requests to IMDb (Internet Movie Database). Calling the module directly
 is capable of simple searches and fetching by ID. Returned to stdout
@@ -61,7 +63,7 @@ Disclaimer:
     and/or for profit projects. If you wish to use this implementation for that, you must
     comply with IMDb's terms for gaining access for that type.
     https://developer.imdb.com/documentation/api-documentation/getting-access/?ref_=up_next
-"""
+"""  # noqa: E501
 
 if len(sys.argv) == 1:
     sys.stdout.write(HELP)
@@ -102,7 +104,8 @@ def search() -> MyMovie:
     """
     if len(sys.argv) < 3:
         raise RuntimeError(
-            "Search requires at least the search term, followed by the arguments: `MovieGraphQL search term arg1=val1 arg2=val2 ...`"
+            "Search requires at least the search term, "
+            "followed by the arguments: `MovieGraphQL search term arg1=val1 arg2=val2 ...`"
         )
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.search)
@@ -117,7 +120,8 @@ def nameSearch() -> MyMovie:
     """
     if len(sys.argv) < 3:
         raise RuntimeError(
-            "Name search requires at least the search term, followed by the arguments: `MovieGraphQL searchName name arg1=val1 arg2=val2 ...`"
+            "Name search requires at least the search term, "
+            "followed by the arguments: `MovieGraphQL searchName name arg1=val1 arg2=val2 ...`"
         )
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.searchName)
@@ -132,7 +136,8 @@ def titleSearch() -> MyMovie:
     """
     if len(sys.argv) < 3:
         raise RuntimeError(
-            "Title search requires at least the search term, followed by the arguments: `MovieGraphQL searchName title arg1=val1 arg2=val2 ...`"
+            "Title search requires at least the search term, "
+            "followed by the arguments: `MovieGraphQL searchName title arg1=val1 arg2=val2 ...`"
         )
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.searchTitle)
@@ -148,7 +153,9 @@ def update() -> MyMovie:
     """
     if len(sys.argv) < 3:
         raise RuntimeError(
-            f"Update requires at least one additional argument, {len(sys.argv)-2} given.\n`MovieGraphQL update key1 key2`. The current data is input using stdin."
+            "Update requires at least one additional argument, "
+            f"{len(sys.argv)-2} given.\n`MovieGraphQL update key1 key2`. "
+            "The current data is input using stdin."
         )
     data = orjson.loads(sys.stdin.buffer.read())
     if not (data.get("__typename") or data.get("id")):

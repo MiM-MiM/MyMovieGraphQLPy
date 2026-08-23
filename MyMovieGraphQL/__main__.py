@@ -150,7 +150,6 @@ def update() -> MyMovie:
         raise RuntimeError(
             f"Update requires at least one additional argument, {len(sys.argv)-2} given.\n`MovieGraphQL update key1 key2`. The current data is input using stdin."
         )
-    #data = json.loads(sys.stdin.read())
     data = orjson.loads(sys.stdin.buffer.read())
     if not (data.get("__typename") or data.get("id")):
         raise ValueError("The given input does not contain a type and id.")

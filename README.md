@@ -28,7 +28,7 @@ This install uses the requirements.txt with hashes specified to ensure known goo
 # Activate venv first if used.
 # Navigate to cloned folder, `cd MyMovieGraphQLPy`
 python -m pip install -r requirements.txt --require-hashes
-python -m pip install --no-deps .
+python -m pip install . --no-deps
 ```
 See [Secure installs](https://pip.pypa.io/en/stable/topics/secure-installs/) for more information.
 
@@ -43,7 +43,7 @@ Add `-e` after `install`.
 ```bash
 python -m pip install -e .
 # Or 
-python -m pip install -e --no-deps .
+python -m pip install -e . --no-deps
 ```
 
 ## CLI Usage

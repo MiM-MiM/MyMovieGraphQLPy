@@ -7,6 +7,7 @@ endpoint.
 
 import os
 import json
+import orjson
 import re
 import requests
 from datetime import date
@@ -15,7 +16,9 @@ import importlib.resources as resources
 from beartype import beartype
 from MyMovieGraphQL.MyMovie import MyMovie
 from MyMovieGraphQL.logger import logger
+from MyMovieGraphQL.UserAgent import get_user_agent
 import logging
+import time
 
 API_URL = "https://caching.graphql.imdb.com/"
 if "MYMOVIEGRAPHQL_LIVE" in os.environ:
@@ -25,24 +28,37 @@ HEADERS = {
     "x-imdb-user-country": "US",
     "x-imdb-user-language": "en-US",
     "x-imdb-client-name": "imdb-web-next",
+    "User-Agent": get_user_agent(),
+    "Connection": "close",
+    "Accept": "application/json",
+    "Origin": "https://imdb.com",
+    "Referer": "https://imdb.com/",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-site",
+    "Accept-Encoding": "gzip, deflate",  # brotli on average seems to make it slower on average, disabled.
 }
-#x-imdb-customer-id, x-imdb-client-name
+# x-imdb-customer-id
 
 DATA, LIMITED = {}, {}
+
+
 def load_config_json():
     """Load the config JSON files only once."""
     global DATA, LIMITED
+    # orjson is slower reading the config
     if not (DATA or LIMITED):
         logger.debug("Loading config introspection JSON config files.")
-        with resources.open_text('MyMovieGraphQL.data', 'INTROSPECTION.json') as f:
+        with resources.open_text("MyMovieGraphQL.data", "INTROSPECTION.json") as f:
             DATA = json.load(f)
-        with resources.open_text('MyMovieGraphQL.data', 'LIMITED.json') as f:
+        with resources.open_text("MyMovieGraphQL.data", "LIMITED.json") as f:
             LIMITED = json.load(f)
+
 
 @beartype
 def setLocalCountryLanguage(
-        country: str = HEADERS.get('x-imdb-user-country', 'US'),
-        language: str = HEADERS.get('x-imdb-user-language', 'en-US'),
+    country: str = HEADERS.get("x-imdb-user-country", "US"),
+    language: str = HEADERS.get("x-imdb-user-language", "en-US"),
 ) -> None:
     """Set local country and language headers used for API requests.
 
@@ -55,14 +71,15 @@ def setLocalCountryLanguage(
     """
     global HEADERS
     if not (country and language):
-        raise ValueError(f"Both the country and the language must be set, given: '{country=}', '{language=}'.")
+        raise ValueError(
+            f"Both the country and the language must be set, given: '{country=}', '{language=}'."
+        )
     country = country.upper()
     # Remove country code from language.
-    language = language.split('-')[0]
+    language = language.split("-")[0]
     # If the country isn't '-' (disabled) or "XOR" (original), validate the code.
     lang = Language.make(
-        language=language,
-        territory=country if country not in ["-", "XOR"] else None
+        language=language, territory=country if country not in ["-", "XOR"] else None
     )
     if not lang.is_valid():
         raise ValueError(f"The given country/language combination is invalid: {lang}")
@@ -70,7 +87,12 @@ def setLocalCountryLanguage(
         "x-imdb-user-country": country,
         "x-imdb-user-language": str(lang),
     }
-    logger.debug("Set local country and language headers to: country=%s, language=%s", country, str(lang))
+    logger.debug(
+        "Set local country and language headers to: country=%s, language=%s",
+        country,
+        str(lang),
+    )
+
 
 @beartype
 def sanatizeArgumentDict(args: dict, base: bool = True):
@@ -102,6 +124,7 @@ def sanatizeArgumentDict(args: dict, base: bool = True):
         return args
     return args if not allMissing else None
 
+
 @beartype
 def isScalarOrEnum(obj: dict):
     """Return True if the object's kind is ``ENUM`` or ``SCALAR``.
@@ -110,7 +133,8 @@ def isScalarOrEnum(obj: dict):
         obj (dict): The introspection dict describing the type.
     """
     # The return will handle attribute erors.
-    return obj['kind'] in ['ENUM', 'SCALAR']
+    return obj["kind"] in ["ENUM", "SCALAR"]
+
 
 @beartype
 def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> MyMovie:
@@ -130,62 +154,80 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
         limitAttributes = [str(limitAttributes)]
     elif not limitAttributes:
         limitAttributes = []
-    query, variables = generateSearch(searchName, limitAttributes=limitAttributes) # type: ignore
+    query, variables = generateSearch(searchName, limitAttributes=limitAttributes)  # type: ignore
     query_variables = dict()
     for var in variables:
         variable_type = variables[var]
         if var in kwargs:
             query_variables[var] = kwargs[var]
-        elif '!' in variable_type:
-            var_clean_name = re.sub(r'[\[\]\!]', '', variable_type)
+        elif "!" in variable_type:
+            var_clean_name = re.sub(r"[\[\]\!]", "", variable_type)
             match var_clean_name:
-                case 'Int':
+                case "Int":
                     query_variables[var] = 25
-                case 'String':
-                    query_variables[var] = 'Missing'
-                case 'Boolean':
+                case "String":
+                    query_variables[var] = "Missing"
+                case "Boolean":
                     query_variables[var] = True
-                case 'Float':
+                case "Float":
                     query_variables[var] = 0.0
-                case 'Date':
+                case "Date":
                     query_variables[var] = str(date.today())
                 case _:
                     if var_clean_name in DATA:
                         var_data = DATA[var_clean_name]
-                        if var_data['kind'] == 'ENUM':
-                            enumValue = var_data['enumValues'][0]['name']
+                        if var_data["kind"] == "ENUM":
+                            enumValue = var_data["enumValues"][0]["name"]
                             query_variables[var] = enumValue
                         else:
-                            raise ValueError(f'Variable `{var}` must be filled out, of type `{var_clean_name}`')
-        elif var.endswith('_first'):
+                            raise ValueError(
+                                f"Variable `{var}` must be filled out, of type `{var_clean_name}`"
+                            )
+        elif var.endswith("_first"):
             query_variables[var] = None
-            if var.replace('_first', '_last') not in kwargs:
+            if var.replace("_first", "_last") not in kwargs:
                 query_variables[var] = 25
-        elif var.endswith('_last'):
+        elif var.endswith("_last"):
             query_variables[var] = None
-            var_as_first = var.replace('_last', '_first')
+            var_as_first = var.replace("_last", "_first")
             if var_as_first not in kwargs and var_as_first not in variables:
                 query_variables[var] = 25
         else:
             query_variables[var] = None
     query_variables = sanatizeArgumentDict(query_variables, True)
-    query_arg = {
-        'query': query,
-        'variables': query_variables
-    }
+    query_arg = {"query": query, "variables": query_variables}
     if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Executing search '%s' with variables: %s", searchName, query_variables)
+        logger.debug(
+            "Executing search '%s' with variables: %s", searchName, query_variables
+        )
     else:
         logger.info("Executing search '%s'.", searchName)
-    r = requests.post(url=API_URL, json=query_arg, headers=HEADERS).json()
-    errors = r.get('errors')
+    start_time = time.perf_counter()
+    r = requests.post(url=API_URL, json=query_arg, headers=HEADERS)
+    r.raise_for_status()
+    end_time = time.perf_counter()
+    response_len = len(r.content)
+    if logger.isEnabledFor(logging.DEBUG):
+        execution_time = end_time - start_time
+        logger.debug(
+            f"API Response: {response_len / 1024:.2f} KiB ({response_len} Bytes) in {execution_time:.6f} seconds"
+        )
+    else:
+        logger.info(f"API Response: {response_len / 1024:.2f} KiB")
+    r = orjson.loads(r.content)
+    errors = r.get("errors")
     if errors:
-        error_messages = f'\n'.join([str(e) for e in errors])
-        raise ValueError(f"Query failed to execute ({len(errors)} errors):\n{'-'*40}\n{error_messages}\n{'-'*40}")
-    return MyMovie(r.get('data', {}).get('query', {}))
+        error_messages = f"\n".join([str(e) for e in errors])
+        raise ValueError(
+            f"Query failed to execute ({len(errors)} errors):\n{'-'*40}\n{error_messages}\n{'-'*40}"
+        )
+    return MyMovie(r.get("data", {}).get("query", {}))
+
 
 @beartype
-def generateSearch(searchName: str, limitAttributes: list[str] = []) -> tuple[str, dict[str, str]]:
+def generateSearch(
+    searchName: str, limitAttributes: list[str] = []
+) -> tuple[str, dict[str, str]]:
     """Generate the search query and the variables needed for a given search.
 
     Each response will alias the query as ``query`` allowing the search name
@@ -207,33 +249,35 @@ def generateSearch(searchName: str, limitAttributes: list[str] = []) -> tuple[st
     load_config_json()
     query = None
     searchName_lower = searchName.lower()
-    for q in DATA['Query']['fields']:
-        if q['name'].lower() == searchName_lower:
-            searchName = q['name']
+    for q in DATA["Query"]["fields"]:
+        if q["name"].lower() == searchName_lower:
+            searchName = q["name"]
             query = q
             break
     if not query:
         raise ValueError(f"{searchName} is not a valid search.")
-    output_type = query['type']
-    sub_query, sub_query_variables = generateQuery(output_type, limitAttributes=limitAttributes)
+    output_type = query["type"]
+    sub_query, sub_query_variables = generateQuery(
+        output_type, limitAttributes=limitAttributes
+    )
     input_variables_types, input_variables = [], []
     variables = {}
-    for arg in query['args']:
-        arg_name = arg['name']
-        arg_type = arg['type']
-        if arg['list']:
+    for arg in query["args"]:
+        arg_name = arg["name"]
+        arg_type = arg["type"]
+        if arg["list"]:
             arg_type = f"[{arg_type}]"
-        if not arg['nullable']:
+        if not arg["nullable"]:
             arg_type = f"{arg_type.replace(']', '!]')}!"
         variables[arg_name] = arg_type
         input_variables.append(f"{arg_name}: ${arg_name}")
         input_variables_types.append(f"${arg_name}: {arg_type}")
     for sub_var, sub_item in sub_query_variables.items():
-        arg_name = sub_item['name']
-        arg_type = sub_item['type']
-        if sub_item['list']:
+        arg_name = sub_item["name"]
+        arg_type = sub_item["type"]
+        if sub_item["list"]:
             arg_type = f"[{arg_type}]"
-        if not sub_item['nullable']:
+        if not sub_item["nullable"]:
             arg_type = f"{arg_type.replace(']', '!]')}!"
         variables[arg_name] = arg_type
         input_variables_types.append(f"${arg_name}: {arg_type}")
@@ -242,10 +286,12 @@ def generateSearch(searchName: str, limitAttributes: list[str] = []) -> tuple[st
     search_query = f"query query({input_variables_types_str}) {{ query: {searchName}({input_variables_str}){{ __typename {sub_query} }} }}"
     return search_query, variables
 
+
 @beartype
-def generateQuery(object_name: str,
-                  allow_limited: bool = False,
-                  limitAttributes: list[str] = [],
+def generateQuery(
+    object_name: str,
+    allow_limited: bool = False,
+    limitAttributes: list[str] = [],
 ) -> tuple[str, dict]:
     """Generate the subquery for a given GraphQL type.
 
@@ -269,25 +315,25 @@ def generateQuery(object_name: str,
         for unionType in DATA[object_name]["possibleTypes"]:
             fragment_query, subquery_variables = generateQuery(unionType)
             object_variables = object_variables | subquery_variables
-            sub_query = f"{sub_query} ... on {unionType} {{  __typename {fragment_query} }}"
+            sub_query = (
+                f"{sub_query} ... on {unionType} {{  __typename {fragment_query} }}"
+            )
         return sub_query, object_variables
     if isScalarOrEnum(object_data):
         # Custom IMDb Scalars/ENUMs
         return object_name, object_variables
-    limit_data = [f['name'] for f in object_data['fields']]
+    limit_data = [f["name"] for f in object_data["fields"]]
     if object_name in LIMITED:
         limit_data = LIMITED[object_name]
     if limitAttributes:
         limit_data = [
-            f['name']
-            for f in object_data['fields']
-            if f['name'] in limitAttributes
+            f["name"] for f in object_data["fields"] if f["name"] in limitAttributes
         ]
     object_fields = []
-    for field in object_data['fields']:
-        field_name = field['name']
-        field_type = field['type']
-        args = field['args']
+    for field in object_data["fields"]:
+        field_name = field["name"]
+        field_type = field["type"]
+        args = field["args"]
         subquery_variables = {}
         if "Facet" in field_type:
             # XXX: Possibly implement later, this is a sub search essentially. If not passed it will error.
@@ -302,7 +348,9 @@ def generateQuery(object_name: str,
             for unionType in DATA[field_type]["possibleTypes"]:
                 fragment_query, subquery_variables = generateQuery(unionType)
                 object_variables = object_variables | subquery_variables
-                sub_query = f"{sub_query} ... on {unionType} {{  __typename {fragment_query} }}"
+                sub_query = (
+                    f"{sub_query} ... on {unionType} {{  __typename {fragment_query} }}"
+                )
             sub_query = f"{object_name}_{field_name}: {field_name} {{ {sub_query} }}"
         elif isScalarOrEnum(DATA[field_type]):
             sub_query = f"{object_name}_{field_name}: {field_name}"
@@ -311,19 +359,23 @@ def generateQuery(object_name: str,
             for arg in args:
                 variable = f"{object_name}_{field_name}_{arg['name']}"
                 object_variables[variable] = {
-                    'type': arg['type'],
-                    'nullable': arg['nullable'],
-                    'list': arg['list'],
-                    'name': variable,
+                    "type": arg["type"],
+                    "nullable": arg["nullable"],
+                    "list": arg["list"],
+                    "name": variable,
                 }
-            arg_query = ", ".join([
-                f"{arg['name']}: ${object_name}_{field_name}_{arg['name']}"
-                for arg in args
-            ])
+            arg_query = ", ".join(
+                [
+                    f"{arg['name']}: ${object_name}_{field_name}_{arg['name']}"
+                    for arg in args
+                ]
+            )
             sub_query = f"{object_name}_{field_name}: {field_name}({arg_query}) {{ __typename {sub_query} }}"
         else:
             sub_query, subquery_variables = generateQuery(field_type)
-            sub_query = f"{object_name}_{field_name}: {field_name} {{ __typename {sub_query} }}"
+            sub_query = (
+                f"{object_name}_{field_name}: {field_name} {{ __typename {sub_query} }}"
+            )
         object_fields.append(sub_query)
         object_variables.update(subquery_variables)
     obj_query = " ".join(object_fields)

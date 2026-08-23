@@ -1,4 +1,3 @@
-
 """Command-line interface for the MyMovieGraphQL package.
 
 This module implements a minimal CLI that exposes several convenience
@@ -10,12 +9,12 @@ stdout.
 from MyMovieGraphQL import GetByID, GraphQL, Search
 from MyMovieGraphQL.MyMovie import MyMovie
 from MyMovieGraphQL.logger import logger
-import os, sys, json
+import os, sys, orjson
 import inspect
 from types import UnionType, FunctionType
 from typing import Any
 
-if __name__ != '__main__':
+if __name__ != "__main__":
     raise RuntimeError("This is not to be called indirectly.")
 
 HELP = f"""
@@ -28,7 +27,7 @@ Commands are case insensitive.
 Environment Variables:
     • \033[4mMYMOVIEGRAPHQL_COUNTRY\033[0m: Change the country used in the API call, default US.
     • \033[4mMYMOVIEGRAPHQL_LANGUAGE\033[0m: Change the language used in the API call, default en.
-    • \033[4mMYMOVIEGRAPHQL_INDENT\033[0m: Change the indent size, defualt 2. 0 Disables indentation.
+    • \033[4mMYMOVIEGRAPHQL_INDENT\033[0m: Enable or disable indent, 1 (default) is on, 0 is off. Invalid values are on.
     • \033[4mMYMOVIEGRAPHQL_LOGLEVEL\033[0m: Change the log level, default INFO. Options are DEBUG, INFO, WARNING, ERROR, CRITICAL.
 
 Commands:
@@ -68,20 +67,19 @@ if len(sys.argv) == 1:
     sys.stdout.write(HELP)
     sys.exit(0)
 
-COUNTRY = os.environ.get('MYMOVIEGRAPHQL_COUNTRY', 'US')
-LANGUAGE = os.environ.get('MYMOVIEGRAPHQL_LANGUAGE', 'en')
-INDENT = os.environ.get('MYMOVIEGRAPHQL_INDENT', 2)
-logger.setLevel(level=os.environ.get('MYMOVIEGRAPHQL_LOGLEVEL', 'INFO').upper())
+COUNTRY = os.environ.get("MYMOVIEGRAPHQL_COUNTRY", "US")
+LANGUAGE = os.environ.get("MYMOVIEGRAPHQL_LANGUAGE", "en")
+INDENT = os.environ.get("MYMOVIEGRAPHQL_INDENT", 1)
+logger.setLevel(level=os.environ.get("MYMOVIEGRAPHQL_LOGLEVEL", "INFO").upper())
 
 if isinstance(INDENT, str):
     try:
         INDENT = int(INDENT)
     except ValueError:
-        INDENT = 4
-INDENT=max(0,INDENT)
+        INDENT = 1
+INDENT = orjson.OPT_INDENT_2 if INDENT and INDENT > 0 else 0  # fmt: skip
 
 GraphQL.setLocalCountryLanguage(country=COUNTRY, language=LANGUAGE)
-
 
 
 def getByID() -> MyMovie:
@@ -90,7 +88,9 @@ def getByID() -> MyMovie:
     Expects exactly one additional argument: the IMDb identifier to fetch.
     """
     if len(sys.argv) != 3:
-        raise RuntimeError(f"GetByID requires exactly one additional argument, {len(sys.argv)-2} given.\n`MovieGraphQL getByID tt1234567`")
+        raise RuntimeError(
+            f"GetByID requires exactly one additional argument, {len(sys.argv)-2} given.\n`MovieGraphQL getByID tt1234567`"
+        )
     return GetByID.getByID(sys.argv[2])
 
 
@@ -101,11 +101,14 @@ def search() -> MyMovie:
     corresponding function parameters for ``Search.search``.
     """
     if len(sys.argv) < 3:
-        raise RuntimeError("Search requires at least the search term, followed by the arguments: `MovieGraphQL search term arg1=val1 arg2=val2 ...`")
+        raise RuntimeError(
+            "Search requires at least the search term, followed by the arguments: `MovieGraphQL search term arg1=val1 arg2=val2 ...`"
+        )
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.search)
     logger.info("Main search called with term: '%s' and args: %s", term, args)
     return Search.search(term=term, **args)
+
 
 def nameSearch() -> MyMovie:
     """Run the ``searchName`` CLI command.
@@ -113,11 +116,14 @@ def nameSearch() -> MyMovie:
     Uses subsequent arguments as key=value pairs mapped to ``Search.searchName``.
     """
     if len(sys.argv) < 3:
-        raise RuntimeError("Name search requires at least the search term, followed by the arguments: `MovieGraphQL searchName name arg1=val1 arg2=val2 ...`")
+        raise RuntimeError(
+            "Name search requires at least the search term, followed by the arguments: `MovieGraphQL searchName name arg1=val1 arg2=val2 ...`"
+        )
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.searchName)
     logger.info("Name search called with term: '%s' and args: %s", term, args)
     return Search.searchName(name=term, **args)
+
 
 def titleSearch() -> MyMovie:
     """Run the ``searchTitle`` CLI command.
@@ -125,11 +131,14 @@ def titleSearch() -> MyMovie:
     Uses subsequent arguments as key=value pairs mapped to ``Search.searchTitle``.
     """
     if len(sys.argv) < 3:
-        raise RuntimeError("Title search requires at least the search term, followed by the arguments: `MovieGraphQL searchName title arg1=val1 arg2=val2 ...`")
+        raise RuntimeError(
+            "Title search requires at least the search term, followed by the arguments: `MovieGraphQL searchName title arg1=val1 arg2=val2 ...`"
+        )
     term = sys.argv[2].strip()
     args: dict[str, Any] = get_args(Search.searchTitle)
     logger.info("Title search called with term: '%s' and args: %s", term, args)
     return Search.searchTitle(title=term, **args)
+
 
 def update() -> MyMovie:
     """Run the ``update`` CLI command.
@@ -138,15 +147,21 @@ def update() -> MyMovie:
     command line to fetch additional attributes.
     """
     if len(sys.argv) < 3:
-        raise RuntimeError(f"Update requires at least one additional argument, {len(sys.argv)-2} given.\n`MovieGraphQL update key1 key2`. The current data is input using stdin.")
-    data = json.loads(sys.stdin.read())
-    if not (data.get('__typename') or data.get('id')):
+        raise RuntimeError(
+            f"Update requires at least one additional argument, {len(sys.argv)-2} given.\n`MovieGraphQL update key1 key2`. The current data is input using stdin."
+        )
+    #data = json.loads(sys.stdin.read())
+    data = orjson.loads(sys.stdin.buffer.read())
+    if not (data.get("__typename") or data.get("id")):
         raise ValueError("The given input does not contain a type and id.")
-    logger.info("Given initial object <--- %s: %s --->", data.get('__typename'), data.get('id'))
+    logger.info(
+        "Given initial object <--- %s: %s --->", data.get("__typename"), data.get("id")
+    )
     obj = MyMovie(data)
     for upd in sys.argv[2:]:
         obj.update(upd.strip())
     return obj
+
 
 def get_args(func: FunctionType) -> dict[str, Any]:
     """Parse CLI key=value args and coerce them to the target function's types.
@@ -181,7 +196,7 @@ def get_args(func: FunctionType) -> dict[str, Any]:
         if isinstance(param.annotation, UnionType):
             args[param_name] = args_input[param_name.lower()]
         elif param.annotation == bool:
-            args[param_name] = args_input[param_name.lower()].lower() not in {'f', 'false', '0'}
+            args[param_name] = args_input[param_name.lower()].lower() not in {"f", "false", "0"}  # fmt: skip
         else:
             args[param_name] = param.annotation(args_input[param_name.lower()])
     for args_input_key in args_input.keys():
@@ -190,22 +205,23 @@ def get_args(func: FunctionType) -> dict[str, Any]:
             logger.warning("Ignoring unknown argument: '%s'", args_input_key)
     return args
 
-obj = MyMovie({'__typename': 'None'})
+
+obj = MyMovie({"__typename": "None"})
 match sys.argv[1].lower():
-    case 'getbyid':
+    case "getbyid":
         obj = getByID()
-    case 'search':
+    case "search":
         obj = search()
-    case 'namesearch' | 'searchname':
+    case "namesearch" | "searchname":
         obj = nameSearch()
-    case 'titlesearch' | 'searchtitle':
+    case "titlesearch" | "searchtitle":
         obj = titleSearch()
-    case 'update':
+    case "update":
         obj = update()
-    case 'help':
+    case "help":
         sys.stdout.write(HELP)
         sys.exit(0)
     case _:
         raise ValueError(f"Invalid selection: {sys.argv[1]}")
-as_json = json.dumps(obj.to_dict(), indent=INDENT)
+as_json = as_json = orjson.dumps(obj.to_dict(), option=INDENT).decode("utf-8")
 sys.stdout.write(as_json)

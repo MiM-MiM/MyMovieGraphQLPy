@@ -14,10 +14,11 @@ from MyMovieGraphQL.MyMovie import MyMovie
 from MyMovieGraphQL.logger import logger
 import logging
 
+
 @beartype
 def sort(
-        sortBy: str = "", # Changes per sort, an ENUM
-        sortOrder: str = "DESC",
+    sortBy: str = "",  # Changes per sort, an ENUM
+    sortOrder: str = "DESC",
 ) -> dict | None:
     """Construct a sort specification for title/name searches.
 
@@ -33,131 +34,132 @@ def sort(
     sortOrder = sortOrder.upper()
     if sortBy and sortOrder:
         sort_by = {
-            'sortBy': sortBy,
-            'sortOrder': sortOrder,
+            "sortBy": sortBy,
+            "sortOrder": sortOrder,
         }
     return sort_by or None
 
+
 @beartype
 def searchTitle(
-        # kwargs not used that way it is more clear what is availiable and defaults are displayed easier.
-        title: str = "",
-        titleType: str | list = "",
-        titleTypeExclude: str | list = "",
-        year: int = 0,
-        yearEnd: int = 0,
-        dateStart: str = "",
-        dateEnd: str = "",
-        sortBy: str = "RANKING", # AdvancedTitleSearchSortBy
-        sortOrder: str = "ASC",
-        limit: int = 25,
-        offset: int = 0,
-        pagnation: str = "",
-        alternateVersion: str | list = "",
-        alternateVersionIncludeType: str = "any", # any/all
-        award: str | list = "",  # The award ID
-        awardIncludeType: str = "any", # any/all/exclude
-        certificate: dict | list = {},  # {rating: xxx, region: xxx}
-        certificateIncludeType: str = "any", # any/exclude
-        character: str | list = "",
-        creditedCharacters: bool = True,  # Limit to only credited roles.
-        coloration: str | list = "", # The ColorationType ENUM
-        colorationIncludeType: str = "any", # any/exclude
-        crazyCredit: str = "",
-        crazyCreditIncludeType: str = "all", # any/all
-        companyCategory: str | list = "",
-        company: str | list = "",
-        companyIncludeType: str = "any", # all/any/exclude
-        creditedNameID: str | list = "",
-        creditedNameIncludeType: str = "all", # any/all/exclude
-        productionStageID: str | list = "",
-        productionStageIncludeType: str = "any", # any/exclude
-        seriesID: str | list = "", # Ther ID of the series to use
-        seriesIDType: str = "any", # any/exclude # Limit to them matching.
-        season: str | list = "", # The season numbers to use.
-        episode: str | list = "", # The episode numbers to use.
-        seasonEpisodeType: str = "any", # any/exclude # Limit to them matching.
-        explicit: str = "INCLUDE_ADULT", # ExplicitContentFilter ENUM
-        filmingLocation: str | list = "", # The filming location
-        filmingLocationType: str = "any", # any/all
-        genre: str | list = "", # The genre
-        genreType: str = "all", # all/any/exclude
-        genreMaxRelevant: int | None = None,
-        goof: str | list = "", # the text to search for
-        goofType: str = "all", # all/any
-        theaterID: str | list = "", # The theater IDs
-        theaterAttribute: str | list = "", # SearchTheaterAttribute ENUM.
-        theaterStart: str = "", # ISO-8601 format
-        theaterEnd: str = "", # The showtime dates, must have at least start
-        theaterLocation: str = "", # The postal code 
-        theaterLocationLatLong: dict = {}, # {lat: float, long: float}
-        theaterLocationRadius: int = 50, # In meters
-        theaterFavorite: bool = False, # Wehn true: MyFavoriteTheaterSearchFilter ENUM
-        interestID: str | list = "",
-        interestType: str = "all", # all/any/exclude
-        keyword: str | list = "",
-        keywordType: str = "all", # all/any/exclude
-        language: str | list = "",
-        languageType: str = "any", # all/any/exclude
-        languagePrimary: str | list = "",
-        languagePrimaryType: str = "any", # any/exclude
-        silent: bool | None = None, # Silent
-        inList: str | list = "",
-        inPredefinedList: str | list = "", # ListClassId ENUM
-        notInList: str | list = "", # always an any
-        notInPredefinedList: str | list = "", # always an any
-        inListType: str = "any", # all/any
-        inPredefinedListType: str = "any", # all/any
-        myRatingType: str = "INCLUDE", # MyRatingSearchFilterType ENUM
-        myRatingMin: int | None = None,
-        myRatingMax: int | None = None,
-        originCountry: str | list = "",
-        originCountryType: str = "all", # all/any/exclude
-        originPrimaryCountry: str | list = "",
-        originPrimaryCountryType: str = "any", # any/exclude
-        plotText: str | list = "",
-        plotTextType: str = "all", #all/any
-        plotAuthor: str | list = "",
-        quote: str | list = "",
-        quoteType: str = "all", # all/any
-        rankedTitleMin: int | None = None,
-        rankedTitleMax: int | None = None,
-        rankedTitleListType: str = "TITLE_METER", # RankedTitleListType ENUM
-        rankedTitleType: str = "all", # all/exclude
-        runtimeMin: int = 0, # In minutes
-        runtimeMax: int = 0,
-        ratingUserID: str = "",
-        ratingUserRangeMin: int = 0,
-        ratingUserRangeMax: int = 0,
-        ratingUserType: str = "INCLUDE", # SingleUserRatingSearchFilterType ENUM
-        soundMix: str | list = "",
-        soundMixExclude: str | list = "",
-        soundtrackTerms: str | list = "",
-        soundtrackTermsType: str = "all", # all/any
-        creditCharacter: str | list = "",
-        creditCategory: str | list = "",
-        creditJobCategory: str | list = "",
-        creditNameID: str | list = "",
-        creditType: str = "all",
-        creditAdvanced: dict = {},
-        meterMin: int = 0,
-        meterMax: int = 0,
-        meterType: str = "TITLE_METER", # TitleMeterType ENUM
-        triviaTerm: str | list = "",
-        triviaTermType: str = "all", # all/any
-        ratingMin: float = 0.0,
-        ratingMax: float = 0.0,
-        ratingCountMin: int = 0,
-        ratingCountMax: int = 0,
-        watchProviderID: str | list = "",
-        watchRegion: str | list = "",
-        watchProviderIDExclude: str | list = "",
-        watchRegionExclude: str | list = "",
-        watchType: str | list = "", # SearchWatchOptionType ENUM
-        withData: str | list = "",  # TitleDataType ENUMs
-        withDataMissing: str | list = "",
-        withDataAny: str | list = "",
-    ) -> MyMovie:
+    # kwargs not used that way it is more clear what is availiable and defaults are displayed easier.
+    title: str = "",
+    titleType: str | list = "",
+    titleTypeExclude: str | list = "",
+    year: int = 0,
+    yearEnd: int = 0,
+    dateStart: str = "",
+    dateEnd: str = "",
+    sortBy: str = "RANKING",  # AdvancedTitleSearchSortBy
+    sortOrder: str = "ASC",
+    limit: int = 25,
+    offset: int = 0,
+    pagnation: str = "",
+    alternateVersion: str | list = "",
+    alternateVersionIncludeType: str = "any",  # any/all
+    award: str | list = "",  # The award ID
+    awardIncludeType: str = "any",  # any/all/exclude
+    certificate: dict | list = {},  # {rating: xxx, region: xxx}
+    certificateIncludeType: str = "any",  # any/exclude
+    character: str | list = "",
+    creditedCharacters: bool = True,  # Limit to only credited roles.
+    coloration: str | list = "",  # The ColorationType ENUM
+    colorationIncludeType: str = "any",  # any/exclude
+    crazyCredit: str = "",
+    crazyCreditIncludeType: str = "all",  # any/all
+    companyCategory: str | list = "",
+    company: str | list = "",
+    companyIncludeType: str = "any",  # all/any/exclude
+    creditedNameID: str | list = "",
+    creditedNameIncludeType: str = "all",  # any/all/exclude
+    productionStageID: str | list = "",
+    productionStageIncludeType: str = "any",  # any/exclude
+    seriesID: str | list = "",  # Ther ID of the series to use
+    seriesIDType: str = "any",  # any/exclude # Limit to them matching.
+    season: str | list = "",  # The season numbers to use.
+    episode: str | list = "",  # The episode numbers to use.
+    seasonEpisodeType: str = "any",  # any/exclude # Limit to them matching.
+    explicit: str = "INCLUDE_ADULT",  # ExplicitContentFilter ENUM
+    filmingLocation: str | list = "",  # The filming location
+    filmingLocationType: str = "any",  # any/all
+    genre: str | list = "",  # The genre
+    genreType: str = "all",  # all/any/exclude
+    genreMaxRelevant: int | None = None,
+    goof: str | list = "",  # the text to search for
+    goofType: str = "all",  # all/any
+    theaterID: str | list = "",  # The theater IDs
+    theaterAttribute: str | list = "",  # SearchTheaterAttribute ENUM.
+    theaterStart: str = "",  # ISO-8601 format
+    theaterEnd: str = "",  # The showtime dates, must have at least start
+    theaterLocation: str = "",  # The postal code
+    theaterLocationLatLong: dict = {},  # {lat: float, long: float}
+    theaterLocationRadius: int = 50,  # In meters
+    theaterFavorite: bool = False,  # Wehn true: MyFavoriteTheaterSearchFilter ENUM
+    interestID: str | list = "",
+    interestType: str = "all",  # all/any/exclude
+    keyword: str | list = "",
+    keywordType: str = "all",  # all/any/exclude
+    language: str | list = "",
+    languageType: str = "any",  # all/any/exclude
+    languagePrimary: str | list = "",
+    languagePrimaryType: str = "any",  # any/exclude
+    silent: bool | None = None,  # Silent
+    inList: str | list = "",
+    inPredefinedList: str | list = "",  # ListClassId ENUM
+    notInList: str | list = "",  # always an any
+    notInPredefinedList: str | list = "",  # always an any
+    inListType: str = "any",  # all/any
+    inPredefinedListType: str = "any",  # all/any
+    myRatingType: str = "INCLUDE",  # MyRatingSearchFilterType ENUM
+    myRatingMin: int | None = None,
+    myRatingMax: int | None = None,
+    originCountry: str | list = "",
+    originCountryType: str = "all",  # all/any/exclude
+    originPrimaryCountry: str | list = "",
+    originPrimaryCountryType: str = "any",  # any/exclude
+    plotText: str | list = "",
+    plotTextType: str = "all",  # all/any
+    plotAuthor: str | list = "",
+    quote: str | list = "",
+    quoteType: str = "all",  # all/any
+    rankedTitleMin: int | None = None,
+    rankedTitleMax: int | None = None,
+    rankedTitleListType: str = "TITLE_METER",  # RankedTitleListType ENUM
+    rankedTitleType: str = "all",  # all/exclude
+    runtimeMin: int = 0,  # In minutes
+    runtimeMax: int = 0,
+    ratingUserID: str = "",
+    ratingUserRangeMin: int = 0,
+    ratingUserRangeMax: int = 0,
+    ratingUserType: str = "INCLUDE",  # SingleUserRatingSearchFilterType ENUM
+    soundMix: str | list = "",
+    soundMixExclude: str | list = "",
+    soundtrackTerms: str | list = "",
+    soundtrackTermsType: str = "all",  # all/any
+    creditCharacter: str | list = "",
+    creditCategory: str | list = "",
+    creditJobCategory: str | list = "",
+    creditNameID: str | list = "",
+    creditType: str = "all",
+    creditAdvanced: dict = {},
+    meterMin: int = 0,
+    meterMax: int = 0,
+    meterType: str = "TITLE_METER",  # TitleMeterType ENUM
+    triviaTerm: str | list = "",
+    triviaTermType: str = "all",  # all/any
+    ratingMin: float = 0.0,
+    ratingMax: float = 0.0,
+    ratingCountMin: int = 0,
+    ratingCountMax: int = 0,
+    watchProviderID: str | list = "",
+    watchRegion: str | list = "",
+    watchProviderIDExclude: str | list = "",
+    watchRegionExclude: str | list = "",
+    watchType: str | list = "",  # SearchWatchOptionType ENUM
+    withData: str | list = "",  # TitleDataType ENUMs
+    withDataMissing: str | list = "",
+    withDataAny: str | list = "",
+) -> MyMovie:
     """Perform an advanced title search.
 
     The function accepts a large number of optional parameters corresponding
@@ -179,8 +181,10 @@ def searchTitle(
     Raises:
         ValueError: For invalid pagination or limit/offset values.
     """
-    if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
-        raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
+    if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
+        raise ValueError(
+            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
+        )
     if limit < 1:
         raise ValueError(f"Limit must be >= 1, `{limit}` passed")
     if offset < 0:
@@ -198,44 +202,134 @@ def searchTitle(
             "experimental_boxOfficeEarningsConstraint": None,
             "experimental_occupationCreditConstraint": None,
             "experimental_professionCatagoryConstraint": None,
-            "alternateVersionMatchingConstraint": Constraints.alternateVersionMatchingConstraint(alternateVersion, alternateVersionIncludeType),
+            "alternateVersionMatchingConstraint": Constraints.alternateVersionMatchingConstraint(
+                alternateVersion, alternateVersionIncludeType
+            ),
             "awardConstraint": Constraints.awardConstraint(award, awardIncludeType),
-            "certificateConstraint": Constraints.certificateConstraint(certificate, certificateIncludeType),
-            "characterConstraint": Constraints.characterConstraint(character, creditedCharacters),
-            "colorationConstraint": Constraints.colorationConstraint(coloration, colorationIncludeType),
-            "crazyCreditMatchingConstraint": Constraints.crazyCreditMatchingConstraint(crazyCredit, crazyCreditIncludeType),
-            "creditedCompanyConstraint": Constraints.creditedCompanyConstraint(companyCategory, company, companyIncludeType),
-            "creditedNameConstraint": Constraints.creditedNameConstraint(creditedNameID, creditedNameIncludeType),
-            "currentProductionStatusStageConstraint" : Constraints.currentProductionStatusStageConstraint(productionStageID, productionStageIncludeType),
-            "episodicConstraint": Constraints.episodicConstraint(seriesID, seriesIDType, season, episode, seasonEpisodeType),
-            "explicitContentConstraint": Constraints.explicitContentConstraint(explicit),
-            "filmingLocationConstraint": Constraints.filmingLocationConstraint(filmingLocation, filmingLocationType),
-            "genreConstraint": Constraints.genreConstraint(genre, genreType, genreMaxRelevant),
-            "goofMatchingConstraint": Constraints.goofMatchingConstraint(goof, goofType),
-            "inTheatersConstraint": Constraints.inTheatersConstraint(theaterID, theaterAttribute, theaterStart, theaterEnd, theaterLocation, theaterLocationLatLong, theaterLocationRadius, theaterFavorite),
-            "interestConstraint": Constraints.interestConstraint(interestID, interestType),
+            "certificateConstraint": Constraints.certificateConstraint(
+                certificate, certificateIncludeType
+            ),
+            "characterConstraint": Constraints.characterConstraint(
+                character, creditedCharacters
+            ),
+            "colorationConstraint": Constraints.colorationConstraint(
+                coloration, colorationIncludeType
+            ),
+            "crazyCreditMatchingConstraint": Constraints.crazyCreditMatchingConstraint(
+                crazyCredit, crazyCreditIncludeType
+            ),
+            "creditedCompanyConstraint": Constraints.creditedCompanyConstraint(
+                companyCategory, company, companyIncludeType
+            ),
+            "creditedNameConstraint": Constraints.creditedNameConstraint(
+                creditedNameID, creditedNameIncludeType
+            ),
+            "currentProductionStatusStageConstraint": Constraints.currentProductionStatusStageConstraint(
+                productionStageID, productionStageIncludeType
+            ),
+            "episodicConstraint": Constraints.episodicConstraint(
+                seriesID, seriesIDType, season, episode, seasonEpisodeType
+            ),
+            "explicitContentConstraint": Constraints.explicitContentConstraint(
+                explicit
+            ),
+            "filmingLocationConstraint": Constraints.filmingLocationConstraint(
+                filmingLocation, filmingLocationType
+            ),
+            "genreConstraint": Constraints.genreConstraint(
+                genre, genreType, genreMaxRelevant
+            ),
+            "goofMatchingConstraint": Constraints.goofMatchingConstraint(
+                goof, goofType
+            ),
+            "inTheatersConstraint": Constraints.inTheatersConstraint(
+                theaterID,
+                theaterAttribute,
+                theaterStart,
+                theaterEnd,
+                theaterLocation,
+                theaterLocationLatLong,
+                theaterLocationRadius,
+                theaterFavorite,
+            ),
+            "interestConstraint": Constraints.interestConstraint(
+                interestID, interestType
+            ),
             "keywordConstraint": Constraints.keywordConstraint(keyword, keywordType),
-            "languageConstraint": Constraints.languageConstraint(language, languageType, languagePrimary, languagePrimaryType, silent),
-            "listConstraint": Constraints.listConstraint(inList, inPredefinedList, notInList, notInPredefinedList, inListType, inPredefinedListType),
-            "myRatingConstraint": Constraints.myRatingConstraint(myRatingType, myRatingMin, myRatingMax),
-            "originCountryConstraint": Constraints.originCountryConstraint(originCountry, originCountryType, originPrimaryCountry, originPrimaryCountryType),
-            "plotMatchingConstraint": Constraints.plotMatchingConstraint(plotText, plotTextType, plotAuthor),
-            "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(quote, quoteType),
-            "rankedTitleListConstraint": Constraints.rankedTitleListConstraint(rankedTitleMin, rankedTitleMax, rankedTitleListType, rankedTitleType),
-            "releaseDateConstraint": Constraints.releaseDateConstraint(year, yearEnd, dateStart, dateEnd),
+            "languageConstraint": Constraints.languageConstraint(
+                language, languageType, languagePrimary, languagePrimaryType, silent
+            ),
+            "listConstraint": Constraints.listConstraint(
+                inList,
+                inPredefinedList,
+                notInList,
+                notInPredefinedList,
+                inListType,
+                inPredefinedListType,
+            ),
+            "myRatingConstraint": Constraints.myRatingConstraint(
+                myRatingType, myRatingMin, myRatingMax
+            ),
+            "originCountryConstraint": Constraints.originCountryConstraint(
+                originCountry,
+                originCountryType,
+                originPrimaryCountry,
+                originPrimaryCountryType,
+            ),
+            "plotMatchingConstraint": Constraints.plotMatchingConstraint(
+                plotText, plotTextType, plotAuthor
+            ),
+            "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(
+                quote, quoteType
+            ),
+            "rankedTitleListConstraint": Constraints.rankedTitleListConstraint(
+                rankedTitleMin, rankedTitleMax, rankedTitleListType, rankedTitleType
+            ),
+            "releaseDateConstraint": Constraints.releaseDateConstraint(
+                year, yearEnd, dateStart, dateEnd
+            ),
             "runtimeConstraint": Constraints.runtimeConstraint(runtimeMin, runtimeMax),
-            "singleUserRatingConstraint": Constraints.singleUserRatingConstraint(ratingUserID, ratingUserRangeMin, ratingUserRangeMax, ratingUserType),
-            "soundMixConstraint": Constraints.soundMixConstraint(soundMix, soundMixExclude),
-            "soundtrackMatchingConstraint": Constraints.soundtrackMatchingConstraint(soundtrackTerms, soundtrackTermsType),
-            "titleCreditsConstraint": Constraints.titleCreditsConstraint(creditCharacter, creditCategory, creditJobCategory, creditNameID, creditType, creditAdvanced),
-            "titleMeterConstraint": Constraints.titleMeterConstraint(meterMin, meterMax, meterType),
+            "singleUserRatingConstraint": Constraints.singleUserRatingConstraint(
+                ratingUserID, ratingUserRangeMin, ratingUserRangeMax, ratingUserType
+            ),
+            "soundMixConstraint": Constraints.soundMixConstraint(
+                soundMix, soundMixExclude
+            ),
+            "soundtrackMatchingConstraint": Constraints.soundtrackMatchingConstraint(
+                soundtrackTerms, soundtrackTermsType
+            ),
+            "titleCreditsConstraint": Constraints.titleCreditsConstraint(
+                creditCharacter,
+                creditCategory,
+                creditJobCategory,
+                creditNameID,
+                creditType,
+                creditAdvanced,
+            ),
+            "titleMeterConstraint": Constraints.titleMeterConstraint(
+                meterMin, meterMax, meterType
+            ),
             "titleTextConstraint": Constraints.textSearchConstraint(title),
-            "titleTypeConstraint": Constraints.titleTypeConstraint(titleType, titleTypeExclude),
-            "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(triviaTerm, triviaTermType),
-            "userRatingsConstraint": Constraints.userRatingsConstraint(ratingMin, ratingMax, ratingCountMin, ratingCountMax),
-            "watchOptionsConstraint": Constraints.watchOptionsConstraint(watchProviderID, watchRegion, watchProviderIDExclude, watchRegionExclude, watchType),
-            "withTitleDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
-        }
+            "titleTypeConstraint": Constraints.titleTypeConstraint(
+                titleType, titleTypeExclude
+            ),
+            "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(
+                triviaTerm, triviaTermType
+            ),
+            "userRatingsConstraint": Constraints.userRatingsConstraint(
+                ratingMin, ratingMax, ratingCountMin, ratingCountMax
+            ),
+            "watchOptionsConstraint": Constraints.watchOptionsConstraint(
+                watchProviderID,
+                watchRegion,
+                watchProviderIDExclude,
+                watchRegionExclude,
+                watchType,
+            ),
+            "withTitleDataConstraint": Constraints.withDataConstraint(
+                withData, withDataMissing, withDataAny
+            ),
+        },
     }
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("SearchTitle called with args: %s", args)
@@ -243,61 +337,64 @@ def searchTitle(
         logger.info("SearchTitle called with title: '%s'", title)
     else:
         logger.info("SearchTitle called with arguments other than a title.")
-    obj = GraphQL.search('advancedTitleSearch', **args)
+    obj = GraphQL.search("advancedTitleSearch", **args)
     logger.info("SearchTitle returned %d results.", len(obj))
     return obj
 
+
 @beartype
 def searchName(
-        name: str = "",
-        sortBy: str = "POPULARITY", # AdvancedNameSearchSortBy ENUM
-        sortOrder: str = "ASC",
-        limit: int = 25,
-        offset: int = 0,
-        pagnation: str = "",
-        award: str | list = "",  # The award ID
-        awardIncludeType: str = "any", # any/all/exclude
-        biographyAuthor: str | list = "",
-        biographyText: str = "",
-        birthdayRangeStart: str = "",
-        birthdayRangeEnd: str = "",
-        birthday: str = "", # MonthDay ISO-8601 format '--06-19'
-        birthPlace: str = "",
-        deathDate: str = "", # If this is the only one provided it is exact day
-        deathDateEnd: str = "",
-        deathPlace: str = "",
-        explicit: str = "INCLUDE_ADULT", # ExplicitContentFilter ENUM
-        filmographyTitleID: str | list = "",
-        filmographyTitleIDType: str = "all", # all/any/exclude
-        filmographyTitleIDExclude: str | list = "", # If type is also exclude it will use this one.
-        gender: str | list = "",
-        genderType: str = "any", # any/exclude
-        inList: str | list = "",
-        inPredefinedList: str | list = "", # ListClassId ENUM
-        notInList: str | list = "", # always an any
-        notInPredefinedList: str | list = "", # always an any
-        inListType: str = "any", # all/any
-        inPredefinedListType: str = "any", # all/any
-        # professionCategory example: amzn1.imdb.concept.profession_category.db674385-f70e-42b1-b4ef-910b8c64afa5
-        # Seems to not work correctly, exclude returns results, even the one the ID came from.
-        # Above example is one listed in nm0000115's
-        professionCategory: str | list = "",
-        professionCategoryType: str = "any",
-        professionCategoryExclude: str | list = "", # If type is set to exclude this overrids the above.
-        # profession example: amzn1.imdb.concept.profession.38160716-b702-4b4e-a737-1052cba53548
-        # Seems to not work correctly, exclude returns results, even the one the ID came from.
-        # Above example is one listed in nm0000115's
-        profession: str | list = "",
-        professionType: str = "any",
-        professionExclude: str | list = "",
-        quote: str | list = "",
-        quoteType: str = "all", # all/any
-        triviaTerm: str | list = "",
-        triviaTermType: str = "all", # all/any
-        withData: str | list = "",  # NameDataType ENUMs
-        withDataMissing: str | list = "",
-        withDataAny: str | list = "",
-    ) -> MyMovie:
+    name: str = "",
+    sortBy: str = "POPULARITY",  # AdvancedNameSearchSortBy ENUM
+    sortOrder: str = "ASC",
+    limit: int = 25,
+    offset: int = 0,
+    pagnation: str = "",
+    award: str | list = "",  # The award ID
+    awardIncludeType: str = "any",  # any/all/exclude
+    biographyAuthor: str | list = "",
+    biographyText: str = "",
+    birthdayRangeStart: str = "",
+    birthdayRangeEnd: str = "",
+    birthday: str = "",  # MonthDay ISO-8601 format '--06-19'
+    birthPlace: str = "",
+    deathDate: str = "",  # If this is the only one provided it is exact day
+    deathDateEnd: str = "",
+    deathPlace: str = "",
+    explicit: str = "INCLUDE_ADULT",  # ExplicitContentFilter ENUM
+    filmographyTitleID: str | list = "",
+    filmographyTitleIDType: str = "all",  # all/any/exclude
+    filmographyTitleIDExclude: str
+    | list = "",  # If type is also exclude it will use this one.
+    gender: str | list = "",
+    genderType: str = "any",  # any/exclude
+    inList: str | list = "",
+    inPredefinedList: str | list = "",  # ListClassId ENUM
+    notInList: str | list = "",  # always an any
+    notInPredefinedList: str | list = "",  # always an any
+    inListType: str = "any",  # all/any
+    inPredefinedListType: str = "any",  # all/any
+    # professionCategory example: amzn1.imdb.concept.profession_category.db674385-f70e-42b1-b4ef-910b8c64afa5
+    # Seems to not work correctly, exclude returns results, even the one the ID came from.
+    # Above example is one listed in nm0000115's
+    professionCategory: str | list = "",
+    professionCategoryType: str = "any",
+    professionCategoryExclude: str
+    | list = "",  # If type is set to exclude this overrids the above.
+    # profession example: amzn1.imdb.concept.profession.38160716-b702-4b4e-a737-1052cba53548
+    # Seems to not work correctly, exclude returns results, even the one the ID came from.
+    # Above example is one listed in nm0000115's
+    profession: str | list = "",
+    professionType: str = "any",
+    professionExclude: str | list = "",
+    quote: str | list = "",
+    quoteType: str = "all",  # all/any
+    triviaTerm: str | list = "",
+    triviaTermType: str = "all",  # all/any
+    withData: str | list = "",  # NameDataType ENUMs
+    withDataMissing: str | list = "",
+    withDataAny: str | list = "",
+) -> MyMovie:
     """Perform an advanced name search.
 
     See ``searchTitle`` for parameter semantics; this function targets the
@@ -316,8 +413,10 @@ def searchName(
     Returns:
         MyMovie: A `MyMovie` object representing the results.
     """
-    if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
-        raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
+    if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
+        raise ValueError(
+            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
+        )
     if limit < 1:
         raise ValueError(f"Limit must be >= 1, `{limit}` passed")
     if offset < 0:
@@ -328,23 +427,52 @@ def searchName(
         "jumpToPosition": offset or None,
         "sort": sort(sortBy, sortOrder),
         "constraints": {
-                "awardConstraint": Constraints.awardConstraint(award, awardIncludeType),
-                "biographyConstraint": Constraints.biographyConstraint(biographyAuthor, biographyText),
-                "birthDateConstraint": Constraints.birthDateConstraint(birthdayRangeStart, birthdayRangeEnd, birthday),
-                "birthPlaceConstraint": Constraints.birthPlaceConstraint(birthPlace),
-                "deathDateConstraint": Constraints.deathDateConstraint(deathDate, deathDateEnd),
-                "deathPlaceConstraint": Constraints.deathPlaceConstraint(deathPlace),
-                "explicitContentConstraint": Constraints.explicitContentConstraint(explicit),
-                "filmographyConstraint": Constraints.filmographyConstraint(filmographyTitleID, filmographyTitleIDType, filmographyTitleIDExclude),
-                "genderIdentityConstraint": Constraints.genderIdentityConstraint(gender, genderType),
-                "listConstraint": Constraints.listConstraint(inList, inPredefinedList, notInList, notInPredefinedList, inListType, inPredefinedListType),
-                "nameTextConstraint": Constraints.textSearchConstraint(name),
-                "professionCategoryConstraint": Constraints.professionCategoryConstraint(professionCategory, professionCategoryType, professionCategoryExclude),
-                "professionConstraint": Constraints.professionConstraint(profession, professionType, professionExclude),
-                "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(quote, quoteType),
-                "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(triviaTerm, triviaTermType),
-                "withNameDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
-            }
+            "awardConstraint": Constraints.awardConstraint(award, awardIncludeType),
+            "biographyConstraint": Constraints.biographyConstraint(
+                biographyAuthor, biographyText
+            ),
+            "birthDateConstraint": Constraints.birthDateConstraint(
+                birthdayRangeStart, birthdayRangeEnd, birthday
+            ),
+            "birthPlaceConstraint": Constraints.birthPlaceConstraint(birthPlace),
+            "deathDateConstraint": Constraints.deathDateConstraint(
+                deathDate, deathDateEnd
+            ),
+            "deathPlaceConstraint": Constraints.deathPlaceConstraint(deathPlace),
+            "explicitContentConstraint": Constraints.explicitContentConstraint(
+                explicit
+            ),
+            "filmographyConstraint": Constraints.filmographyConstraint(
+                filmographyTitleID, filmographyTitleIDType, filmographyTitleIDExclude
+            ),
+            "genderIdentityConstraint": Constraints.genderIdentityConstraint(
+                gender, genderType
+            ),
+            "listConstraint": Constraints.listConstraint(
+                inList,
+                inPredefinedList,
+                notInList,
+                notInPredefinedList,
+                inListType,
+                inPredefinedListType,
+            ),
+            "nameTextConstraint": Constraints.textSearchConstraint(name),
+            "professionCategoryConstraint": Constraints.professionCategoryConstraint(
+                professionCategory, professionCategoryType, professionCategoryExclude
+            ),
+            "professionConstraint": Constraints.professionConstraint(
+                profession, professionType, professionExclude
+            ),
+            "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(
+                quote, quoteType
+            ),
+            "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(
+                triviaTerm, triviaTermType
+            ),
+            "withNameDataConstraint": Constraints.withDataConstraint(
+                withData, withDataMissing, withDataAny
+            ),
+        },
     }
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("SearchName called with args: %s", args)
@@ -352,26 +480,26 @@ def searchName(
         logger.info("SearchName called with name: '%s'", name)
     else:
         logger.info("SearchName called with arguments other than a name.")
-    obj = GraphQL.search('advancedNameSearch', **args)
+    obj = GraphQL.search("advancedNameSearch", **args)
     logger.info("SearchName returned %d results.", len(obj))
     return obj
 
 
 @beartype
 def search(
-        term: str,
-        year: int = 0,
-        yearEnd: int = 0,
-        dateStart: str = "",
-        dateEnd: str = "",
-        searchType: str | list[str] = ["NAME", "TITLE"], # MainSearchType ENUM
-        titleType: str | list[str] = ["MOVIE", "TV"],
-        limit: int = 25,
-        pagnation: str = "",
-        includeAdult: bool = True,
-        exact: bool = False,
-        isCustomerSelectable: bool = True,
-    ) -> MyMovie:
+    term: str,
+    year: int = 0,
+    yearEnd: int = 0,
+    dateStart: str = "",
+    dateEnd: str = "",
+    searchType: str | list[str] = ["NAME", "TITLE"],  # MainSearchType ENUM
+    titleType: str | list[str] = ["MOVIE", "TV"],
+    limit: int = 25,
+    pagnation: str = "",
+    includeAdult: bool = True,
+    exact: bool = False,
+    isCustomerSelectable: bool = True,
+) -> MyMovie:
     """Perform a general main search across titles and names.
 
     The search term is required. Other parameters control the types
@@ -393,8 +521,10 @@ def search(
         raise ValueError("The search type cannot be blank.")
     if limit < 1:
         raise ValueError(f"The limit must be at least one, {limit} given")
-    if pagnation and not re.fullmatch(r'[A-Za-z0-9]+=*$', pagnation):
-        raise ValueError(f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given.")
+    if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
+        raise ValueError(
+            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
+        )
     if isinstance(searchType, str):
         searchType = [searchType]
     searchType = [t.upper() for t in searchType]
@@ -405,7 +535,9 @@ def search(
         raise ValueError("The title type must be given if you are searching a title.")
     if not term:
         raise ValueError("The search term must be give.")
-    dateRange = Constraints.releaseDateConstraint(year, yearEnd, dateStart, dateEnd) or {}
+    dateRange = (
+        Constraints.releaseDateConstraint(year, yearEnd, dateStart, dateEnd) or {}
+    )
     # Sort and offset not availiable.
     args = {
         "first": limit,
@@ -419,9 +551,9 @@ def search(
             },
             "titleSearchOptions": {
                 "type": titleType,
-            } | dateRange,
+            } | dateRange,  # fmt: skip
             "type": searchType,
-        }
+        },
     }
     # If we aren't searching for a title, this must be removed.
     if "TITLE" not in searchType:
@@ -432,6 +564,6 @@ def search(
         logger.info("MainSearch called with term: '%s'", term)
     else:
         logger.info("MainSearch called with arguments other than a term.")
-    obj = GraphQL.search('mainSearch', **args)
+    obj = GraphQL.search("mainSearch", **args)
     logger.info("MainSearch returned %d results.", len(obj))
     return obj

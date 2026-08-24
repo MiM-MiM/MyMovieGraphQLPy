@@ -37,9 +37,7 @@ def test_search_wrappers_call_graphql_search():
         search_mock.assert_called_once()
 
     with patch("MyMovieGraphQL.GraphQL.search", return_value=result) as search_mock:
-        returned = Search.search(
-            term="Example", limit=10, searchType=["TITLE"], titleType=["MOVIE"]
-        )
+        returned = Search.search(term="Example", limit=10, searchType=["TITLE"], titleType=["MOVIE"])
         assert returned == result
         search_mock.assert_called_once()
 

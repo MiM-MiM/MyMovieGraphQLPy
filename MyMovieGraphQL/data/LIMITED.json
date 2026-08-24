@@ -201,6 +201,25 @@
     "trivia",
     "urls"
   ],
+  "ParentsGuideItem": [
+    "category",
+    "id",
+    "isSpoiler",
+    "machineTranslatedText",
+    "text",
+    "title"
+  ],
+  "Plot": [
+    "author",
+    "id",
+    "isSpoiler",
+    "language",
+    "machineTranslatedText",
+    "plotText",
+    "plotType",
+    "restriction",
+    "title"
+  ],
   "Poll": [
     "answers",
     "author",
@@ -214,6 +233,18 @@
     "question",
     "totalVotes",
     "type"
+  ],
+  "Review": [
+    "author",
+    "authorRating",
+    "helpfulness",
+    "id",
+    "language",
+    "spoiler",
+    "submissionDate",
+    "summary",
+    "text",
+    "title"
   ],
   "Title": [
     "id",
@@ -231,6 +262,20 @@
     "spokenLanguages",
     "titleGenres",
     "countriesOfOrigin"
+  ],
+  "TitleTrivia": [
+    "category",
+    "displayableArticle",
+    "id",
+    "interestScore",
+    "isSpoiler",
+    "machineTranslatedDisplayableArticle",
+    "machineTranslatedText",
+    "machineTranslatedTrademark",
+    "relatedNames",
+    "text",
+    "title",
+    "trademark"
   ],
   "UIWorkflowDisplayAggregateControl": [
     "aggregateOperation"

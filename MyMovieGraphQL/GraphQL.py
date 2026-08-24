@@ -5,6 +5,7 @@ generate queries and searches, and execute them against IMDb's GraphQL
 endpoint.
 """
 
+import hashlib
 import os
 import json
 import orjson
@@ -27,11 +28,11 @@ HEADERS = {
     "Content-Type": "application/json",
     "x-imdb-user-country": "US",
     "x-imdb-user-language": "en-US",
-    "x-imdb-client-name": "imdb-web-next",
+    "x-imdb-client-name": "imdb-web-next-localized",
     "User-Agent": get_user_agent(),
     "Connection": "close",
-    "Accept": "application/json",
-    "Origin": "https://imdb.com",
+    "Accept": "application/graphql+json, application/json",
+    "Origin": "https://www.imdb.com",
     "Referer": "https://imdb.com/",
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
@@ -137,6 +138,17 @@ def isScalarOrEnum(obj: dict):
 
 
 @beartype
+def _persisted_query_not_found(errors: list[dict]) -> bool:
+    for error in errors:
+        code = (error.get("extensions") or {}).get("code")
+        if code == "PERSISTED_QUERY_NOT_FOUND":
+            return True
+        if error.get("message") == "PersistedQueryNotFound":
+            return True
+    return False
+
+
+@beartype
 def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> MyMovie:
     """Generate and execute the given search/query.
 
@@ -195,7 +207,18 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
         else:
             query_variables[var] = None
     query_variables = sanatizeArgumentDict(query_variables, True)
-    query_arg = {"query": query, "variables": query_variables}
+    operation_name = "query"
+    extensions = {
+        "persistedQuery": {
+            "version": 1,
+            "sha256Hash": hashlib.sha256(query.encode("utf-8")).hexdigest(),
+        }
+    }
+    query_arg = {
+        "operationName": operation_name,
+        "variables": query_variables,
+        "extensions": extensions,
+    }
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
             "Executing search '%s' with variables: %s", searchName, query_variables
@@ -203,8 +226,27 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
     else:
         logger.info("Executing search '%s'.", searchName)
     start_time = time.perf_counter()
-    r = requests.post(url=API_URL, json=query_arg, headers=HEADERS)
+    r = requests.get(
+        url=API_URL,
+        params={
+            "operationName": operation_name,
+            "variables": orjson.dumps(query_variables).decode("utf-8"),
+            "extensions": orjson.dumps(extensions).decode("utf-8"),
+        },
+        headers=HEADERS,
+    )
     r.raise_for_status()
+    response = orjson.loads(r.content)
+    errors = response.get("errors")
+    if errors and _persisted_query_not_found(errors):
+        logger.debug(
+            "Persisted query cache miss for '%s'; registering query.",
+            searchName,
+        )
+        query_arg["query"] = query
+        r = requests.post(url=API_URL, json=query_arg, headers=HEADERS)
+        r.raise_for_status()
+        response = orjson.loads(r.content)
     end_time = time.perf_counter()
     response_len = len(r.content)
     if logger.isEnabledFor(logging.DEBUG):
@@ -214,14 +256,13 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
         )
     else:
         logger.info(f"API Response: {response_len / 1024:.2f} KiB")
-    r = orjson.loads(r.content)
-    errors = r.get("errors")
+    errors = response.get("errors")
     if errors:
         error_messages = f"\n".join([str(e) for e in errors])
         raise ValueError(
             f"Query failed to execute ({len(errors)} errors):\n{'-'*40}\n{error_messages}\n{'-'*40}"
         )
-    return MyMovie(r.get("data", {}).get("query", {}))
+    return MyMovie(response.get("data", {}).get("query", {}))
 
 
 @beartype

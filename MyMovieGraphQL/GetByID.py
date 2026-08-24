@@ -4,10 +4,11 @@ This module exposes a single function `getByID` which inspects the given
 identifier and dispatches to the appropriate GraphQL search.
 """
 
-from MyMovieGraphQL import GraphQL
-from MyMovieGraphQL.logger import logger
-from MyMovieGraphQL.MyMovie import MyMovie, regex_in
 from beartype import beartype
+
+from . import GraphQL
+from .logger import logger
+from .MyMovie import MyMovie, regex_in
 
 
 @beartype
@@ -43,26 +44,31 @@ def getByID(id: str) -> MyMovie:
             query_name = "company"
         case "creditCategory":
             query_name = "creditCategory"
-            raise NotImplementedError(
-                "creditCategory is not yet implemented, unknown ID format."
-            )
+            raise NotImplementedError("creditCategory is not yet implemented, unknown ID format.")
         case r"rm\d{7,}":
             query_name = "image"
         case r"imageGallery":
             query_name = "imageGallery"
-            raise NotImplementedError(
-                "imageGallery is not yet implemented, unknown ID format."
-            )
+            raise NotImplementedError("imageGallery is not yet implemented, unknown ID format.")
         case r"in\d{7,}":
             query_name = "interest"
         case r"kw\d{7,}":
             query_name = "keyword"
         case r"ur\d{7,}":
             # Possible without userID, you have to be signed in to get your own data.
+            # Requires auth now, profileId one does not.
             query_name = "userProfile"
             args = {
                 "input": {
                     "userId": id,
+                },
+            }
+        case r"p\.[a-z0-9]+":
+            # ProfileID form, does not require auth.
+            query_name = "userProfile"
+            args = {
+                "input": {
+                    "profileId": id,
                 },
             }
         case r"ls\d{7,}":

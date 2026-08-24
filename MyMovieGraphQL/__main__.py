@@ -6,15 +6,17 @@ commands (``getByID``, ``search``, ``searchName``, ``searchTitle``,
 stdout.
 """
 
-from MyMovieGraphQL import GetByID, GraphQL, Search
-from MyMovieGraphQL.MyMovie import MyMovie
-from MyMovieGraphQL.logger import logger
-import os
-import sys
-import orjson
 import inspect
-from types import UnionType, FunctionType
+import sys
+from types import FunctionType, UnionType
 from typing import Any
+
+import orjson
+
+from MyMovieGraphQL import GetByID, Search
+from MyMovieGraphQL.Constants import INDENT
+from MyMovieGraphQL.logger import logger
+from MyMovieGraphQL.MyMovie import MyMovie
 
 if __name__ != "__main__":
     raise RuntimeError("This is not to be called indirectly.")
@@ -68,20 +70,6 @@ Disclaimer:
 if len(sys.argv) == 1:
     sys.stdout.write(HELP)
     sys.exit(0)
-
-COUNTRY = os.environ.get("MYMOVIEGRAPHQL_COUNTRY", "US")
-LANGUAGE = os.environ.get("MYMOVIEGRAPHQL_LANGUAGE", "en")
-INDENT = os.environ.get("MYMOVIEGRAPHQL_INDENT", 1)
-logger.setLevel(level=os.environ.get("MYMOVIEGRAPHQL_LOGLEVEL", "INFO").upper())
-
-if isinstance(INDENT, str):
-    try:
-        INDENT = int(INDENT)
-    except ValueError:
-        INDENT = 1
-INDENT = orjson.OPT_INDENT_2 if INDENT and INDENT > 0 else 0  # fmt: skip
-
-GraphQL.setLocalCountryLanguage(country=COUNTRY, language=LANGUAGE)
 
 
 def getByID() -> MyMovie:
@@ -160,27 +148,17 @@ def update() -> MyMovie:
     data = orjson.loads(sys.stdin.buffer.read())
     if not (data.get("__typename") or data.get("id")):
         raise ValueError("The given input does not contain a type and id.")
-    logger.info(
-        "Given initial object <--- %s: %s --->", data.get("__typename"), data.get("id")
-    )
+    logger.info("Given initial object <--- %s: %s --->", data.get("__typename"), data.get("id"))
     obj = MyMovie(data)
     for upd in sys.argv[2:]:
         obj.update(upd.strip())
     return obj
 
 
-def get_args(func: FunctionType) -> dict[str, Any]:
-    """Parse CLI key=value args and coerce them to the target function's types.
-
-    Args:
-        func (FunctionType): The function whose signature is used to coerce
-            CLI-provided values.
-
-    Returns:
-        dict[str, Any]: Keyword arguments ready to pass to ``func``.
-    """
-    args_input = {}
-    for input_arg in sys.argv[3:]:
+def _parse_cli_key_values(argv: list[str] | tuple[str, ...]) -> dict[str, str]:
+    """Normalize CLI arguments of the form ``key=value`` into a dict."""
+    args_input: dict[str, str] = {}
+    for input_arg in argv:
         arg = input_arg.split("=")
         arg_name = arg[0].strip().lower()
         if len(arg) < 2:
@@ -194,17 +172,40 @@ def get_args(func: FunctionType) -> dict[str, Any]:
             logger.warning("Ignoring argument with no value: '%s'", arg_name)
             continue
         args_input[arg_name] = arg_value
-    args = {}
+    return args_input
+
+
+def _coerce_cli_value(param_name: str, value: str, annotation: Any) -> Any:
+    """Coerce a CLI value to the annotation used by the target function."""
+    if isinstance(annotation, UnionType):
+        return value
+    if annotation is bool:
+        return value.lower() not in {"f", "false", "0"}
+    return annotation(value)
+
+
+def get_args(func: FunctionType) -> dict[str, Any]:
+    """Parse CLI key=value args and coerce them to the target function's types.
+
+    Args:
+        func (FunctionType): The function whose signature is used to coerce
+            CLI-provided values.
+
+    Returns:
+        dict[str, Any]: Keyword arguments ready to pass to ``func``.
+    """
+    args_input = _parse_cli_key_values(sys.argv[3:])
+    args: dict[str, Any] = {}
     sig = inspect.signature(func)
     for param_name, param in sig.parameters.items():
-        if param_name.lower() not in args_input:
+        normalized_name = param_name.lower()
+        if normalized_name not in args_input:
             continue
-        if isinstance(param.annotation, UnionType):
-            args[param_name] = args_input[param_name.lower()]
-        elif param.annotation == bool:
-            args[param_name] = args_input[param_name.lower()].lower() not in {"f", "false", "0"}  # fmt: skip
-        else:
-            args[param_name] = param.annotation(args_input[param_name.lower()])
+        args[param_name] = _coerce_cli_value(
+            normalized_name,
+            args_input[normalized_name],
+            param.annotation,
+        )
     for args_input_key in args_input.keys():
         detected_args = [arg.lower() for arg in args.keys()]
         if args_input_key.lower() not in detected_args:

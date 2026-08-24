@@ -1,5 +1,6 @@
 import platform
-from importlib.metadata import metadata, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, metadata
+
 from MyMovieGraphQL import __name__ as name
 
 

@@ -5,10 +5,12 @@ object and offers convenience methods for common conversions and
 traversal. ``Search`` and ``GetByID`` return this object.
 """
 
-from typing import Iterable, Any
 import re
 from dataclasses import dataclass
+from typing import Any, Iterable
+
 from beartype import beartype
+
 from MyMovieGraphQL import GraphQL
 from MyMovieGraphQL.logger import logger
 
@@ -43,6 +45,31 @@ class MyMovie:
     inspect, convert and update the contained data.
     """
 
+    @staticmethod
+    def _base_type_prefix(of_type: str) -> str:
+        """Determine the prefix used to strip interface names from keys."""
+        GraphQL.load_config_json()
+        for name, definition in GraphQL.DATA.items():
+            possible_types = definition.get("possibleTypes", [])
+            if of_type in possible_types and definition.get("kind") == "INTERFACE":
+                return f"{name}_"
+        return f"{of_type}_"
+
+    @staticmethod
+    def _normalise_key(key: str, of_type: str, base_type_prefix: str) -> str:
+        """Strip the object type prefix from a GraphQL field key."""
+        key = key.removeprefix(f"{of_type}_")
+        return key.removeprefix(base_type_prefix)
+
+    @staticmethod
+    def _coerce_value(value: Any) -> Any:
+        """Recursively coerce nested dict/list values into MyMovie instances."""
+        if isinstance(value, dict):
+            return MyMovie(value)
+        if isinstance(value, list):
+            return [MyMovie(item) if isinstance(item, dict) else item for item in value]
+        return value
+
     @beartype
     def __init__(self, obj: dict) -> None:
         """Initialize the ``MyMovie`` wrapper from a raw response dict.
@@ -57,35 +84,16 @@ class MyMovie:
             raise ValueError("MyMovie's object dict is empty.")
         self.data: dict[str, Any] = dict()
         self.ofType: str = obj.get("__typename", "MissingTypeName")
-        baseTypePrefix = f"{self.ofType}_"
-        GraphQL.load_config_json()
-        # Some may be in UNIONSs on Connections, these keys
-        # could be the above type.
-        for k, v in GraphQL.DATA.items():
-            possibleTypes = v["possibleTypes"]
-            kind = v["kind"]
-            if self.ofType in possibleTypes and kind == "INTERFACE":
-                baseTypePrefix = f"{k}_"
-                break
-        for k, val in obj.items():
-            if not isinstance(k, str):
-                raise ValueError(
-                    f"Expected all dict keys to be a string, '{k}:{type(k)} = {val}' "
-                )
-            # Recursively set the type of each item,
-            # making them all a `MyMovie`, a list, or a base type
-            key = k.removeprefix(f"{self.ofType}_")
-            key = key.removeprefix(baseTypePrefix)
-            if key in self.data:
-                raise ValueError(f"Key: '{key}', was pased more than once.")
-            if isinstance(val, dict):
-                self.data[key] = MyMovie(val)
-            elif isinstance(val, list):
-                self.data[key] = [
-                    MyMovie(item) if isinstance(item, dict) else item for item in val
-                ]
-            else:
-                self.data[key] = val
+        base_type_prefix = self._base_type_prefix(self.ofType)
+
+        for key, val in obj.items():
+            if not isinstance(key, str):
+                raise ValueError(f"Expected all dict keys to be a string, '{key}:{type(key)} = {val}' ")
+            normalised_key = self._normalise_key(key, self.ofType, base_type_prefix)
+            if normalised_key in self.data:
+                raise ValueError(f"Key: '{normalised_key}', was pased more than once.")
+            self.data[normalised_key] = self._coerce_value(val)
+
         self.index: int | None = None
         if self.iterableAttribute():
             self.index = 0
@@ -129,6 +137,46 @@ class MyMovie:
                     return True
         return False
 
+    @staticmethod
+    def _page_info_matches(new_value: "MyMovie", current_value: "MyMovie") -> bool:
+        """Return whether two connection payloads represent the same page."""
+        if "edges" not in new_value.data:
+            return False
+        new_page_info = new_value.data.get("pageInfo", {})
+        current_page_info = current_value.data.get("pageInfo", {})
+        return new_page_info.get("startCursor") == current_page_info.get("startCursor") and new_page_info.get(
+            "endCursor"
+        ) == current_page_info.get("endCursor")
+
+    def _merge_key(self, key: str, value: Any) -> None:
+        """Merge a single key from another ``MyMovie`` object into this one."""
+        if key not in self.data:
+            self.data[key] = value
+            return
+
+        current_value = self.data.get(key)
+        if current_value is None:
+            self.data[key] = value
+            return
+
+        if not isinstance(value, type(self)) or not isinstance(current_value, type(self)):
+            return
+
+        if value.ofType != current_value.ofType:
+            raise TypeError(f"{value.ofType} and {current_value.ofType} are not the same.")
+
+        if "edges" not in value.data:
+            return
+
+        if self._page_info_matches(value, current_value):
+            return
+
+        for value_key, value_data in value.items():
+            if value_key == "edges" and value_data is not None:
+                self.data[key][value_key].extend(value_data)
+            else:
+                self.data[key][value_key] = value_data
+
     def __add__(self, other):
         """Merge another ``MyMovie`` into this one and return the result.
 
@@ -139,48 +187,78 @@ class MyMovie:
             raise TypeError(f"{type(other)} cannot be added to {type(self)}.")
         if self.ofType != other.ofType:
             raise TypeError(f"{other.ofType} cannot be added to {self.ofType}.")
-        for k, v in other.items():
-            if k not in self.data:
-                self.data[k] = v
-                continue
-            # Need to merge
-            self_val = self.data.get(k)
-            if self_val is None:
-                self.data[k] = v
-                continue
-            if isinstance(v, type(self)) and isinstance(self_val, type(self)):
-                if v.ofType != self_val.ofType:
-                    raise TypeError(
-                        f"{v.ofType} and {self_val.ofType} are not the same."
-                    )
-                if "edges" in v.data.keys():
-                    # replace the non-node objects and append the two edges
-                    v_pageInfo = v.data.get("pageInfo", {})
-                    v_endCursor = v_pageInfo.get("endCursor")
-                    v_startCursor = v_pageInfo.get("startCursor")
-                    self_pageInfo = self_val.data.get("pageInfo", {})
-                    self_endCursor = self_pageInfo.get("endCursor")
-                    self_startCursor = self_pageInfo.get("startCursor")
-                    if (
-                        v_startCursor == self_startCursor
-                        and v_endCursor == self_endCursor
-                    ):
-                        # The cursors match, no new data was fetched
-                        continue
-                    # Update the new data, some may have other fields.
-                    for v_key, v_data in v.items():
-                        if v_key == "edges" and v_data is not None:
-                            self.data[k][v_key].extend(v_data)
-                        else:
-                            self.data[k][v_key] = v_data
+
+        for key, value in other.items():
+            self._merge_key(key, value)
         return self
+
+    @staticmethod
+    def _search_name_for_type(of_type: str) -> str:
+        """Return the GraphQL query name used for an object update."""
+        search = of_type.removesuffix("Connection")
+        if len(search) > 1:
+            search = search[0].lower() + search[1:]
+        return search
+
+    @staticmethod
+    def _supports_update(search: str) -> bool:
+        """Return whether the GraphQL query supports updates for this search type."""
+        GraphQL.load_config_json()
+        for query in GraphQL.DATA["Query"]["fields"]:
+            if query["name"] == search:
+                return True
+        return False
+
+    def _connection_update(self, previous: bool, variables: dict[str, str | int | float | dict | None]):
+        """Populate cursor variables for paginated connection updates."""
+        page_info = self.data.get("pageInfo", {})
+        end_cursor = page_info.get("endCursor")
+        start_cursor = page_info.get("startCursor")
+        if previous and start_cursor is not None and "before" not in variables:
+            variables["before"] = start_cursor
+        elif not previous and end_cursor is not None and "after" not in variables:
+            variables["after"] = end_cursor
+        if not previous and not page_info.get("hasNextPage"):
+            return None
+        return variables
+
+    def _attribute_update(
+        self,
+        attribute: str | list,
+        variables: dict[str, str | int | float | dict | None],
+    ):
+        """Return the filtered attributes that still have a next page to fetch."""
+        if self.data.get("id") is None:
+            return attribute
+        variables["id"] = self.data.get("id")
+        original_was_string = isinstance(attribute, str)
+        current_attributes = [attribute] if original_was_string else list(attribute)
+        for attrib in current_attributes[:]:
+            current_data = self.data.get(attrib)
+            if current_data is None or not isinstance(current_data, type(self)):
+                continue
+            if not current_data.ofType.endswith("Connection"):
+                continue
+            page_info = current_data.get("pageInfo", {})
+            if not page_info.get("hasNextPage"):
+                current_attributes.remove(attrib)
+                continue
+            end_cursor = page_info.get("endCursor")
+            if end_cursor is not None:
+                variables[f"{self.ofType}_{attrib}_after"] = end_cursor
+
+        if original_was_string:
+            if current_attributes:
+                return current_attributes[0]
+            return []
+        return current_attributes
 
     @beartype
     def update(
         self,
         attribute: str | list = "",
         previous: bool = False,
-        variables: dict[str, str | int | float | dict | None] = {},
+        variables: dict[str, str | int | float | dict | None] | None = None,
     ):
         """Update the object and return the updated values.
 
@@ -196,67 +274,19 @@ class MyMovie:
             MyMovie | None: The updated ``MyMovie`` instance or ``None`` when
             there is nothing to update.
         """
-        # Sanity check
-        GraphQL.load_config_json()
-        search: str = self.ofType.removesuffix("Connection")
-        noUpdate = []
-        # Search is always the type with the first letter lowercase.
-        if len(search) > 1:
-            # Should always be longer than 1
-            search = search[0].lower() + search[1:]
-        foundQuery = False
-        for query in GraphQL.DATA["Query"]["fields"]:
-            if query["name"] == search:
-                foundQuery = True
-        if not foundQuery:
-            raise AttributeError(
-                f"'{self.ofType}' does not support being updated. Please update from the main object."
-            )
+        if variables is None:
+            variables = {}
+        search = self._search_name_for_type(self.ofType)
+        if not self._supports_update(search):
+            raise AttributeError(f"'{self.ofType}' does not support being updated. Please update from the main object.")
         if not attribute:
-            # This is to be only used for searches
-            # or connections that have a search of the same name.
-            pageInfo = self.data.get("pageInfo", {})
-            endCursor = pageInfo.get("endCursor")
-            startCursor = pageInfo.get("startCursor")
-            if previous and startCursor is not None and "before" not in variables:
-                variables["before"] = startCursor
-            elif not previous and endCursor is not None and "after" not in variables:
-                variables["after"] = endCursor
-            if not previous and not pageInfo.get("hasNextPage"):
-                # There is no next page
+            variables = self._connection_update(previous, variables) or variables
+            if variables is None:
                 return None
-        elif self.data.get("id") is not None:
-            variables["id"] = self.data.get("id")
-            if isinstance(attribute, str):
-                currentAttributes = [attribute]
-            else:
-                currentAttributes = attribute
-            for attrib in currentAttributes:
-                currentData = self.data.get(attrib)
-                if currentData is not None:
-                    if isinstance(currentData, type(self)):
-                        if currentData.ofType.endswith("Connection"):
-                            pageInfo = currentData.get("pageInfo", {})
-                            hasNextPage = pageInfo.get("hasNextPage")
-                            # startCursor is the first node, endCursor is the last node.
-                            # Updating the next page we use the end.
-                            endCursor = pageInfo.get("endCursor")
-                            after = f"{self.ofType}_{attrib}_after"
-                            if not hasNextPage:
-                                # Nothing to update, remove the attribute.
-                                # Calling for the items after the last cursor
-                                # will result in an error.
-                                noUpdate.append(attrib)
-                                continue
-                            variables[after] = endCursor
-        for attrib in noUpdate:
-            if isinstance(attribute, str):
-                attribute = []
-            else:
-                attribute.remove(attrib)
-        if attribute == []:
-            # There is nothing to update
-            return None
+        else:
+            attribute = self._attribute_update(attribute, variables)
+            if attribute == []:
+                return None
         update = GraphQL.search(searchName=search, limitAttributes=attribute, **variables)  # fmt: skip
         if not isinstance(update, type(self)) or update is None:
             raise ValueError(f"Updating {self.ofType} failed...")
@@ -269,9 +299,7 @@ class MyMovie:
                 len(update.data),
             )
         else:
-            logger.info(
-                "No update for <--- %s: %s --->.", self.ofType, self.data.get("id")
-            )
+            logger.info("No update for <--- %s: %s --->.", self.ofType, self.data.get("id"))
         return update
 
     def __hash__(self) -> int:
@@ -334,7 +362,7 @@ class MyMovie:
         """Return an iterable of (key, value) pairs from the wrapped data."""
         return self.data.items()
 
-    def __int__(self) -> int:
+    def __int__(self) -> int:  # noqa: C901
         """Return an integer representation when a numeric field is present.
 
         Attempts multiple common numeric fields and raises ``TypeError`` if
@@ -372,7 +400,7 @@ class MyMovie:
             return int(ratingsSummary)
         raise TypeError(f"{self.ofType} does not support int conversion.")
 
-    def __float__(self) -> float:
+    def __float__(self) -> float:  # noqa: C901
         """Return a float representation when a numeric field is present."""
         votePercentage = self.data.get("votePercentage")
         amount = self.data.get("amount")
@@ -540,7 +568,7 @@ class MyMovie:
         year = self.data.get("releaseYear")
         return f"{title} ({year})"
 
-    def _otherStr(self):
+    def _otherStr(self):  # noqa: C901
         text = self.data.get("text")
         url = self.data.get("url")
         value = self.data.get("value")
@@ -645,9 +673,7 @@ class MyMovie:
         if "edges" in self.data.keys():
             edges = [
                 # main search will have an entity, which is the actual data.
-                edge.get("node").get("entity")
-                if edge.get("node").get("entity") is not None
-                else edge.get("node")
+                edge.get("node").get("entity") if edge.get("node").get("entity") is not None else edge.get("node")
                 for edge in self.data.get("edges", [])
             ]
             return iter(edges)

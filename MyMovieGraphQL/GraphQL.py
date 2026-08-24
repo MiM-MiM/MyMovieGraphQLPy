@@ -7,6 +7,7 @@ endpoint.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.resources as resources
 import json
 import logging
@@ -34,11 +35,11 @@ HEADERS = {
     "Content-Type": "application/json",
     "x-imdb-user-country": "US",
     "x-imdb-user-language": "en-US",
-    "x-imdb-client-name": "imdb-web-next",
+    "x-imdb-client-name": "imdb-web-next-localized",
     "User-Agent": get_user_agent(),
     "Connection": "close",
-    "Accept": "application/json",
-    "Origin": "https://imdb.com",
+    "Accept": "application/graphql+json, application/json",
+    "Origin": "https://www.imdb.com",
     "Referer": "https://imdb.com/",
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
@@ -48,6 +49,7 @@ HEADERS = {
 # x-imdb-customer-id
 
 DATA, LIMITED = {}, {}
+_KNOWN_PERSISTED_QUERIES: set[tuple[str, str]] = set()
 
 
 def load_config_json():
@@ -138,6 +140,17 @@ def isScalarOrEnum(obj: dict):
     """
     # The return will handle attribute erors.
     return obj["kind"] in ["ENUM", "SCALAR"]
+
+
+@beartype
+def _persisted_query_not_found(errors: list[dict]) -> bool:
+    for error in errors:
+        code = (error.get("extensions") or {}).get("code")
+        if code == "PERSISTED_QUERY_NOT_FOUND":
+            return True
+        if error.get("message") == "PersistedQueryNotFound":
+            return True
+    return False
 
 
 @beartype
@@ -235,16 +248,39 @@ def _log_search_start(searchName: str, query_variables: dict) -> None:
 
 
 @beartype
-def _request_graphql_response(query_arg: dict) -> bytes:
-    """Send the GraphQL payload and return the raw response body."""
+def _request_graphql_response(query_arg: dict, use_get: bool = False) -> bytes:
+    """Send the GraphQL request and return the raw response body."""
     try:
-        response = requests.post(
-            url=API_URL,
-            json=query_arg,
-            headers=HEADERS,
-            timeout=(3.05, 10),
-        )
-        response.raise_for_status()
+        if use_get:
+            response = requests.get(
+                url=API_URL,
+                params={
+                    "operationName": query_arg["operationName"],
+                    "variables": orjson.dumps(query_arg["variables"]).decode("utf-8"),
+                    "extensions": orjson.dumps(query_arg["extensions"]).decode("utf-8"),
+                },
+                headers=HEADERS,
+                timeout=(3.05, 10),
+            )
+        else:
+            response = requests.post(
+                url=API_URL,
+                json=query_arg,
+                headers=HEADERS,
+                timeout=(3.05, 10),
+            )
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            if use_get:
+                try:
+                    payload = _decode_graphql_response(response.content)
+                except ValueError:
+                    pass
+                else:
+                    if _persisted_query_not_found(payload.get("errors") or []):
+                        return response.content
+            raise
     except requests.exceptions.Timeout as exc:
         raise TimeoutError("IMDb API request timed out after 10 seconds while waiting for a response.") from exc
     except requests.exceptions.RequestException as exc:
@@ -311,20 +347,47 @@ def search(searchName: str, limitAttributes: str | list[str] = "", **kwargs) -> 
     Returns:
         MyMovie: The search result wrapped in a ``MyMovie`` object.
     """
+    operation_name = "query"
     query, query_variables = _prepare_search_request(
         searchName,
         limitAttributes=limitAttributes,
         **kwargs,
     )
-    query_arg = {"query": query, "variables": query_variables}
+    query_hash = hashlib.sha256(query.encode("utf-8")).hexdigest()
+    extensions = {
+        "persistedQuery": {
+            "version": 1,
+            "sha256Hash": query_hash,
+        }
+    }
+    query_arg = {
+        "operationName": operation_name,
+        "variables": query_variables,
+        "extensions": extensions,
+    }
+    cache_key = (API_URL, query_hash)
+    use_get = cache_key in _KNOWN_PERSISTED_QUERIES
+    if not use_get:
+        query_arg["query"] = query
+
     _log_search_start(searchName, query_variables)
     start_time = time.perf_counter()
-    response_body = _request_graphql_response(query_arg)
+    response_body = _request_graphql_response(query_arg, use_get=use_get)
+    payload = _decode_graphql_response(response_body)
+    if use_get and _persisted_query_not_found(payload.get("errors") or []):
+        _KNOWN_PERSISTED_QUERIES.discard(cache_key)
+        logger.debug(
+            "Persisted query cache miss for '%s'; registering query.",
+            searchName,
+        )
+        query_arg["query"] = query
+        response_body = _request_graphql_response(query_arg)
+        payload = _decode_graphql_response(response_body)
     end_time = time.perf_counter()
     _log_response_size(len(response_body), start_time, end_time)
-    payload = _decode_graphql_response(response_body)
     _raise_for_graphql_errors(payload)
     query_data = validate_graphql_response(payload)
+    _KNOWN_PERSISTED_QUERIES.add(cache_key)
     return MyMovie(query_data)
 
 

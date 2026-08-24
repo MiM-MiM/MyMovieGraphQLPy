@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from unittest.mock import patch
-
-from MyMovieGraphQL import GetByID, GraphQL
 from MyMovieGraphQL.MyMovie import MyMovie
 
 
@@ -16,12 +13,14 @@ def test_mymovie_wraps_nested_data_and_serializes_recursively():
 
     movie = MyMovie(raw)
 
+    # fmt: off
     assert movie.ofType == "Title"
     assert movie["id"] == "tt1234567"
     assert movie["titleText"].get("text") == "Example"  # pyright: ignore[reportAttributeAccessIssue]
     assert movie["genres"][0].get("genre") == "Drama"
     assert movie.to_dict()["titleText"]["text"] == "Example"
     assert bool(movie) is True
+    # fmt: on
 
 
 def test_mymovie_connection_behavior_and_equality():

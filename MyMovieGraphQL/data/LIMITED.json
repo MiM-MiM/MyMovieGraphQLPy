@@ -4,6 +4,7 @@
     "text"
   ],
   "AwardsEvent": [
+    "eventType",
     "id",
     "location",
     "text",
@@ -39,6 +40,7 @@
     "title"
   ],
   "CreditV2": [
+    "catalogIds",
     "creditedRoles",
     "hierarchyDetails",
     "id",
@@ -60,6 +62,19 @@
     "jobs",
     "name",
     "title"
+  ],
+  "DiscussionReply": [
+    "author",
+    "body",
+    "canDelete",
+    "containsSpoilers",
+    "createdTime",
+    "entityMentions",
+    "id",
+    "isEdited",
+    "lastUpdated",
+    "replyCount",
+    "status"
   ],
   "ExperimentalCast": [
     "attributes",
@@ -179,6 +194,7 @@
   "NominationEvent": [
     "akas",
     "awards",
+    "eventType",
     "id",
     "location",
     "name",
@@ -192,6 +208,7 @@
     "createdFromListId",
     "description",
     "id",
+    "isActive",
     "isClosed",
     "primaryImage",
     "question",
@@ -214,6 +231,9 @@
     "spokenLanguages",
     "titleGenres",
     "countriesOfOrigin"
+  ],
+  "UIWorkflowDisplayAggregateControl": [
+    "aggregateOperation"
   ],
   "User": [
     "displayName",

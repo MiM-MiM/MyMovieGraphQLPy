@@ -10,37 +10,28 @@ from MyMovieGraphQL.MyMovie import MyMovie
 from MyMovieGraphQL.UserAgent import get_user_agent
 
 
-def get_invalid_type_for_annotation(annotation):
-    """
-    Returns a value of a type that is invalid for the given annotation.
-    """
-    if annotation is Any:
-        return None  # Cannot test Any
+def _invalid_value_for_union(args):
+    """Choose a value that violates a union-type annotation."""
+    valid_types = []
+    for arg in args:
+        arg_origin = get_origin(arg)
+        valid_types.append(arg_origin if arg_origin else arg)
 
-    origin = get_origin(annotation)
-    args = get_args(annotation)
+    if str not in valid_types:
+        return "a_string"
+    if int not in valid_types:
+        return 123
+    if list not in valid_types:
+        return [1, 2]
+    if dict not in valid_types:
+        return {"key": "value"}
+    if float not in valid_types:
+        return 123.45
+    return {1, 2, "a"}
 
-    if origin is UnionType:
-        valid_types = []
-        for arg in args:
-            arg_origin = get_origin(arg)
-            if arg_origin:
-                valid_types.append(arg_origin)
-            else:
-                valid_types.append(arg)
 
-        if str not in valid_types:
-            return "a_string"
-        if int not in valid_types:
-            return 123
-        if list not in valid_types:
-            return [1, 2]
-        if dict not in valid_types:
-            return {"key": "value"}
-        if float not in valid_types:
-            return 123.45
-        return {1, 2, "a"}
-
+def _invalid_value_for_annotation(annotation):
+    """Return a value that should fail validation for a given type annotation."""
     if annotation is str:
         return 123
     if annotation is int:
@@ -53,9 +44,22 @@ def get_invalid_type_for_annotation(annotation):
         return "not_a_bool"
     if annotation is float:
         return "not_a_float"
-    if origin is list:
+    if get_origin(annotation) is list:
         return "not_a_list"
     return {1, 2, "a"}
+
+
+def get_invalid_type_for_annotation(annotation):
+    """Return a value of the wrong type for the supplied annotation."""
+    if annotation is Any:
+        return None
+
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+
+    if origin is UnionType:
+        return _invalid_value_for_union(args)
+    return _invalid_value_for_annotation(annotation)
 
 
 constraint_functions = [
@@ -78,9 +82,7 @@ search_functions = [
     for name, func in inspect.getmembers(Search, inspect.isfunction)
     if not name.startswith("__") and name != "Any" and name != "beartype"
 ]
-all_functions = (
-    getByID_functions + constraint_functions + graphQL_functions + search_functions
-)
+all_functions = getByID_functions + constraint_functions + graphQL_functions + search_functions
 
 
 @pytest.mark.parametrize("name, func", all_functions)
@@ -178,7 +180,7 @@ def test_MyMovie_numeric_bool_and_iterator_helpers():
     assert len(connection) == 2
     assert connection[0] == "Alpha"
     # fmt: off
-    assert [item.get("titleText") for item in iter(connection)] == ["Alpha", "Beta"]  # pyright: ignore[reportAttributeAccessIssue]
+    assert [item.get("titleText") for item in iter(connection)] == ["Alpha", "Beta"]  # pyright: ignore[reportAttributeAccessIssue] # noqa: E501
     # fmt: on
 
 

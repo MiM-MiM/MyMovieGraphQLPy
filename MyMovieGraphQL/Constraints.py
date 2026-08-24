@@ -8,8 +8,10 @@ argument. Functions return ``dict`` when they produce a constraint or
 Docstring style: Google style (``Args``, ``Returns``, ``Raises``).
 """
 
-from typing import Any
 import re
+from collections.abc import Callable
+from typing import Any
+
 from beartype import beartype
 
 # Each constraint should return a base search dict or None
@@ -18,11 +20,11 @@ from beartype import beartype
 
 
 @beartype
-def _getFromListIfExists(l: list, idx: int) -> Any | None:
-    """Return the list element at ``idx`` or ``None`` if out of range.
+def _getFromListIfExists(lst: list, idx: int) -> Any | None:
+    """Return the list element at ``idx`` or ``None`` if out of range. aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaa aaa
 
     Args:
-        l (list): The list to read from.
+        lst (list): The list to read from.
         idx (int): The index to retrieve.
 
     Returns:
@@ -30,7 +32,7 @@ def _getFromListIfExists(l: list, idx: int) -> Any | None:
         out of range.
     """
     try:
-        return l[idx]
+        return lst[idx]
     except IndexError:
         return None
 
@@ -51,14 +53,12 @@ def alternateVersionMatchingConstraint(
     Returns:
         dict | None: Constraint dict or ``None`` when no constraint applies.
     """
-    constraint = {}
-    allowedTypes = ["any", "all"]
-    alternateVersionIncludeType = alternateVersionIncludeType.lower()
-    if alternateVersion and alternateVersionIncludeType in allowedTypes:
-        if isinstance(alternateVersion, str):
-            alternateVersion = [alternateVersion]
-        constraintName = f"{alternateVersionIncludeType}AlternateVersionTextTerms"
-        constraint[constraintName] = alternateVersion
+    constraint = _list_constraint(
+        alternateVersion,
+        alternateVersionIncludeType,
+        {"any", "all"},
+        "AlternateVersionTextTerms",
+    )
     return constraint or None
 
 
@@ -77,14 +77,12 @@ def awardConstraint(
         dict | None: Constraint dict or ``None`` when no constraint applies.
     """
     constraint = {}
-    allowedTypes = ["any", "all", "exclude"]
-    awardIncludeType = awardIncludeType.lower()
-    if award and awardIncludeType in allowedTypes:
+    awardIncludeType = _normalise_include_type(awardIncludeType, {"any", "all", "exclude"})
+    if award and awardIncludeType:
         if isinstance(award, str):
             award = [award]
         constraintName = f"{awardIncludeType}EventNominations"
-        awardFilter = [{"eventId": a} for a in award]
-        constraint[constraintName] = awardFilter
+        constraint[constraintName] = [{"eventId": a} for a in award]
     return constraint or None
 
 
@@ -131,14 +129,12 @@ def birthDateConstraint(
     Raises:
         ValueError: When date formats are invalid.
     """
-    if birthdayRangeStart and not re.fullmatch(
-        r"\d{4}-\d{2}-\d{2}", birthdayRangeStart
-    ):
-        raise ValueError(f"The start date is not of the correct form, yy-mm-dd")
+    if birthdayRangeStart and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", birthdayRangeStart):
+        raise ValueError("The start date is not of the correct form, yy-mm-dd")
     if birthdayRangeEnd and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", birthdayRangeEnd):
-        raise ValueError(f"The end date is not of the correct form, yy-mm-dd")
+        raise ValueError("The end date is not of the correct form, yy-mm-dd")
     if birthday and not re.fullmatch(r"(--)?\d{2}-\d{2}", birthday):
-        raise ValueError(f"The birthday is not of the correct form, mm-dd or --mm-dd")
+        raise ValueError("The birthday is not of the correct form, mm-dd or --mm-dd")
     constraint = {}
     birthday = "--" + birthday.removeprefix("--")
     if birthday and len(birthday) == 7:
@@ -171,7 +167,7 @@ def birthPlaceConstraint(
 
 @beartype
 def certificateConstraint(
-    certificate: dict | list = {},  # {rating: xxx, region: xxx}
+    certificate: dict | list | None = None,  # {rating: xxx, region: xxx}
     certificateIncludeType: str = "any",  # any/exclude
 ) -> dict | None:
     """Build a certificate (rating/region) constraint.
@@ -188,17 +184,15 @@ def certificateConstraint(
         ValueError: If certificate dict contains unexpected keys.
         TypeError: If certificate values are not strings or None.
     """
+    if certificate is None:
+        certificate = {}
     allowedDictKeys: set[str] = {"rating", "region"}
     if isinstance(certificate, dict):
         if any([key not in allowedDictKeys for key in certificate.keys()]):
-            raise ValueError(
-                f"Certificate contained more keys than allowed, {allowedDictKeys}."
-            )
+            raise ValueError(f"Certificate contained more keys than allowed, {allowedDictKeys}.")
         for a in allowedDictKeys:
             if not isinstance(certificate.get(a), str | None):
-                raise TypeError(
-                    f"Certificate must be strings for the keys: {allowedDictKeys}"
-                )
+                raise TypeError(f"Certificate must be strings for the keys: {allowedDictKeys}")
     constraint = {}
     allowedTypes = ["any", "exclude"]
     certificateIncludeType = certificateIncludeType.lower()
@@ -272,14 +266,12 @@ def crazyCreditMatchingConstraint(
     Returns:
         dict | None: Constraint dict or ``None`` when empty.
     """
-    constraint = {}
-    allowedTypes = ["any", "all"]
-    crazyCreditIncludeType = crazyCreditIncludeType.lower()
-    if crazyCredit and crazyCreditIncludeType in allowedTypes:
-        if isinstance(crazyCredit, str):
-            crazyCredit = [crazyCredit]
-        constraintName = f"{crazyCreditIncludeType}CrazyCreditTextTerms"
-        constraint[constraintName] = crazyCredit
+    constraint = _list_constraint(
+        crazyCredit,
+        crazyCreditIncludeType,
+        {"any", "all"},
+        "CrazyCreditTextTerms",
+    )
     return constraint or None
 
 
@@ -300,21 +292,15 @@ def creditedCompanyConstraint(
         dict | None: Constraint dict or ``None`` when no constraint applies.
     """
     constraint = {}
-    allowedTypes = ["any", "all", "exclude"]
-    companyIncludeType = companyIncludeType.lower()
-    if companyIncludeType not in allowedTypes:
+    companyIncludeType = _normalise_include_type(companyIncludeType, {"any", "all", "exclude"})
+    if companyIncludeType not in {"any", "all", "exclude"}:
         company = ""
     if not company and not companyCategory:
         return None
     if companyCategory:
-        if isinstance(companyCategory, str):
-            companyCategory = [companyCategory]
-        constraint["anyCompanyCategories"] = companyCategory
+        constraint["anyCompanyCategories"] = _as_list(companyCategory)
     if company:
-        if isinstance(company, str):
-            company = [company]
-        constraintName = f"{companyIncludeType}CompanyIds"
-        constraint[constraintName] = company
+        constraint[f"{companyIncludeType}CompanyIds"] = _as_list(company)
     return constraint or None
 
 
@@ -333,14 +319,12 @@ def creditedNameConstraint(
     Returns:
         dict | None: Constraint dict or ``None`` when empty.
     """
-    constraint = {}
-    allowedTypes = ["any", "all", "exclude"]
-    creditedNameIncludeType = creditedNameIncludeType.lower()
-    if creditedNameID and creditedNameIncludeType in allowedTypes:
-        if isinstance(creditedNameID, str):
-            creditedNameID = [creditedNameID]
-        constraintName = f"{creditedNameIncludeType}NameIds"
-        constraint[constraintName] = creditedNameID
+    constraint = _list_constraint(
+        creditedNameID,
+        creditedNameIncludeType,
+        {"any", "all", "exclude"},
+        "NameIds",
+    )
     return constraint or None
 
 
@@ -358,14 +342,12 @@ def currentProductionStatusStageConstraint(
     Returns:
         dict | None: Constraint dict or ``None`` when empty.
     """
-    constraint = {}
-    allowedTypes = ["any", "exclude"]
-    productionStageIncludeType = productionStageIncludeType.lower()
-    if productionStageID and productionStageIncludeType in allowedTypes:
-        if isinstance(productionStageID, str):
-            productionStageID = [productionStageID]
-        constraintName = f"{productionStageIncludeType}ProductionStageIds"
-        constraint[constraintName] = productionStageID
+    constraint = _list_constraint(
+        productionStageID,
+        productionStageIncludeType,
+        {"any", "exclude"},
+        "ProductionStageIds",
+    )
     return constraint or None
 
 
@@ -387,9 +369,9 @@ def deathDateConstraint(
         ValueError: When date formats are invalid.
     """
     if deathDate and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", deathDate):
-        raise ValueError(f"The death date is not of the correct form, yy-mm-dd")
+        raise ValueError("The death date is not of the correct form, yy-mm-dd")
     if deathDateEnd and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", deathDateEnd):
-        raise ValueError(f"The death date end is not of the correct form, yy-mm-dd")
+        raise ValueError("The death date end is not of the correct form, yy-mm-dd")
     constraint = {}
     if deathDate or deathDateEnd:
         constraint["deathDateRange"] = {
@@ -438,25 +420,15 @@ def episodicConstraint(
         dict | None: Constraint dict or ``None`` when empty.
     """
     constraint = {}
-    seasonEpisodeType = seasonEpisodeType.lower()
-    seriesIDType = seriesIDType.lower()
-    allowedTypes = ["any", "exclude"]
-    if seriesID and seriesIDType in allowedTypes:
-        if isinstance(seriesID, str):
-            seriesID = [seriesID]
-        constraintName = f"{seasonEpisodeType}SeriesIds"
-        constraint[constraintName] = seriesID
-    if (season or episode) and seasonEpisodeType in allowedTypes:
-        if season:
-            if isinstance(season, str):
-                season = [season]
-            constraintName = f"{seasonEpisodeType}Seasons"
-            constraint[constraintName] = season
-        if episode:
-            if isinstance(episode, str):
-                episode = [episode]
-            constraintName = f"{seasonEpisodeType}EpisodeNumbers"
-            constraint[constraintName] = episode
+    seasonEpisodeType = _normalise_include_type(seasonEpisodeType, {"any", "exclude"})
+    seriesIDType = _normalise_include_type(seriesIDType, {"any", "exclude"})
+    if seriesID and seriesIDType:
+        constraint[f"{seasonEpisodeType}SeriesIds"] = _as_list(seriesID)
+    if season or episode:
+        if season and seasonEpisodeType:
+            constraint[f"{seasonEpisodeType}Seasons"] = _as_list(season)
+        if episode and seasonEpisodeType:
+            constraint[f"{seasonEpisodeType}EpisodeNumbers"] = _as_list(episode)
     return constraint or None
 
 
@@ -496,14 +468,12 @@ def filmingLocationConstraint(
     Returns:
         dict | None: Constraint dict or ``None`` when empty.
     """
-    constraint = {}
-    allowedTypes = ["any", "all"]
-    filmingLocationType = filmingLocationType.lower()
-    if filmingLocation and filmingLocationType in allowedTypes:
-        if isinstance(filmingLocation, str):
-            filmingLocation = [filmingLocation]
-        constraintName = f"{filmingLocationType}Locations"
-        constraint[constraintName] = filmingLocation
+    constraint = _list_constraint(
+        filmingLocation,
+        filmingLocationType,
+        {"any", "all"},
+        "Locations",
+    )
     return constraint or None
 
 
@@ -511,8 +481,7 @@ def filmingLocationConstraint(
 def filmographyConstraint(
     filmographyTitleID: str | list[str] = "",
     filmographyTitleIDType: str = "all",  # all/any/exclude
-    filmographyTitleIDExclude: str
-    | list[str] = "",  # If type is also exclude it will use this one.
+    filmographyTitleIDExclude: str | list[str] = "",  # If type is also exclude it will use this one.
 ) -> dict | None:
     """Build a filmography-based constraint for name searches.
 
@@ -555,15 +524,13 @@ def genderIdentityConstraint(
     Returns:
         dict | None: Constraint dict or ``None`` when empty.
     """
-    constraint = {}
-    genderType = genderType.lower()
-    allowedTypes = ["any", "exclude"]
-    if gender and genderType in allowedTypes:
-        if isinstance(gender, str):
-            gender = [gender]
-        gender = [g.upper() for g in gender]
-        constraintName = f"{genderType}Gender"
-        constraint[constraintName] = gender
+    constraint = _list_constraint(
+        gender,
+        genderType,
+        {"any", "exclude"},
+        "Gender",
+        transform=lambda item: item.upper(),
+    )
     return constraint or None
 
 
@@ -583,16 +550,16 @@ def genreConstraint(
     Returns:
         dict | None: Constraint dict or ``None`` when empty.
     """
-    constraint = {}
-    allowedTypes = ["any", "all", "exclude"]
-    genreType = genreType.lower()
-    if genre and genreType in allowedTypes:
-        if isinstance(genre, str):
-            genre = [genre]
-        constraintName = f"{genreType}GenreIds"
-        constraint[constraintName] = genre
-        if genreMaxRelevant is not None:
-            constraint["maxRelevantGenres"] = genreMaxRelevant
+    constraint = _list_constraint(
+        genre,
+        genreType,
+        {"any", "all", "exclude"},
+        "GenreIds",
+    )
+    if constraint and genreMaxRelevant is not None:
+        # fmt: off
+        constraint["maxRelevantGenres"] = genreMaxRelevant  # pyright: ignore[reportArgumentType]
+        # fmt: on
     return constraint or None
 
 
@@ -610,15 +577,81 @@ def goofMatchingConstraint(
     Returns:
         dict | None: Constraint dict or ``None`` when empty.
     """
-    constraint = {}
-    allowedTypes = ["any", "all"]
-    goofType = goofType.lower()
-    if goof and goofType in allowedTypes:
-        if isinstance(goof, str):
-            goof = [goof]
-        constraintName = f"{goofType}GoofTextTerms"
-        constraint[constraintName] = goof
+    constraint = _list_constraint(
+        goof,
+        goofType,
+        {"any", "all"},
+        "GoofTextTerms",
+    )
     return constraint or None
+
+
+@beartype
+def _as_list(value: str | list[str] | None = None) -> list[str]:
+    """Normalize a single value or list into a list form."""
+    if value in (None, ""):
+        return []
+    if isinstance(value, str):
+        return [value]
+    return list(value)
+
+
+@beartype
+def _normalise_include_type(
+    include_type: str,
+    allowed_types: set[str] | list[str],
+) -> str:
+    """Lowercase an include-type value when it is valid for the target constraint."""
+    include_type = include_type.lower()
+    if include_type not in set(allowed_types):
+        return ""
+    return include_type
+
+
+@beartype
+def _list_constraint(
+    value: str | list[str] | None = None,
+    include_type: str = "",
+    allowed_types: set[str] | list[str] | None = None,
+    suffix: str = "",
+    transform: Callable[[str], str] | None = None,
+) -> dict[str, list[str] | list[int] | list[float]]:
+    """Build a common include/exclude list constraint without repeating boilerplate."""
+    allowed_types = set() if allowed_types is None else set(allowed_types)
+    include_type = _normalise_include_type(include_type, allowed_types)
+    if not value or not include_type:
+        return {}
+    values = _as_list(value)
+    if transform is not None:
+        values = [transform(item) for item in values]
+    return {f"{include_type}{suffix}": values}
+
+
+@beartype
+def _validate_theater_dates(start: str = "", end: str = "") -> None:
+    """Validate the theater date range arguments."""
+    if end and not start:
+        raise ValueError("You must have a start if you have an end date.")
+    if start and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", start):
+        raise ValueError("The start date is not of the correct form, yy-mm-dd")
+    if end and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", end):
+        raise ValueError("The end date is not of the correct form, yy-mm-dd")
+
+
+@beartype
+def _validate_theater_location(lat_long: dict[str, float] | None = None, radius: int = 0) -> None:
+    """Validate the location filter payload."""
+    allowed_keys: set[str] = {"lat", "long"}
+    if isinstance(lat_long, dict) and set(lat_long) - allowed_keys:
+        raise ValueError(f"Certificate contained more keys than allowed, {allowed_keys}.")
+    if lat_long is None:
+        lat_long = {}
+    lat = lat_long.get("lat")
+    long = lat_long.get("long")
+    if bool(lat) ^ bool(long):
+        raise ValueError("Either both latitude and longitude are passed or none.")
+    if radius < 1:
+        raise ValueError(f"The radius must be a positive integer {radius}")
 
 
 @beartype
@@ -628,7 +661,7 @@ def inTheatersConstraint(
     theaterStart: str = "",  # ISO-8601 format
     theaterEnd: str = "",  # The showtime dates, must have at least start
     theaterLocation: str = "",  # The postal code
-    theaterLocationLatLong: dict[str, float] = {},  # {lat: float, long: float}
+    theaterLocationLatLong: dict[str, float] | None = None,  # {lat: float, long: float}
     theaterLocationRadius: int = 50,  # In meters, default 50m
     theaterFavorite: bool = False,  # Wehn true: MyFavoriteTheaterSearchFilter ENUM
 ) -> dict | None:
@@ -651,35 +684,16 @@ def inTheatersConstraint(
     Raises:
         ValueError: For invalid date formats or inconsistent location args.
     """
-    if theaterEnd and not theaterStart:
-        raise ValueError(f"You must have a start if you have an end date.")
-    allowedDictKeys: set[str] = {"lat", "long"}
-    if isinstance(theaterLocationLatLong, dict):
-        if any([key not in allowedDictKeys for key in theaterLocationLatLong.keys()]):
-            raise ValueError(
-                f"Certificate contained more keys than allowed, {allowedDictKeys}."
-            )
-    if theaterStart and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", theaterStart):
-        raise ValueError(f"The start date is not of the correct form, yy-mm-dd")
-    if theaterEnd and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", theaterEnd):
-        raise ValueError(f"The end date is not of the correct form, yy-mm-dd")
-    lat = theaterLocationLatLong.get("lat")
-    long = theaterLocationLatLong.get("long")
-    if bool(lat) ^ bool(long):
-        raise ValueError(f"Either both latitude and longitude are passed or none.")
-    if theaterLocationRadius < 1:
-        raise ValueError(
-            f"The radius must be a positive integer {theaterLocationRadius}"
-        )
+    if theaterLocationLatLong is None:
+        theaterLocationLatLong = {}
+    _validate_theater_dates(theaterStart, theaterEnd)
+    _validate_theater_location(theaterLocationLatLong, theaterLocationRadius)
+
     constraint = {}
     if theaterID:
-        if isinstance(theaterID, str):
-            theaterID = [theaterID]
-        constraint["anyCinemaIds"] = theaterID
+        constraint["anyCinemaIds"] = _as_list(theaterID)
     if theaterAttribute:
-        if isinstance(theaterAttribute, str):
-            theaterAttribute = [theaterAttribute]
-        constraint["allTheaterAttributes"] = theaterAttribute
+        constraint["allTheaterAttributes"] = _as_list(theaterAttribute)
     if theaterStart:
         constraint["dateTimeRange"] = {"start": theaterStart, "end": theaterEnd or None}
     if theaterLocationLatLong or theaterLocation:
@@ -850,15 +864,9 @@ def myRatingConstraint(
     Raises:
         ValueError: When ``myRatingMin`` is greater than ``myRatingMax``.
     """
-    if (
-        myRatingMin is not None
-        and myRatingMax is not None
-        and myRatingMin > myRatingMax
-    ):
+    if myRatingMin is not None and myRatingMax is not None and myRatingMin > myRatingMax:
         # Cannot use the float(min or 'inf') style here, if one is 0, it results in inf.
-        raise ValueError(
-            f"The min cannot be larger than the mad, min:{myRatingMin} > max:{myRatingMax}"
-        )
+        raise ValueError(f"The min cannot be larger than the mad, min:{myRatingMin} > max:{myRatingMax}")
     constraint = {}
     if myRatingMin is not None or myRatingMax is not None:
         constraint = {
@@ -940,8 +948,7 @@ def plotMatchingConstraint(
 def professionConstraint(
     profession: str | list[str] = "",
     professionType: str = "any",
-    professionExclude: str
-    | list[str] = "",  # If type is set to exclude this overrids the above.
+    professionExclude: str | list[str] = "",  # If type is set to exclude this overrids the above.
 ) -> dict | None:
     """Build a profession-based constraint for name searches.
 
@@ -972,8 +979,7 @@ def professionConstraint(
 def professionCategoryConstraint(
     professionCategory: str | list[str] = "",
     professionCategoryType: str = "any",
-    professionCategoryExclude: str
-    | list[str] = "",  # If type is set to exclude this overrids the above.
+    professionCategoryExclude: str | list[str] = "",  # If type is set to exclude this overrids the above.
 ) -> dict | None:
     """Build a profession-category constraint.
 
@@ -1047,23 +1053,13 @@ def rankedTitleListConstraint(
     Raises:
         ValueError: When min is greater than max.
     """
-    if (
-        rankedTitleMin is not None
-        and rankedTitleMax is not None
-        and rankedTitleMin > rankedTitleMax
-    ):
-        raise ValueError(
-            f"The min cannot be larger than the ma, min:{rankedTitleMin} > max:{rankedTitleMax}"
-        )
+    if rankedTitleMin is not None and rankedTitleMax is not None and rankedTitleMin > rankedTitleMax:
+        raise ValueError(f"The min cannot be larger than the ma, min:{rankedTitleMin} > max:{rankedTitleMax}")
     # This can have a list of ranges, out of scope for basic search.
     constraint = {}
     allowedTypes = ["all", "any"]
     rankedTitleType = rankedTitleType.lower()
-    if (
-        (rankedTitleMin or rankedTitleMax)
-        and rankedTitleListType
-        and rankedTitleType in allowedTypes
-    ):
+    if (rankedTitleMin or rankedTitleMax) and rankedTitleListType and rankedTitleType in allowedTypes:
         constraintName = f"{rankedTitleType}RankedTitleLists"
         constraint[constraintName] = [
             {
@@ -1099,13 +1095,13 @@ def releaseDateConstraint(
         ValueError: When incompatible or invalid date arguments are given.
     """
     if year and dateStart:
-        raise ValueError(f"You can only pass a start date or a year, not both.")
+        raise ValueError("You can only pass a start date or a year, not both.")
     if yearEnd and dateEnd:
-        raise ValueError(f"You can only pass a end date or a year, not both.")
+        raise ValueError("You can only pass a end date or a year, not both.")
     if dateStart and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", dateStart):
-        raise ValueError(f"The start date is not of the correct form, yy-mm-dd")
+        raise ValueError("The start date is not of the correct form, yy-mm-dd")
     if dateEnd and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", dateEnd):
-        raise ValueError(f"The end date is not of the correct form, yy-mm-dd")
+        raise ValueError("The end date is not of the correct form, yy-mm-dd")
     # If you only give a year, do start and end of that year.
     # Otherwise you can specify yearEnd or more exact dates.
     constraint = {}
@@ -1142,13 +1138,9 @@ def runtimeConstraint(
         ValueError: For invalid ranges or negative runtimes.
     """
     if runtimeMax and runtimeMin and runtimeMin > runtimeMax:
-        raise ValueError(
-            f"The min cannot be larger than the max, min:{runtimeMin} > max:{runtimeMax}."
-        )
+        raise ValueError(f"The min cannot be larger than the max, min:{runtimeMin} > max:{runtimeMax}.")
     if runtimeMin < 0 or runtimeMax < 0:
-        raise ValueError(
-            f"The runtimes cannot be negative, min:{runtimeMin} and max:{runtimeMax}"
-        )
+        raise ValueError(f"The runtimes cannot be negative, min:{runtimeMin} and max:{runtimeMax}")
     constraint = {}
     if runtimeMin or runtimeMax:
         constraint["runtimeRangeMinutes"] = {
@@ -1179,22 +1171,12 @@ def singleUserRatingConstraint(
     Raises:
         ValueError: For invalid ranges or out-of-bounds rating values.
     """
-    if (
-        ratingUserRangeMin
-        and ratingUserRangeMax
-        and ratingUserRangeMin > ratingUserRangeMax
-    ):
-        raise ValueError(
-            f"The min cannot be larger than the max, min:{ratingUserRangeMin} > max:{ratingUserRangeMax}."
-        )
+    if ratingUserRangeMin and ratingUserRangeMax and ratingUserRangeMin > ratingUserRangeMax:
+        raise ValueError(f"The min cannot be larger than the max, min:{ratingUserRangeMin} > max:{ratingUserRangeMax}.")
     if ratingUserRangeMin < 0 or ratingUserRangeMax < 0:
-        raise ValueError(
-            f"The ratings cannot be negative, min:{ratingUserRangeMin} and max:{ratingUserRangeMax}"
-        )
+        raise ValueError(f"The ratings cannot be negative, min:{ratingUserRangeMin} and max:{ratingUserRangeMax}")
     if ratingUserRangeMin > 10 or ratingUserRangeMax > 10:
-        raise ValueError(
-            f"The ratings cannot be above 10, min:{ratingUserRangeMin} and max:{ratingUserRangeMax}"
-        )
+        raise ValueError(f"The ratings cannot be above 10, min:{ratingUserRangeMin} and max:{ratingUserRangeMax}")
     constraint = {}
     if ratingUserID and ratingUserType and (ratingUserRangeMin or ratingUserRangeMax):
         constraint = {
@@ -1228,9 +1210,7 @@ def soundMixConstraint(
     if soundMix:
         anySoundMixTypes = [soundMix] if isinstance(soundMix, str) else soundMix
     if soundMixExclude:
-        excludeSoundMixTypes = (
-            [soundMixExclude] if isinstance(soundMixExclude, str) else soundMixExclude
-        )
+        excludeSoundMixTypes = [soundMixExclude] if isinstance(soundMixExclude, str) else soundMixExclude
     if anySoundMixTypes or excludeSoundMixTypes:
         constraint = {
             "anySoundMixTypes": anySoundMixTypes or None,
@@ -1284,13 +1264,28 @@ def textSearchConstraint(
 
 
 @beartype
+def _expand_credit_values(
+    value: str | list[str] | None = None,
+    length: int = 0,
+) -> list[str | None]:
+    """Repeat or normalize a credit field to the requested length."""
+    if value is None or value == "":
+        return [None] * length
+    if isinstance(value, str):
+        return [value] * length
+    if len(value) != length:
+        return []
+    return list(value)
+
+
+@beartype
 def titleCreditsConstraint(
     creditCharacter: str | list[str] = "",
     creditCategory: str | list[str] = "",
     creditJobCategory: str | list[str] = "",
     creditNameID: str | list[str] = "",
     creditType: str = "all",
-    creditAdvanced: dict = {},
+    creditAdvanced: dict | None = None,
 ) -> dict | None:
     """Build constraints for title credit filters.
 
@@ -1307,30 +1302,24 @@ def titleCreditsConstraint(
         dict | None: Constraint dict or ``None`` when empty or invalid.
     """
     # TODO: Validate the creditAdvanced keys/values, this is not a general use arg.
-    constraint = {}
+    if creditAdvanced is None:
+        creditAdvanced = {}
     allowedTypes = ["all", "any"]
     creditType = creditType.lower()
-    constraintName = f"{creditType}Credits"
     if creditAdvanced:
-        # Useful if someone wants to include and exclude.
-        constraint = creditAdvanced
-    elif (
-        creditCharacter
-        or creditCategory
-        or creditJobCategory
-        or creditJobCategory
-        or creditNameID
-    ) and creditType in allowedTypes:
-        creditOptions = [
-            creditCharacter,
-            creditCategory,
-            creditJobCategory,
-            creditJobCategory,
-            creditNameID,
-        ]
-        if all(isinstance(x, str) for x in creditOptions):
-            # All strings, single character
-            constraint[constraintName] = [
+        return creditAdvanced
+    if not (creditCharacter or creditCategory or creditJobCategory or creditNameID) or creditType not in allowedTypes:
+        return None
+
+    creditOptions = [
+        creditCharacter,
+        creditCategory,
+        creditJobCategory,
+        creditNameID,
+    ]
+    if all(isinstance(value, str) for value in creditOptions):
+        return {
+            f"{creditType}Credits": [
                 {
                     "character": creditCharacter or None,
                     "creditCategory": creditCategory or None,
@@ -1338,50 +1327,28 @@ def titleCreditsConstraint(
                     "nameId": creditNameID or None,
                 }
             ]
-        elif any(isinstance(x, list) for x in creditOptions):
-            # all lists, must be same lengths or empty
-            maxLength = 0
-            constraint[constraintName] = []
-            for x in creditOptions:
-                if not isinstance(x, list):
-                    continue
-                if len(x) == 0:
-                    continue
-                if maxLength == 0:
-                    maxLength = len(x)
-                if len(x) != maxLength:
-                    return None
-            if maxLength == 0:
-                return None
-            # Allow to find if someone directed multiple films and similar.
-            if creditCharacter and isinstance(creditCharacter, str):
-                creditCharacter = [creditCharacter] * maxLength
-            if creditCategory and isinstance(creditCategory, str):
-                creditCategory = [creditCategory] * maxLength
-            if creditJobCategory and isinstance(creditJobCategory, str):
-                creditJobCategory = [creditJobCategory] * maxLength
-            if creditNameID and isinstance(creditNameID, str):
-                creditNameID = [creditNameID] * maxLength
+        }
 
-            constraint[constraintName] = []
-            for i in range(0, maxLength):
-                constraint[constraintName].append(
-                    {
-                        "character": _getFromListIfExists(
-                            creditCharacter, i
-                        ),  # pyright: ignore[reportArgumentType]
-                        "creditCategory": _getFromListIfExists(
-                            creditCategory, i
-                        ),  # pyright: ignore[reportArgumentType]
-                        "jobCategory": _getFromListIfExists(
-                            creditJobCategory, i
-                        ),  # pyright: ignore[reportArgumentType]
-                        "nameId": _getFromListIfExists(
-                            creditNameID, i
-                        ),  # pyright: ignore[reportArgumentType]
-                    }
-                )
-    return constraint or None
+    lengths = [len(value) for value in creditOptions if isinstance(value, list)]
+    if not lengths:
+        return None
+
+    max_length = max(lengths)
+    if any(length != max_length for length in lengths):
+        return None
+
+    expanded = {
+        "character": _expand_credit_values(creditCharacter, max_length),
+        "creditCategory": _expand_credit_values(creditCategory, max_length),
+        "jobCategory": _expand_credit_values(creditJobCategory, max_length),
+        "nameId": _expand_credit_values(creditNameID, max_length),
+    }
+
+    entries = [
+        {key: expanded[key][index] for key in ("character", "creditCategory", "jobCategory", "nameId")}
+        for index in range(max_length)
+    ]
+    return {f"{creditType}Credits": entries}
 
 
 @beartype
@@ -1404,13 +1371,9 @@ def titleMeterConstraint(
         ValueError: For invalid ranges or negative values.
     """
     if meterMin and meterMax and meterMin > meterMax:
-        raise ValueError(
-            f"The min cannot be bigger than the max, min:{meterMin} > max:{meterMax}"
-        )
+        raise ValueError(f"The min cannot be bigger than the max, min:{meterMin} > max:{meterMax}")
     if meterMin < 0 or meterMax < 0:
-        raise ValueError(
-            f"The min and max must be positive, min:{meterMin} and max:{meterMax}"
-        )
+        raise ValueError(f"The min and max must be positive, min:{meterMin} and max:{meterMax}")
     constraint = {}
     meterType = meterType.upper().removesuffix("_METER") + "_METER"
     if meterMin or meterMax:
@@ -1528,27 +1491,19 @@ def watchOptionsConstraint(
         dict | None: Constraint dict or ``None`` when empty.
     """
     constraint = {}
-    if watchProviderID:
-        if isinstance(watchProviderID, str):
-            watchProviderID = [watchProviderID]
-        constraint["anyWatchProviderIds"] = watchProviderID
-    if watchRegion:
-        if isinstance(watchRegion, str):
-            watchRegion = [watchRegion]
-        constraint["anyWatchRegions"] = watchRegion
-    if watchProviderIDExclude:
-        if isinstance(watchProviderIDExclude, str):
-            watchProviderIDExclude = [watchProviderIDExclude]
-        constraint["excludeWatchProviderIds"] = watchProviderIDExclude
-    if watchRegionExclude:
-        if isinstance(watchRegionExclude, str):
-            watchRegionExclude = [watchRegionExclude]
-        constraint["excludeWatchRegions"] = watchRegionExclude
-    if watchType:
-        # Does not need any other args, can filter only on types.
-        if isinstance(watchType, str):
-            watchType = [watchType]
-        constraint["hasWatchOptionTypes"] = watchType
+    field_map = (
+        ("anyWatchProviderIds", watchProviderID),
+        ("anyWatchRegions", watchRegion),
+        ("excludeWatchProviderIds", watchProviderIDExclude),
+        ("excludeWatchRegions", watchRegionExclude),
+        ("hasWatchOptionTypes", watchType),
+    )
+    for key, value in field_map:
+        if not value:
+            continue
+        if isinstance(value, str):
+            value = [value]
+        constraint[key] = value
     return constraint or None
 
 

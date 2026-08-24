@@ -1,6 +1,7 @@
 import json, copy
 from collections import deque
-with open('INTROSPECTION.json', 'r') as file:
+
+with open("INTROSPECTION.json", "r") as file:
     DATA = json.load(file)
 
 
@@ -14,75 +15,142 @@ Repeated for every type and save the result in `LIMITED.json`
 """
 LIMITED = {
     "Title": [
-        "id", "canonicalUrl", "titleType",
-        "releaseYear", "titleText", "originalTitleText",
-        "certificate", "primaryImage", "productionStatus",
-        "ratingsSummary", "releaseDate", "runtime",
-        "spokenLanguages", "titleGenres", "countriesOfOrigin"
+        "id",
+        "canonicalUrl",
+        "titleType",
+        "releaseYear",
+        "titleText",
+        "originalTitleText",
+        "certificate",
+        "primaryImage",
+        "productionStatus",
+        "ratingsSummary",
+        "releaseDate",
+        "runtime",
+        "spokenLanguages",
+        "titleGenres",
+        "countriesOfOrigin",
     ],
     "Name": [
-        "id", "canonicalUrl", "bio",
-        "akas", "birthDate", "nameText",
-        "birthLocation", "birthName", "death",
-        "deathCause", "deathDate", "deathLocation",
-        "deathStatus", "height",
+        "id",
+        "canonicalUrl",
+        "bio",
+        "akas",
+        "birthDate",
+        "nameText",
+        "birthLocation",
+        "birthName",
+        "death",
+        "deathCause",
+        "deathDate",
+        "deathLocation",
+        "deathStatus",
+        "height",
     ],
     "Cinema": [
-        "id", "accessibility", "contactDetails",
-        "location", "name",
+        "id",
+        "accessibility",
+        "contactDetails",
+        "location",
+        "name",
     ],
     "Company": [
-        "id", "bio", "companyText",
-        "companyTypes", "country", "acronyms",
+        "id",
+        "bio",
+        "companyText",
+        "companyTypes",
+        "country",
+        "acronyms",
     ],
     "News": [
-        "id", "articleTitle", "byline",
-        "date", "externalUrl", "image",
-        "language", "source", "text",
+        "id",
+        "articleTitle",
+        "byline",
+        "date",
+        "externalUrl",
+        "image",
+        "language",
+        "source",
+        "text",
     ],
     "Image": [
-        "id", "type", "width"
-        "height", "url", "languages",
+        "id",
+        "type",
+        "width" "height",
+        "url",
+        "languages",
     ],
     "Interest": [
-        "id", "category", "description"
-        "engagementStatistics", "primaryImage", "primaryText",
-        "score", "secondaryText", "visibilityLevel",
+        "id",
+        "category",
+        "description" "engagementStatistics",
+        "primaryImage",
+        "primaryText",
+        "score",
+        "secondaryText",
+        "visibilityLevel",
     ],
     "Video": [
-        "id", "contentType", "createdDate",
-        "description", "runtime",
+        "id",
+        "contentType",
+        "createdDate",
+        "description",
+        "runtime",
     ],
-    "LocalizedMarkdown": [
-        "language", "value"
-    ],
+    "LocalizedMarkdown": ["language", "value"],
     "Markdown": [
-        "expandedMarkdown", "markdown", "plaidHtml", "plainText",
+        "expandedMarkdown",
+        "markdown",
+        "plaidHtml",
+        "plainText",
     ],
     "Credit": [
-        "category", "name", "title",
+        "category",
+        "name",
+        "title",
     ],
     "ExperimentalCredit": [
-        "category", "name", "title",
+        "category",
+        "name",
+        "title",
     ],
     "List": [
-        "author", "createdDate", "description",
-        "id", "isPredefined", "items",
-        "lastModifiedDate", "listClass", "listType",
-        "name", "primaryImage", "visibility",
+        "author",
+        "createdDate",
+        "description",
+        "id",
+        "isPredefined",
+        "items",
+        "lastModifiedDate",
+        "listClass",
+        "listType",
+        "name",
+        "primaryImage",
+        "visibility",
     ],
     "User": [
-        "displayName", "fullName", "interests",
-        "isAmazonAccount", "linkedAuthProviders", "preferredLanguage",
-        "preferredStreamingProviders", "proStatus", "profile",
-        "ratingsPrivacy", "staffStatus", "titleDisplay"
+        "displayName",
+        "fullName",
+        "interests",
+        "isAmazonAccount",
+        "linkedAuthProviders",
+        "preferredLanguage",
+        "preferredStreamingProviders",
+        "proStatus",
+        "profile",
+        "ratingsPrivacy",
+        "staffStatus",
+        "titleDisplay",
     ],
     "CreditedRole": [
-        "attributes", "category", "characters",
-        "id", "language", "text",
-    ]
+        "attributes",
+        "category",
+        "characters",
+        "id",
+        "language",
+        "text",
+    ],
 }
-
 
 
 def bfs(start_node):
@@ -92,10 +160,10 @@ def bfs(start_node):
 
     while queue:
         current_node = queue.popleft()
-        neighbors = copy.deepcopy(DATA[current_node]['fields'])
+        neighbors = copy.deepcopy(DATA[current_node]["fields"])
         if current_node in LIMITED:
             neighbors = [i for i in neighbors if i["name"] in LIMITED[current_node]]
-        neighbors += DATA[current_node]['possibleTypes']
+        neighbors += DATA[current_node]["possibleTypes"]
         for neighbor in neighbors:
             if isinstance(neighbor, str):
                 neighbor_type = neighbor
@@ -109,16 +177,15 @@ def bfs(start_node):
                 visited.add(neighbor_type)
                 queue.append(neighbor_type)
     return False
+
+
 for check_type in DATA:
     if bfs(check_type):
         # Edges and connections should be ignored, they may be cyclical,
         # but this is to be blocked by the main type using it.
         if check_type.endswith("Edge") or check_type.endswith("Connection"):
             continue
-        check_type_names = [
-            field['name']
-            for field in DATA[check_type]['fields']
-        ]
+        check_type_names = [field["name"] for field in DATA[check_type]["fields"]]
         LIMITED[check_type] = LIMITED.get(check_type, [])
         for name in check_type_names:
             LIMITED[check_type].append(name)
@@ -128,5 +195,5 @@ for check_type in DATA:
 for check_type in DATA:
     if bfs(check_type):
         print(f"{check_type} is the start of a cycle still")
-with open('LIMITED.json', 'w', encoding="utf-8", newline='\n') as f:
+with open("LIMITED.json", "w", encoding="utf-8", newline="\n") as f:
     json.dump(LIMITED, f, indent=2, sort_keys=True)

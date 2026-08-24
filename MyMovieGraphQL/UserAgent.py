@@ -1,6 +1,6 @@
 import platform
-from pathlib import Path
-from importlib.metadata import metadata, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, metadata
+
 from MyMovieGraphQL import __name__ as name
 
 
@@ -11,14 +11,14 @@ def get_user_agent() -> str:
     try:
         pkg_meta = metadata(name)
         # fmt: off
-        pkg_name = pkg_meta.get("Name", name)  # pyright: ignore[reportAttributeAccessIssue]
-        pkg_version = pkg_meta.get("Version", "0.0.0")  # pyright: ignore[reportAttributeAccessIssue]
-        repo_url = pkg_meta.get("Project-URL", "") or pkg_meta.get("Home-page")  # pyright: ignore[reportAttributeAccessIssue]
+        pkg_name = pkg_meta.get("Name", name)  # pyright: ignore[reportAttributeAccessIssue] # noqa: E501
+        pkg_version = pkg_meta.get("Version", "0.0.0")  # pyright: ignore[reportAttributeAccessIssue] # noqa: E501
+        repo_url = pkg_meta.get("Project-URL", "") or pkg_meta.get("Home-page")  # pyright: ignore[reportAttributeAccessIssue] # noqa: E501
         if ", " in repo_url:
             _, repo_url = repo_url.split(", ", 1)
         else:
             repo_url = repo_url.strip()
-        email = pkg_meta.get("Maintainer-Email", "") or pkg_meta.get("Author-Email", "")  # pyright: ignore[reportAttributeAccessIssue]
+        email = pkg_meta.get("Maintainer-Email", "") or pkg_meta.get("Author-Email", "")  # pyright: ignore[reportAttributeAccessIssue] # noqa: E501
         # fmt: on
     except PackageNotFoundError:
         pkg_name = name

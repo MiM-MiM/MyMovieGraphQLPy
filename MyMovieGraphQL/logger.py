@@ -6,6 +6,7 @@ and an instance ``logger`` ready for import.
 """
 
 import logging
+
 from MyMovieGraphQL import __name__ as name
 
 
@@ -48,7 +49,27 @@ class CustomFormatter(logging.Formatter):
 
 
 logger = logging.getLogger(name)
-logger.setLevel(level=logging.INFO)
-logger_sh = logging.StreamHandler()
+logger.setLevel(logging.INFO)
+logger.propagate = True
+logger_sh = next(
+    (handler for handler in logger.handlers if isinstance(handler, logging.StreamHandler)),
+    None,
+)
+if logger_sh is None:
+    logger_sh = logging.StreamHandler()
+    logger.addHandler(logger_sh)
 logger_sh.setFormatter(CustomFormatter())
-logger.addHandler(logger_sh)
+logger_sh.setLevel(logging.INFO)
+
+
+def set_log_level(level: int | str) -> None:
+    """Set the package logger level while preserving INFO visibility in DEBUG mode."""
+    if logger_sh is None:
+        raise ValueError("Logger StreamHandler cannot be none.")
+    if isinstance(level, str):
+        level_name = level.strip().upper()
+        if not hasattr(logging, level_name):
+            raise ValueError(f"Unsupported log level: {level!r}")
+        level = getattr(logging, level_name)
+    logger.setLevel(level)
+    logger_sh.setLevel(level)

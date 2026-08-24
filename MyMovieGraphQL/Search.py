@@ -7,12 +7,14 @@ general-purpose searches.
 Docstring style: Google style (``Args``, ``Returns``, ``Raises``).
 """
 
-import re
-from beartype import beartype
-from MyMovieGraphQL import Constraints, GraphQL
-from MyMovieGraphQL.MyMovie import MyMovie
-from MyMovieGraphQL.logger import logger
 import logging
+import re
+
+from beartype import beartype
+
+from . import Constraints, GraphQL
+from .logger import logger
+from .MyMovie import MyMovie
 
 
 @beartype
@@ -59,7 +61,7 @@ def searchTitle(
     alternateVersionIncludeType: str = "any",  # any/all
     award: str | list = "",  # The award ID
     awardIncludeType: str = "any",  # any/all/exclude
-    certificate: dict | list = {},  # {rating: xxx, region: xxx}
+    certificate: dict | list | None = None,  # {rating: xxx, region: xxx}
     certificateIncludeType: str = "any",  # any/exclude
     character: str | list = "",
     creditedCharacters: bool = True,  # Limit to only credited roles.
@@ -92,7 +94,7 @@ def searchTitle(
     theaterStart: str = "",  # ISO-8601 format
     theaterEnd: str = "",  # The showtime dates, must have at least start
     theaterLocation: str = "",  # The postal code
-    theaterLocationLatLong: dict = {},  # {lat: float, long: float}
+    theaterLocationLatLong: dict | None = None,  # {lat: float, long: float}
     theaterLocationRadius: int = 50,  # In meters
     theaterFavorite: bool = False,  # Wehn true: MyFavoriteTheaterSearchFilter ENUM
     interestID: str | list = "",
@@ -141,7 +143,7 @@ def searchTitle(
     creditJobCategory: str | list = "",
     creditNameID: str | list = "",
     creditType: str = "all",
-    creditAdvanced: dict = {},
+    creditAdvanced: dict | None = None,
     meterMin: int = 0,
     meterMax: int = 0,
     meterType: str = "TITLE_METER",  # TitleMeterType ENUM
@@ -183,7 +185,9 @@ def searchTitle(
     """
     if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
         raise ValueError(
-            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
+            "Pagination does not look to be valid, "
+            "expected a base64 like string, [A-Za-z0-9=] "
+            f"with optional equals at the end, '{pagnation}' given."
         )
     if limit < 1:
         raise ValueError(f"Limit must be >= 1, `{limit}` passed")
@@ -206,42 +210,20 @@ def searchTitle(
                 alternateVersion, alternateVersionIncludeType
             ),
             "awardConstraint": Constraints.awardConstraint(award, awardIncludeType),
-            "certificateConstraint": Constraints.certificateConstraint(
-                certificate, certificateIncludeType
-            ),
-            "characterConstraint": Constraints.characterConstraint(
-                character, creditedCharacters
-            ),
-            "colorationConstraint": Constraints.colorationConstraint(
-                coloration, colorationIncludeType
-            ),
-            "crazyCreditMatchingConstraint": Constraints.crazyCreditMatchingConstraint(
-                crazyCredit, crazyCreditIncludeType
-            ),
-            "creditedCompanyConstraint": Constraints.creditedCompanyConstraint(
-                companyCategory, company, companyIncludeType
-            ),
-            "creditedNameConstraint": Constraints.creditedNameConstraint(
-                creditedNameID, creditedNameIncludeType
-            ),
+            "certificateConstraint": Constraints.certificateConstraint(certificate, certificateIncludeType),
+            "characterConstraint": Constraints.characterConstraint(character, creditedCharacters),
+            "colorationConstraint": Constraints.colorationConstraint(coloration, colorationIncludeType),
+            "crazyCreditMatchingConstraint": Constraints.crazyCreditMatchingConstraint(crazyCredit, crazyCreditIncludeType),
+            "creditedCompanyConstraint": Constraints.creditedCompanyConstraint(companyCategory, company, companyIncludeType),
+            "creditedNameConstraint": Constraints.creditedNameConstraint(creditedNameID, creditedNameIncludeType),
             "currentProductionStatusStageConstraint": Constraints.currentProductionStatusStageConstraint(
                 productionStageID, productionStageIncludeType
             ),
-            "episodicConstraint": Constraints.episodicConstraint(
-                seriesID, seriesIDType, season, episode, seasonEpisodeType
-            ),
-            "explicitContentConstraint": Constraints.explicitContentConstraint(
-                explicit
-            ),
-            "filmingLocationConstraint": Constraints.filmingLocationConstraint(
-                filmingLocation, filmingLocationType
-            ),
-            "genreConstraint": Constraints.genreConstraint(
-                genre, genreType, genreMaxRelevant
-            ),
-            "goofMatchingConstraint": Constraints.goofMatchingConstraint(
-                goof, goofType
-            ),
+            "episodicConstraint": Constraints.episodicConstraint(seriesID, seriesIDType, season, episode, seasonEpisodeType),
+            "explicitContentConstraint": Constraints.explicitContentConstraint(explicit),
+            "filmingLocationConstraint": Constraints.filmingLocationConstraint(filmingLocation, filmingLocationType),
+            "genreConstraint": Constraints.genreConstraint(genre, genreType, genreMaxRelevant),
+            "goofMatchingConstraint": Constraints.goofMatchingConstraint(goof, goofType),
             "inTheatersConstraint": Constraints.inTheatersConstraint(
                 theaterID,
                 theaterAttribute,
@@ -252,9 +234,7 @@ def searchTitle(
                 theaterLocationRadius,
                 theaterFavorite,
             ),
-            "interestConstraint": Constraints.interestConstraint(
-                interestID, interestType
-            ),
+            "interestConstraint": Constraints.interestConstraint(interestID, interestType),
             "keywordConstraint": Constraints.keywordConstraint(keyword, keywordType),
             "languageConstraint": Constraints.languageConstraint(
                 language, languageType, languagePrimary, languagePrimaryType, silent
@@ -267,37 +247,25 @@ def searchTitle(
                 inListType,
                 inPredefinedListType,
             ),
-            "myRatingConstraint": Constraints.myRatingConstraint(
-                myRatingType, myRatingMin, myRatingMax
-            ),
+            "myRatingConstraint": Constraints.myRatingConstraint(myRatingType, myRatingMin, myRatingMax),
             "originCountryConstraint": Constraints.originCountryConstraint(
                 originCountry,
                 originCountryType,
                 originPrimaryCountry,
                 originPrimaryCountryType,
             ),
-            "plotMatchingConstraint": Constraints.plotMatchingConstraint(
-                plotText, plotTextType, plotAuthor
-            ),
-            "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(
-                quote, quoteType
-            ),
+            "plotMatchingConstraint": Constraints.plotMatchingConstraint(plotText, plotTextType, plotAuthor),
+            "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(quote, quoteType),
             "rankedTitleListConstraint": Constraints.rankedTitleListConstraint(
                 rankedTitleMin, rankedTitleMax, rankedTitleListType, rankedTitleType
             ),
-            "releaseDateConstraint": Constraints.releaseDateConstraint(
-                year, yearEnd, dateStart, dateEnd
-            ),
+            "releaseDateConstraint": Constraints.releaseDateConstraint(year, yearEnd, dateStart, dateEnd),
             "runtimeConstraint": Constraints.runtimeConstraint(runtimeMin, runtimeMax),
             "singleUserRatingConstraint": Constraints.singleUserRatingConstraint(
                 ratingUserID, ratingUserRangeMin, ratingUserRangeMax, ratingUserType
             ),
-            "soundMixConstraint": Constraints.soundMixConstraint(
-                soundMix, soundMixExclude
-            ),
-            "soundtrackMatchingConstraint": Constraints.soundtrackMatchingConstraint(
-                soundtrackTerms, soundtrackTermsType
-            ),
+            "soundMixConstraint": Constraints.soundMixConstraint(soundMix, soundMixExclude),
+            "soundtrackMatchingConstraint": Constraints.soundtrackMatchingConstraint(soundtrackTerms, soundtrackTermsType),
             "titleCreditsConstraint": Constraints.titleCreditsConstraint(
                 creditCharacter,
                 creditCategory,
@@ -306,19 +274,11 @@ def searchTitle(
                 creditType,
                 creditAdvanced,
             ),
-            "titleMeterConstraint": Constraints.titleMeterConstraint(
-                meterMin, meterMax, meterType
-            ),
+            "titleMeterConstraint": Constraints.titleMeterConstraint(meterMin, meterMax, meterType),
             "titleTextConstraint": Constraints.textSearchConstraint(title),
-            "titleTypeConstraint": Constraints.titleTypeConstraint(
-                titleType, titleTypeExclude
-            ),
-            "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(
-                triviaTerm, triviaTermType
-            ),
-            "userRatingsConstraint": Constraints.userRatingsConstraint(
-                ratingMin, ratingMax, ratingCountMin, ratingCountMax
-            ),
+            "titleTypeConstraint": Constraints.titleTypeConstraint(titleType, titleTypeExclude),
+            "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(triviaTerm, triviaTermType),
+            "userRatingsConstraint": Constraints.userRatingsConstraint(ratingMin, ratingMax, ratingCountMin, ratingCountMax),
             "watchOptionsConstraint": Constraints.watchOptionsConstraint(
                 watchProviderID,
                 watchRegion,
@@ -326,9 +286,7 @@ def searchTitle(
                 watchRegionExclude,
                 watchType,
             ),
-            "withTitleDataConstraint": Constraints.withDataConstraint(
-                withData, withDataMissing, withDataAny
-            ),
+            "withTitleDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
         },
     }
     if logger.isEnabledFor(logging.DEBUG):
@@ -364,8 +322,7 @@ def searchName(
     explicit: str = "INCLUDE_ADULT",  # ExplicitContentFilter ENUM
     filmographyTitleID: str | list = "",
     filmographyTitleIDType: str = "all",  # all/any/exclude
-    filmographyTitleIDExclude: str
-    | list = "",  # If type is also exclude it will use this one.
+    filmographyTitleIDExclude: str | list = "",  # If type is also exclude it will use this one.
     gender: str | list = "",
     genderType: str = "any",  # any/exclude
     inList: str | list = "",
@@ -379,8 +336,7 @@ def searchName(
     # Above example is one listed in nm0000115's
     professionCategory: str | list = "",
     professionCategoryType: str = "any",
-    professionCategoryExclude: str
-    | list = "",  # If type is set to exclude this overrids the above.
+    professionCategoryExclude: str | list = "",  # If type is set to exclude this overrids the above.
     # profession example: amzn1.imdb.concept.profession.38160716-b702-4b4e-a737-1052cba53548
     # Seems to not work correctly, exclude returns results, even the one the ID came from.
     # Above example is one listed in nm0000115's
@@ -415,7 +371,9 @@ def searchName(
     """
     if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
         raise ValueError(
-            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
+            "Pagination does not look to be valid, "
+            "expected a base64 like string, [A-Za-z0-9=] "
+            f"with optional equals at the end, '{pagnation}' given."
         )
     if limit < 1:
         raise ValueError(f"Limit must be >= 1, `{limit}` passed")
@@ -428,26 +386,16 @@ def searchName(
         "sort": sort(sortBy, sortOrder),
         "constraints": {
             "awardConstraint": Constraints.awardConstraint(award, awardIncludeType),
-            "biographyConstraint": Constraints.biographyConstraint(
-                biographyAuthor, biographyText
-            ),
-            "birthDateConstraint": Constraints.birthDateConstraint(
-                birthdayRangeStart, birthdayRangeEnd, birthday
-            ),
+            "biographyConstraint": Constraints.biographyConstraint(biographyAuthor, biographyText),
+            "birthDateConstraint": Constraints.birthDateConstraint(birthdayRangeStart, birthdayRangeEnd, birthday),
             "birthPlaceConstraint": Constraints.birthPlaceConstraint(birthPlace),
-            "deathDateConstraint": Constraints.deathDateConstraint(
-                deathDate, deathDateEnd
-            ),
+            "deathDateConstraint": Constraints.deathDateConstraint(deathDate, deathDateEnd),
             "deathPlaceConstraint": Constraints.deathPlaceConstraint(deathPlace),
-            "explicitContentConstraint": Constraints.explicitContentConstraint(
-                explicit
-            ),
+            "explicitContentConstraint": Constraints.explicitContentConstraint(explicit),
             "filmographyConstraint": Constraints.filmographyConstraint(
                 filmographyTitleID, filmographyTitleIDType, filmographyTitleIDExclude
             ),
-            "genderIdentityConstraint": Constraints.genderIdentityConstraint(
-                gender, genderType
-            ),
+            "genderIdentityConstraint": Constraints.genderIdentityConstraint(gender, genderType),
             "listConstraint": Constraints.listConstraint(
                 inList,
                 inPredefinedList,
@@ -460,18 +408,10 @@ def searchName(
             "professionCategoryConstraint": Constraints.professionCategoryConstraint(
                 professionCategory, professionCategoryType, professionCategoryExclude
             ),
-            "professionConstraint": Constraints.professionConstraint(
-                profession, professionType, professionExclude
-            ),
-            "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(
-                quote, quoteType
-            ),
-            "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(
-                triviaTerm, triviaTermType
-            ),
-            "withNameDataConstraint": Constraints.withDataConstraint(
-                withData, withDataMissing, withDataAny
-            ),
+            "professionConstraint": Constraints.professionConstraint(profession, professionType, professionExclude),
+            "quoteMatchingConstraint": Constraints.quoteMatchingConstraint(quote, quoteType),
+            "triviaMatchingConstraint": Constraints.triviaMatchingConstraint(triviaTerm, triviaTermType),
+            "withNameDataConstraint": Constraints.withDataConstraint(withData, withDataMissing, withDataAny),
         },
     }
     if logger.isEnabledFor(logging.DEBUG):
@@ -486,14 +426,94 @@ def searchName(
 
 
 @beartype
+def _validate_main_search_inputs(
+    term: str = "",
+    searchType: str | list[str] | None = None,
+    titleType: str | list[str] | None = None,
+    limit: int = 25,
+    pagnation: str = "",
+) -> tuple[list[str], list[str]]:
+    """Validate user inputs for the main search endpoint."""
+    if searchType is None:
+        searchType = ["NAME", "TITLE"]
+    if titleType is None:
+        titleType = ["MOVIE", "TV"]
+    if not searchType:
+        raise ValueError("The search type cannot be blank.")
+    if limit < 1:
+        raise ValueError(f"The limit must be at least one, {limit} given")
+    if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
+        raise ValueError(
+            "Pagination does not look to be valid, "
+            "expected a base64 like string, [A-Za-z0-9=] "
+            f"with optional equals at the end, '{pagnation}' given."
+        )
+    if not term:
+        raise ValueError("The search term must be give.")
+
+    if isinstance(searchType, str):
+        searchType = [searchType]
+    normalized_search_type = [t.upper() for t in searchType]
+
+    if isinstance(titleType, str):
+        titleType = [titleType]
+    normalized_title_type = [t.upper() for t in titleType]
+
+    if "TITLE" in normalized_search_type and not normalized_title_type:
+        raise ValueError("The title type must be given if you are searching a title.")
+
+    return normalized_search_type, normalized_title_type
+
+
+@beartype
+def _build_main_search_args(
+    term: str = "",
+    limit: int = 25,
+    pagnation: str = "",
+    includeAdult: bool = True,
+    exact: bool = False,
+    isCustomerSelectable: bool = True,
+    searchType: list[str] | None = None,
+    titleType: list[str] | None = None,
+    year: int = 0,
+    yearEnd: int = 0,
+    dateStart: str = "",
+    dateEnd: str = "",
+) -> dict:
+    """Construct the GraphQL payload for a main search."""
+    if searchType is None:
+        searchType = ["NAME", "TITLE"]
+    if titleType is None:
+        titleType = ["MOVIE", "TV"]
+    dateRange = Constraints.releaseDateConstraint(year, yearEnd, dateStart, dateEnd) or {}  # fmt: skip
+    args = {
+        "first": limit,
+        "after": pagnation or None,
+        "options": {
+            "searchTerm": term,
+            "includeAdult": includeAdult,
+            "isExactMatch": exact,
+            "professionSearchOptions": {
+                "isCustomerSelectable": isCustomerSelectable,
+            },
+            "titleSearchOptions": {"type": titleType} | dateRange,  # fmt: skip
+            "type": searchType,
+        },
+    }
+    if "TITLE" not in searchType:
+        args["options"]["titleSearchOptions"] = None
+    return args
+
+
+@beartype
 def search(
     term: str,
     year: int = 0,
     yearEnd: int = 0,
     dateStart: str = "",
     dateEnd: str = "",
-    searchType: str | list[str] = ["NAME", "TITLE"],  # MainSearchType ENUM
-    titleType: str | list[str] = ["MOVIE", "TV"],
+    searchType: str | list[str] | None = None,  # MainSearchType ENUM
+    titleType: str | list[str] | None = None,
     limit: int = 25,
     pagnation: str = "",
     includeAdult: bool = True,
@@ -517,47 +537,27 @@ def search(
     Raises:
         ValueError: If required parameters are missing or invalid.
     """
-    if not searchType:
-        raise ValueError("The search type cannot be blank.")
-    if limit < 1:
-        raise ValueError(f"The limit must be at least one, {limit} given")
-    if pagnation and not re.fullmatch(r"[A-Za-z0-9]+=*$", pagnation):
-        raise ValueError(
-            f"Pagnation does not look to be valid, expected a base64 like string, [A-z0-9] with optional equals at the end, '{pagnation}' given."
-        )
-    if isinstance(searchType, str):
-        searchType = [searchType]
-    searchType = [t.upper() for t in searchType]
-    if isinstance(titleType, str):
-        titleType = [titleType]
-    titleType = [t.upper() for t in titleType]
-    if "TITLE" in searchType and not titleType:
-        raise ValueError("The title type must be given if you are searching a title.")
-    if not term:
-        raise ValueError("The search term must be give.")
-    dateRange = (
-        Constraints.releaseDateConstraint(year, yearEnd, dateStart, dateEnd) or {}
+    normalized_search_type, normalized_title_type = _validate_main_search_inputs(
+        term=term,
+        searchType=searchType,
+        titleType=titleType,
+        limit=limit,
+        pagnation=pagnation,
     )
-    # Sort and offset not availiable.
-    args = {
-        "first": limit,
-        "after": pagnation or None,
-        "options": {
-            "searchTerm": term,
-            "includeAdult": includeAdult,
-            "isExactMatch": exact,
-            "professionSearchOptions": {
-                "isCustomerSelectable": isCustomerSelectable,
-            },
-            "titleSearchOptions": {
-                "type": titleType,
-            } | dateRange,  # fmt: skip
-            "type": searchType,
-        },
-    }
-    # If we aren't searching for a title, this must be removed.
-    if "TITLE" not in searchType:
-        args["options"]["titleSearchOptions"] = None
+    args = _build_main_search_args(
+        term=term,
+        limit=limit,
+        pagnation=pagnation,
+        includeAdult=includeAdult,
+        exact=exact,
+        isCustomerSelectable=isCustomerSelectable,
+        searchType=normalized_search_type,
+        titleType=normalized_title_type,
+        year=year,
+        yearEnd=yearEnd,
+        dateStart=dateStart,
+        dateEnd=dateEnd,
+    )
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug("MainSearch called with args: %s", args)
     elif term:

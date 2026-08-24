@@ -89,6 +89,7 @@ Environment variables that affect CLI behavior:
 - `MYMOVIEGRAPHQL_INDENT`: JSON indent level for printed output (default `2`; set to `0` to disable pretty printing).
 - `MYMOVIEGRAPHQL_LOGLEVEL`: Logging level (e.g., `DEBUG`, `INFO`, `WARNING`).
 - `MYMOVIEGRAPHQL_LIVE`: When set to anything it will use the live endpoint rather than the cached one.
+- `MYMOVIEGRAPHQL_MAX_RESPONSE_MIB`: Default 32MiB max, in MiB.
 
 Notes:
 - CLI commands accept additional arguments as `key=value` pairs which are

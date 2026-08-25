@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MyMovieGraphQL"
-version = "1.2.0"
+version = "1.2.1"
 description = "Python3.10+ to fetch data from IMDb via the GraphQL API"
 readme = "README.md"
 requires-python = ">=3.10"

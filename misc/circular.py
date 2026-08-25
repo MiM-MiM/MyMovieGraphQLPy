@@ -181,20 +181,9 @@ def bfs(start_node):
 
 for check_type in DATA:
     # Remove all the Contribution Links
-    check_type_names = [
-        field["name"]
-        for field in DATA[check_type]["fields"]
-    ]
-    contributionLinks = [
-        field["name"]
-        for field in DATA[check_type]["fields"]
-        if field["type"] == "ContributionLink"
-    ]
-    if (
-        len(check_type_names) != len(contributionLinks)
-        and not LIMITED.get(check_type)
-        and len(contributionLinks) > 0
-    ):
+    check_type_names = [field["name"] for field in DATA[check_type]["fields"]]
+    contributionLinks = [field["name"] for field in DATA[check_type]["fields"] if field["type"] == "ContributionLink"]
+    if len(check_type_names) != len(contributionLinks) and not LIMITED.get(check_type) and len(contributionLinks) > 0:
         LIMITED[check_type] = []
         for name in check_type_names:
             if name not in contributionLinks:
